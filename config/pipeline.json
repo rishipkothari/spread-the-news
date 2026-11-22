@@ -1,0 +1,73 @@
+{
+  "methods": {
+    "sources": "static-json",
+    "fetch": "rss",
+    "cluster": "llm-single-pass",
+    "rank": "headline-index-v1"
+  },
+  "models": {
+    "cluster": "claude-sonnet-5-5",
+    "analyze": "claude-haiku-5-5",
+    "synthesize": "claude-sonnet-5-5",
+    "script": "claude-sonnet-5-5",
+    "check": "claude-sonnet-5-5"
+  },
+  "pricingPerMTok": {
+    "claude-sonnet-5-5": {
+      "input": 2.0,
+      "output": 10.0,
+      "cacheRead": 0.1,
+      "cacheWrite": 2.5
+    },
+    "claude-haiku-5-5": {
+      "input": 0.1,
+      "output": 0.5,
+      "cacheRead": 0.01,
+      "cacheWrite": 0.125
+    },
+    "claude-opus-5-5": {
+      "input": 4.0,
+      "output": 20.0,
+      "cacheRead": 0.2,
+      "cacheWrite": 5.0
+    }
+  },
+  "ranking": {
+    "weights": {
+      "coverage": 0.55,
+      "balance": 0.3,
+      "prominence": 0.15
+    },
+    "skewPenalty": 0.5,
+    "recencyHalfLifeHours": 24,
+    "opinionWeight": 0.5,
+    "minOutlets": 3
+  },
+  "fetch": {
+    "windowHours": 24,
+    "timeoutMs": 15000,
+    "userAgent": "SpreadTheNewsBot/0.1 (personal podcast; RSS reader)",
+    "maxSummaryChars": 400
+  },
+  "cluster": {
+    "minOutletsPerStory": 2,
+    "maxTokens": 48000,
+    "effort": "medium"
+  },
+  "historyDays": 14,
+  "failurePolicy": {
+    "minSourcesOk": 8,
+    "minStoriesChecked": 5
+  },
+  "vanilla": {
+    "lean": 0,
+    "categories": "all",
+    "targetDurationSec": 780,
+    "storyCount": {
+      "min": 8,
+      "max": 10
+    },
+    "orderStrategy": "top-then-category",
+    "scriptStyle": "neutral-v1"
+  }
+}
