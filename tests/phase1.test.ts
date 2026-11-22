@@ -35,7 +35,7 @@ function seed() {
     sources: fixture.sources as Source[], sourceHealth: fixture.sourceHealth as SourceHealth, articles, stories,
   };
   store.set(paths.bundle(runId), bundle);
-  store.set(paths.status(runId), { runId, state: "running", params: vanillaParams(), methods: { ...config.methods }, stages: {}, errors: [], createdAt: "", updatedAt: "" });
+  store.set(paths.status(runId), { runId, state: "running", params: vanillaParams(), methods: { ...config.methods, extract: "feed-only", analyze: "stub", synthesize: "stub" }, stages: {}, errors: [], createdAt: "", updatedAt: "" });
   store.set(paths.history(), [
     { id: "s-old", date: "2026-11-19", title: "Funding talks begin", category: "us", summary: "Talks began." },
     { id: "s-mid", date: "2026-11-20", title: "Funding deadline nears", category: "us", continuesStoryId: "s-old" },

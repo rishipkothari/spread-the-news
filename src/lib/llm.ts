@@ -64,14 +64,15 @@ export async function structuredCall<T extends z.ZodType>(opts: {
   maxTokens: number;
   effort?: "low" | "medium" | "high" | "xhigh" | "max";
 }): Promise<{ data: z.infer<T>; usage: LlmUsage[] }> {
+  // Server-side refusal fallback exists for Sonnet/Opus/Fable, not Haiku.
+  const fallback = /^claude-(sonnet|opus|fable)/.test(opts.model);
   const usage: LlmUsage[] = [];
   let lastErr = "";
   for (let attempt = 0; attempt < 2; attempt++) {
     const stream = anthropic().beta.messages.stream({
       model: opts.model,
       max_tokens: opts.maxTokens,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
+      ...(fallback ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
       system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: opts.user }],
       output_config: {

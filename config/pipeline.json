@@ -4,9 +4,9 @@
     "fetch": "rss",
     "cluster": "llm-single-pass",
     "rank": "headline-index-v1",
-    "extract": "feed-only",
-    "analyze": "stub",
-    "synthesize": "stub"
+    "extract": "chain-v1",
+    "analyze": "haiku-facts-v1",
+    "synthesize": "sonnet-synthesis-v1"
   },
   "models": {
     "cluster": "claude-sonnet-5-5",
