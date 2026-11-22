@@ -1,11 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { priceFor } from "./config";
+import { config, priceFor } from "./config";
 import type { UsageEntry } from "./types";
 
 let client: Anthropic | null = null;
 export function anthropic(): Anthropic {
-  client ??= new Anthropic();
+  // Many story steps run at once; on 429 (concurrency/rate limit) the SDK backs off and retries,
+  // honoring retry-after. The default of 2 retries wasn't enough for a 15-story fan-out.
+  client ??= new Anthropic({ maxRetries: config.analysis.llmMaxRetries });
   return client;
 }
 
@@ -64,14 +66,15 @@ export async function structuredCall<T extends z.ZodType>(opts: {
   maxTokens: number;
   effort?: "low" | "medium" | "high" | "xhigh" | "max";
 }): Promise<{ data: z.infer<T>; usage: LlmUsage[] }> {
+  // Server-side refusal fallback exists for Sonnet/Opus/Fable, not Haiku.
+  const fallback = /^claude-(sonnet|opus|fable)/.test(opts.model);
   const usage: LlmUsage[] = [];
   let lastErr = "";
   for (let attempt = 0; attempt < 2; attempt++) {
     const stream = anthropic().beta.messages.stream({
       model: opts.model,
       max_tokens: opts.maxTokens,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
+      ...(fallback ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
       system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: opts.user }],
       output_config: {

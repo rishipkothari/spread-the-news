@@ -1,0 +1,362 @@
+{
+  "story": {
+    "id": "s-stopgap",
+    "title": "Senate passes stopgap funding bill ahead of shutdown deadline",
+    "category": "us",
+    "articleIds": [
+      "a-mj",
+      "a-hill",
+      "a-bbc",
+      "a-fox",
+      "a-dw-op"
+    ],
+    "headlineIndex": 0.6,
+    "ranked": true,
+    "continuesStoryId": "s-deadline"
+  },
+  "history": [
+    {
+      "id": "s-talks",
+      "date": "2026-11-18",
+      "title": "Budget talks stall over border funding",
+      "category": "us",
+      "summary": "Negotiators failed to agree on full-year spending as Republicans pressed for added border security money and Democrats resisted cuts to domestic programs."
+    },
+    {
+      "id": "s-deadline",
+      "date": "2026-11-20",
+      "title": "House passes stopgap as shutdown deadline nears",
+      "category": "us",
+      "continuesStoryId": "s-talks",
+      "summary": "The House approved a short-term funding bill through January 30 by 231 to 196, sending it to the Senate with a Friday midnight deadline."
+    }
+  ],
+  "articles": [
+    {
+      "article": {
+        "id": "a-mj",
+        "sourceId": "motherjones",
+        "url": "https://www.motherjones.com/politics/2026/11/stopgap-disaster-aid",
+        "title": "Congress Dodges a Holiday Shutdown, but Hurricane Victims Are Still Waiting",
+        "feedCategories": [
+          "Politics"
+        ],
+        "prominence": "latest",
+        "publishedAt": "2026-11-22T03:10:00Z",
+        "articleType": "news"
+      },
+      "sourceName": "Mother Jones",
+      "lean": "left",
+      "leanValue": -2,
+      "textStatus": "full",
+      "facts": [
+        {
+          "claim": "The Senate on Friday night approved a short-term spending bill that keeps the federal government open through January 30, averting a shutdown that would have begun at midnight.",
+          "quote": "The Senate on Friday night approved a short-term spending bill that keeps the federal government open through January 30, averting a shutdown that would have begun at midnight. The vote was 60 to 38.",
+          "kind": "event"
+        },
+        {
+          "claim": "The Senate vote on the stopgap spending bill was 60 to 38.",
+          "quote": "The vote was 60 to 38.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "The bill includes $12 billion in disaster aid, far short of the $38 billion that governors in Florida, Georgia and the Carolinas requested after this fall's hurricanes.",
+          "quote": "The bill includes $12 billion in disaster aid, far short of the $38 billion that governors in Florida, Georgia and the Carolinas requested after this fall's hurricanes.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "Senator Ana Torres, a Democrat from Florida, said that $12 billion is a down payment, not a recovery plan. She voted for the measure while criticizing its size.",
+          "quote": "\"Twelve billion dollars is a down payment, not a recovery plan,\" said Senator Ana Torres, a Democrat from Florida, who voted for the measure while criticizing its size.",
+          "kind": "statement",
+          "speaker": "Senator Ana Torres, a Democrat from Florida"
+        },
+        {
+          "claim": "The legislation extends the Supplemental Nutrition Assistance Program at current funding levels.",
+          "quote": "The legislation also extends the Supplemental Nutrition Assistance Program at current funding levels.",
+          "kind": "event"
+        },
+        {
+          "claim": "Advocates warned that a shutdown would have delayed December food benefits for roughly 42 million people.",
+          "quote": "Advocates had warned that a shutdown would have delayed December food benefits for roughly 42 million people.",
+          "kind": "statement",
+          "speaker": "Advocates"
+        },
+        {
+          "claim": "Eleven Republicans joined most Democrats to pass the bill.",
+          "quote": "Eleven Republicans joined most Democrats to pass the bill.",
+          "kind": "event"
+        },
+        {
+          "claim": "Senators Paul Grant of Oregon and Lena Brooks of Vermont, both Democrats, voted no on the bill.",
+          "quote": "Two Democrats, Senators Paul Grant of Oregon and Lena Brooks of Vermont, voted no, saying the bill should have included an extension of expanded child care subsidies that expire at the end of the year.",
+          "kind": "event"
+        },
+        {
+          "claim": "Senators Paul Grant of Oregon and Lena Brooks of Vermont said the bill should have included an extension of expanded child care subsidies that expire at the end of the year.",
+          "quote": "Two Democrats, Senators Paul Grant of Oregon and Lena Brooks of Vermont, voted no, saying the bill should have included an extension of expanded child care subsidies that expire at the end of the year.",
+          "kind": "statement",
+          "speaker": "Senators Paul Grant of Oregon and Lena Brooks of Vermont"
+        },
+        {
+          "claim": "Senate Majority Leader John Doe, a Republican, said the bill keeps the lights on while negotiators work on full-year funding.",
+          "quote": "Senate Majority Leader John Doe, a Republican, said the bill \"keeps the lights on\" while negotiators work on full-year funding.",
+          "kind": "statement",
+          "speaker": "Senate Majority Leader John Doe, a Republican"
+        },
+        {
+          "claim": "Senator Mary Roe of Utah called the bill another kick of the can.",
+          "quote": "Senator Mary Roe of Utah called the bill \"another kick of the can.\"",
+          "kind": "statement",
+          "speaker": "Senator Mary Roe of Utah"
+        },
+        {
+          "claim": "The White House said President Mark Ellis would sign the measure on Saturday.",
+          "quote": "The White House said President Mark Ellis would sign the measure on Saturday.",
+          "kind": "statement",
+          "speaker": "The White House"
+        }
+      ]
+    },
+    {
+      "article": {
+        "id": "a-hill",
+        "sourceId": "thehill",
+        "url": "https://thehill.com/homenews/senate/5098765-senate-passes-stopgap",
+        "title": "Senate passes stopgap, sending bill to Ellis hours before shutdown deadline",
+        "feedCategories": [
+          "Senate"
+        ],
+        "prominence": "latest",
+        "publishedAt": "2026-11-22T02:45:00Z",
+        "articleType": "news"
+      },
+      "sourceName": "The Hill",
+      "lean": "center",
+      "leanValue": 0,
+      "textStatus": "full",
+      "facts": [
+        {
+          "claim": "The Senate passed a stopgap funding measure 60-38 on a Friday night, sending it to President Ellis hours before government funding was set to lapse at midnight.",
+          "quote": "The Senate passed a stopgap funding measure 60-38 on Friday night, sending it to President Ellis hours before government funding was set to lapse at midnight.",
+          "kind": "event"
+        },
+        {
+          "claim": "The continuing resolution funds agencies at current levels through Jan. 30 and adds $12 billion for disaster relief.",
+          "quote": "The continuing resolution funds agencies at current levels through Jan. 30 and adds $12 billion for disaster relief.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "The House passed the continuing resolution on Wednesday by a 231-196 vote.",
+          "quote": "It passed the House on Wednesday 231-196.",
+          "kind": "event"
+        },
+        {
+          "claim": "Eleven Republicans voted with 49 Democrats and independents to clear the 60-vote threshold in the Senate.",
+          "quote": "Eleven Republicans voted with 49 Democrats and independents to clear the 60-vote threshold.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "Sens. Paul Grant (D-Ore.) and Lena Brooks (D-Vt.) opposed the bill, along with 36 Republicans.",
+          "quote": "Sens. Paul Grant (D-Ore.) and Lena Brooks (D-Vt.) opposed the bill, along with 36 Republicans.",
+          "kind": "event"
+        },
+        {
+          "claim": "Majority Leader John Doe (R-Ky.) said on the floor ahead of the vote that the bill is not one any of them would have written, but that it keeps the lights on.",
+          "quote": "\"This is not the bill any of us would have written, but it keeps the lights on,\" Majority Leader John Doe (R-Ky.) said on the floor ahead of the vote.",
+          "kind": "statement",
+          "speaker": "Majority Leader John Doe (R-Ky.)"
+        },
+        {
+          "claim": "Sen. Mary Roe (R-Utah), who led opposition from the right, said the measure is another kick of the can that adds to a debt our children will pay, and she would push for spending caps in January.",
+          "quote": "Sen. Mary Roe (R-Utah), who led opposition from the right, said the measure was \"another kick of the can that adds to a debt our children will pay\" and said she would push for spending caps in January.",
+          "kind": "statement",
+          "speaker": "Sen. Mary Roe (R-Utah)"
+        },
+        {
+          "claim": "The Office of Management and Budget began instructing agencies on Thursday to prepare for a possible shutdown.",
+          "quote": "The Office of Management and Budget had begun instructing agencies on Thursday to prepare for a possible shutdown.",
+          "kind": "event"
+        },
+        {
+          "claim": "A White House spokesperson said President Ellis would sign the bill on Saturday morning.",
+          "quote": "A White House spokesperson said Ellis would sign the bill Saturday morning.",
+          "kind": "statement",
+          "speaker": "A White House spokesperson"
+        },
+        {
+          "claim": "Lawmakers have ten weeks to agree on full-year appropriations, with border security and defense funding the main sticking points.",
+          "quote": "Lawmakers now have ten weeks to agree on full-year appropriations, with border security and defense funding the main sticking points.",
+          "kind": "background"
+        }
+      ]
+    },
+    {
+      "article": {
+        "id": "a-bbc",
+        "sourceId": "bbc",
+        "url": "https://www.bbc.co.uk/news/articles/c9stopgap22",
+        "title": "US Senate votes to avert government shutdown",
+        "feedCategories": [],
+        "section": "us",
+        "prominence": "top",
+        "publishedAt": "2026-11-22T04:05:00Z",
+        "articleType": "news"
+      },
+      "sourceName": "BBC News",
+      "lean": "center",
+      "leanValue": 0,
+      "textStatus": "full",
+      "facts": [
+        {
+          "claim": "The US Senate passed a temporary funding bill, averting a government shutdown that would have begun at midnight on Friday.",
+          "quote": "The US Senate has passed a temporary funding bill, averting a government shutdown that would have begun at midnight on Friday.",
+          "kind": "event"
+        },
+        {
+          "claim": "The Senate passed the stopgap funding bill by 60 votes to 38.",
+          "quote": "The measure, which passed by 60 votes to 38, funds the federal government until 30 January. It now goes to President Mark Ellis, who is expected to sign it on Saturday.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "The bill funds the federal government until 30 January.",
+          "quote": "The measure, which passed by 60 votes to 38, funds the federal government until 30 January. It now goes to President Mark Ellis, who is expected to sign it on Saturday.",
+          "kind": "event"
+        },
+        {
+          "claim": "The bill now goes to President Mark Ellis.",
+          "quote": "The measure, which passed by 60 votes to 38, funds the federal government until 30 January. It now goes to President Mark Ellis, who is expected to sign it on Saturday.",
+          "kind": "event"
+        },
+        {
+          "claim": "A shutdown would have forced hundreds of thousands of federal workers to stay home without pay over the Thanksgiving period, and could have disrupted air travel during one of the busiest weeks of the year.",
+          "quote": "A shutdown would have forced hundreds of thousands of federal workers to stay home without pay over the Thanksgiving period, and could have disrupted air travel during one of the busiest weeks of the year.",
+          "kind": "background"
+        },
+        {
+          "claim": "The bill includes $12bn (£9.5bn) in aid for areas hit by hurricanes this autumn.",
+          "quote": "The bill includes $12bn (£9.5bn) in aid for areas hit by hurricanes this autumn. Democrats in affected states said the sum was inadequate.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "Democrats in affected states said the $12bn in hurricane aid was inadequate.",
+          "quote": "The bill includes $12bn (£9.5bn) in aid for areas hit by hurricanes this autumn. Democrats in affected states said the sum was inadequate.",
+          "kind": "statement",
+          "speaker": "Democrats in affected states"
+        },
+        {
+          "claim": "The Senate vote followed weeks of stalled talks over a full-year budget.",
+          "quote": "The vote followed weeks of stalled talks over a full-year budget, with Republicans demanding more money for border security and Democrats opposing cuts to social programmes.",
+          "kind": "background"
+        },
+        {
+          "claim": "Republicans demanded more money for border security during the budget talks.",
+          "quote": "The vote followed weeks of stalled talks over a full-year budget, with Republicans demanding more money for border security and Democrats opposing cuts to social programmes.",
+          "kind": "statement",
+          "speaker": "Republicans"
+        },
+        {
+          "claim": "Democrats opposed cuts to social programmes during the budget talks.",
+          "quote": "The vote followed weeks of stalled talks over a full-year budget, with Republicans demanding more money for border security and Democrats opposing cuts to social programmes.",
+          "kind": "statement",
+          "speaker": "Democrats"
+        },
+        {
+          "claim": "Congress must reach a longer-term deal before the new deadline at the end of January.",
+          "quote": "Congress must now reach a longer-term deal before the new deadline at the end of January.",
+          "kind": "background"
+        }
+      ]
+    },
+    {
+      "article": {
+        "id": "a-fox",
+        "sourceId": "fox",
+        "url": "https://www.foxnews.com/politics/senate-stopgap-spending-conservatives",
+        "title": "Senate punts on spending fight again as conservatives slam 'kick the can' stopgap",
+        "feedCategories": [
+          "Politics",
+          "Senate"
+        ],
+        "prominence": "latest",
+        "publishedAt": "2026-11-22T03:30:00Z",
+        "articleType": "news"
+      },
+      "sourceName": "Fox News",
+      "lean": "right",
+      "leanValue": 2,
+      "textStatus": "full",
+      "facts": [
+        {
+          "claim": "The Senate voted 60-38 on Friday night to approve a stopgap spending bill (a continuing resolution).",
+          "quote": "Senate lawmakers voted 60-38 Friday night to approve yet another stopgap spending bill, pushing the fight over federal spending into the new year as conservatives warned Washington was once again avoiding hard choices.",
+          "kind": "event"
+        },
+        {
+          "claim": "The continuing resolution keeps the government funded at current levels through Jan. 30.",
+          "quote": "The continuing resolution keeps the government funded at current levels through Jan. 30.",
+          "kind": "event"
+        },
+        {
+          "claim": "11 Republican senators voted for the bill, and 36 Republican senators voted against it.",
+          "quote": "It drew support from 11 Republicans, while 36 Republicans voted against it.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "Sen. Mary Roe, R-Utah, said in a floor speech that the bill is another kick of the can that adds to a debt children will pay.",
+          "quote": "\"Another kick of the can that adds to a debt our children will pay,\" Sen. Mary Roe, R-Utah, said in a floor speech.",
+          "kind": "statement",
+          "speaker": "Sen. Mary Roe, R-Utah"
+        },
+        {
+          "claim": "According to Treasury Department data, the national debt passed $38 trillion in fall 2026.",
+          "quote": "The national debt passed $38 trillion this fall, according to Treasury Department data.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "Senate Majority Leader John Doe, R-Ky., said a shutdown during the holidays would have hurt millions of families.",
+          "quote": "Senate Majority Leader John Doe, R-Ky., defended the measure, saying a shutdown during the holidays \"would have hurt millions of families.\"",
+          "kind": "statement",
+          "speaker": "Senate Majority Leader John Doe, R-Ky."
+        },
+        {
+          "claim": "The bill includes $12 billion in disaster relief.",
+          "quote": "The bill includes $12 billion in disaster relief but no new money for border security, a priority for many Republicans, who argue the southern border remains under strain.",
+          "kind": "statistic"
+        },
+        {
+          "claim": "The bill includes no new money for border security.",
+          "quote": "The bill includes $12 billion in disaster relief but no new money for border security, a priority for many Republicans, who argue the southern border remains under strain.",
+          "kind": "event"
+        },
+        {
+          "claim": "Democrats blocked an amendment from Sen. Rick Hale, R-Texas, that would have added $4 billion for border enforcement.",
+          "quote": "Democrats blocked an amendment from Sen. Rick Hale, R-Texas, that would have added $4 billion for border enforcement.",
+          "kind": "event"
+        },
+        {
+          "claim": "President Ellis is expected to sign the bill on Saturday.",
+          "quote": "President Ellis is expected to sign the bill Saturday.",
+          "kind": "event"
+        }
+      ]
+    },
+    {
+      "article": {
+        "id": "a-dw-op",
+        "sourceId": "dailywire",
+        "url": "https://www.dailywire.com/news/stopgap-again-opinion",
+        "title": "Another Stopgap, Another Surrender",
+        "feedCategories": [],
+        "prominence": "latest",
+        "publishedAt": "2026-11-22T05:00:00Z",
+        "articleType": "opinion"
+      },
+      "sourceName": "The Daily Wire",
+      "lean": "right",
+      "leanValue": 2,
+      "textStatus": "headline_only",
+      "facts": []
+    }
+  ]
+}

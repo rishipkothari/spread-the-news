@@ -1,11 +1,23 @@
 import Link from "next/link";
+import { Fragment } from "react";
+import { STAGES, type StageId } from "@/pipeline/stages";
 import { config } from "@/lib/config";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus } from "@/pipeline/status";
-import { replayAction, rerankAction } from "../../actions";
+import { analysisAction, replayAction, rerankAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
+
+const STAGE_INFO: Record<StageId, string> = {
+  sources: "which outlets and feeds",
+  fetch: "read every feed + homepage",
+  cluster: "Claude groups articles into stories",
+  rank: "score stories (headline index)",
+  extract: "full article text",
+  analyze: "facts + quotes per article (Haiku)",
+  synthesize: "per-story comparison (Sonnet)",
+};
 
 const GROUP_COLOR: Record<LeanGroup, string> = { left: "var(--left)", center: "var(--center)", right: "var(--right)" };
 const leanColor = (v: number) => (v < 0 ? GROUP_COLOR.left : v > 0 ? GROUP_COLOR.right : GROUP_COLOR.center);
@@ -38,11 +50,11 @@ function StoryCard({ story, rank, articles, sources }: { story: Story; rank?: nu
         {s && (
           <div className="signals">
             <span>outlets {s.distinctOutlets} ({s.outletCount})</span>
-            <span>C {pct(s.coverage)}</span>
-            <span>B {pct(s.balance)}</span>
-            <span>P {pct(s.prominence)}</span>
-            <span>S {pct(s.skew)}</span>
-            <span>R {pct(s.recency)}</span>
+            <span>C coverage {pct(s.coverage)}</span>
+            <span>B balance {pct(s.balance)}</span>
+            <span>P prominence {pct(s.prominence)}</span>
+            <span>S skew {pct(s.skew)}</span>
+            <span>R recency {pct(s.recency)}</span>
             <span>articles {arts.length}</span>
             {story.continuesStoryId && <span>continues {story.continuesStoryId}</span>}
           </div>
@@ -130,42 +142,64 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         <span className="mono">{Object.entries(status.methods).map(([k, v]) => `${k}=${v}`).join(" ")}</span>
       </div>
 
-      <div className="row" style={{ margin: "12px 0" }}>
-        {bundle && <Link href={`/debug/runs/${id}/review`} className="big" style={{ margin: 0, padding: "6px 12px" }}>Review this run →</Link>}
-        {(status.stages.fetch?.state === "done" || status.stages.fetch?.state === "copied") && (
-          <form action={replayAction}>
-            <input type="hidden" name="runId" value={id} />
-            <input type="hidden" name="from" value="cluster" />
-            <button type="submit">Re-cluster these articles (new run)</button>
-          </form>
-        )}
-        {status.stages.cluster?.state === "done" && (
-          <form action={rerankAction}>
-            <input type="hidden" name="runId" value={id} />
-            <button type="submit">Re-rank (free)</button>
-          </form>
-        )}
-      </div>
-
-      <h2>Stages</h2>
+      <h2>Pipeline</h2>
       <div className="scroll">
         <table>
-          <thead><tr><th>Stage</th><th>State</th><th>Time</th><th>Summary</th><th>Tokens / cost</th></tr></thead>
+          <thead><tr><th>Step</th><th>State</th><th>Time</th><th>Result</th><th>Tokens / cost</th><th>Action</th><th>View</th></tr></thead>
           <tbody>
-            {Object.entries(status.stages).map(([stage, st]) => {
+            {STAGES.map((stage) => {
+              const st = status.stages[stage];
               const u = (usage ?? []).filter((x) => x.stage === stage);
               const ms = u.reduce((a, x) => a + x.ms, 0);
               const tin = u.reduce((a, x) => a + (x.inputTokens ?? 0), 0);
               const tout = u.reduce((a, x) => a + (x.outputTokens ?? 0), 0);
               const c = u.reduce((a, x) => a + (x.costUsd ?? 0), 0);
+              const done = (x?: { state: string }) => x?.state === "done" || x?.state === "copied";
+              let action: React.ReactNode = null;
+              let view: React.ReactNode = null;
+              if (stage === "cluster" && done(status.stages.fetch)) {
+                action = (
+                  <form action={replayAction}>
+                    <input type="hidden" name="runId" value={id} />
+                    <input type="hidden" name="from" value="cluster" />
+                    <button type="submit" title="Re-group these same articles in a new run (uses Claude)">Re-cluster (new run)</button>
+                  </form>
+                );
+              }
+              if (stage === "rank" && done(status.stages.cluster)) {
+                action = (
+                  <form action={rerankAction}>
+                    <input type="hidden" name="runId" value={id} />
+                    <button type="submit" title="Re-score with the current weights in config (free)">Re-rank (free)</button>
+                  </form>
+                );
+                if (bundle) view = <Link href={`/debug/runs/${id}/review`}>Review →</Link>;
+              }
+              if (stage === "extract" && bundle) {
+                action = (
+                  <form action={analysisAction}>
+                    <input type="hidden" name="runId" value={id} />
+                    <button type="submit" title="Extract text, facts and synthesis for the top stories (uses Claude)">
+                      {done(status.stages.synthesize) ? "Re-run analysis" : "Run analysis"}
+                    </button>
+                  </form>
+                );
+              }
+              if (stage === "synthesize" && (st?.state ?? "skipped") !== "skipped") view = <Link href={`/debug/runs/${id}/analysis`}>Analysis →</Link>;
+              const groupHeader = stage === "sources" ? "Discovery" : stage === "extract" ? "Phase 1: analysis (top stories)" : null;
               return (
-                <tr key={stage}>
-                  <td>{stage}</td>
-                  <td className={st?.state === "failed" ? "bad" : st?.state === "done" ? "ok" : "muted"}>{st?.state}</td>
-                  <td>{ms ? `${(ms / 1000).toFixed(1)}s` : ""}</td>
-                  <td className="mono">{st?.error ? <span className="bad">{st.error}</span> : st?.summary ? JSON.stringify(st.summary) : ""}</td>
-                  <td className="mono">{tin ? `${tin} in / ${tout} out · $${c.toFixed(4)}` : ""}</td>
-                </tr>
+                <Fragment key={stage}>
+                  {groupHeader && <tr><td colSpan={7} style={{ fontWeight: 600, background: "var(--bg)" }}>{groupHeader}</td></tr>}
+                  <tr>
+                    <td>{stage}<div className="muted" style={{ fontSize: 12 }}>{STAGE_INFO[stage]}</div></td>
+                    <td className={st?.state === "failed" ? "bad" : st?.state === "done" ? "ok" : "muted"}>{st?.state ?? "–"}</td>
+                    <td>{ms ? `${(ms / 1000).toFixed(1)}s` : ""}</td>
+                    <td className="mono" style={{ fontSize: 12 }}>{st?.error ? <span className="bad">{st.error}</span> : st?.summary ? Object.entries(st.summary).map(([k, v]) => `${k}: ${v}`).join(" · ") : ""}</td>
+                    <td className="mono" style={{ fontSize: 12 }}>{tin ? `${tin} in / ${tout} out · $${c.toFixed(4)}` : ""}</td>
+                    <td>{action}</td>
+                    <td>{view}</td>
+                  </tr>
+                </Fragment>
               );
             })}
           </tbody>
@@ -178,10 +212,20 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
       {bundle && (
         <>
           <h2>Ranked stories ({ranked.length})</h2>
-          <p className="muted">
-            index = ({config.ranking.weights.coverage}·C + {config.ranking.weights.balance}·B + {config.ranking.weights.prominence}·P) × (1 − {config.ranking.skewPenalty}·S) × R.
-            P = mean over covering outlets of their best signal (homepage lead/featured/listed, then top / latest / section feed). Click a story for its articles. Bars: left / center / right outlets.
-          </p>
+          <div className="story" style={{ fontSize: 13 }}>
+            <b>How stories are scored.</b> index = ({config.ranking.weights.coverage}·C + {config.ranking.weights.balance}·B + {config.ranking.weights.prominence}·P) × (1 − {config.ranking.skewPenalty}·S) × R
+            <table style={{ marginTop: 6 }}>
+              <tbody>
+                <tr><td><b>C</b> coverage</td><td>Share of the outlets that returned data this run that covered the story. An outlet whose only article is opinion counts half.</td></tr>
+                <tr><td><b>B</b> balance</td><td>How evenly left, center and right covered it, each side relative to its number of outlets. 0% = one side only, 100% = all three equally.</td></tr>
+                <tr><td><b>P</b> prominence</td><td>How prominently the covering outlets played it, averaged: on their homepage (top 10 links {config.ranking.prominence.homepageLead}, top 40 {config.ranking.prominence.homepageFeatured}, anywhere {config.ranking.prominence.homepageListed}), else by feed type (top {config.ranking.prominence.topFeed}, latest {config.ranking.prominence.latestFeed}, section {config.ranking.prominence.sectionFeed}).</td></tr>
+                <tr><td><b>S</b> skew</td><td>How one-sided the coverage is, from the average lean of its articles. A penalty: 0% = centered, 100% = all from one extreme.</td></tr>
+                <tr><td><b>R</b> recency</td><td>Halves every {config.ranking.recencyHalfLifeHours} hours since the story&apos;s newest article.</td></tr>
+                <tr><td><b>outlets</b></td><td>&quot;3 (2.5)&quot; = 3 distinct outlets, 2.5 after counting opinion-only outlets as half. Stories need {config.ranking.minOutlets}+ outlets to be ranked.</td></tr>
+              </tbody>
+            </table>
+            <div className="muted" style={{ marginTop: 4 }}>Click a story for its articles. Bar: left / center / right outlets covering it.</div>
+          </div>
           {ranked.map((s, i) => <StoryCard key={s.id} story={s} rank={i + 1} articles={articles} sources={sourceMap} />)}
           <h2>Below the {config.ranking.minOutlets}-outlet minimum ({unranked.length})</h2>
           {unranked.map((s) => <StoryCard key={s.id} story={s} articles={articles} sources={sourceMap} />)}

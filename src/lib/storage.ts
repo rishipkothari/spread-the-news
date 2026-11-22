@@ -44,4 +44,7 @@ export const paths = {
   usage: (runId: string) => `runs/${runId}/usage.json`,
   review: (runId: string) => `runs/${runId}/review.json`,
   history: () => `history/stories-14d.json`,
+  unit: (runId: string, stage: string, unitId: string) => `runs/${runId}/${stage}/${unitId}.json`,
+  analysisPlan: (runId: string) => `runs/${runId}/analysis-plan.json`,
+  textCache: (urlHash: string) => `cache/text/${urlHash}.json`,
 };

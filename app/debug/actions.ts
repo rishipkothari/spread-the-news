@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { isStage } from "@/pipeline/stages";
-import { rerunStage, startRun } from "@/pipeline/start";
+import { rerunStage, startAnalysis, startRun } from "@/pipeline/start";
 
 // These run behind the password gate in proxy.ts (the debug pages' Basic auth).
 
@@ -23,5 +23,11 @@ export async function replayAction(formData: FormData) {
 export async function rerankAction(formData: FormData) {
   const runId = String(formData.get("runId"));
   await rerunStage(runId, "rank");
+  redirect(`/debug/runs/${runId}`);
+}
+
+export async function analysisAction(formData: FormData) {
+  const runId = String(formData.get("runId"));
+  await startAnalysis(runId);
   redirect(`/debug/runs/${runId}`);
 }

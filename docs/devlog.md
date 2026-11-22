@@ -2,6 +2,40 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-22 (afternoon): first live Phase 1 run, fixes, UI tidy
+
+**First live analysis** (run `2026-11-22T1313-32021b`, review saved): $0.24 for 15 stories. Extraction full for most outlets; The Hill 0/11 and NewsNation 3/7 blocked (HTTP 403). Syntheses strong with 2+ outlets: caught real discrepancies (cartel affiliation, death toll, player position). Problems: 3 × 429 concurrency errors; one-outlet facts labelled "agreed"; a headlines-only story got a "no facts" summary.
+
+**Changed** (user approved 1–3 and 5; not 4)
+- 429: SDK retries 8×; 2 concurrent fact calls per story.
+- The Hill headline-only (no page fetch).
+- `singleSourceFacts`; summary attributes one-outlet facts.
+- Skip synthesis for stories with no facts.
+- Extractor chain v2 adds JSON-LD articleBody and Defuddle around Readability.
+- UI: ranking legend; per-stage columns on runs list; Pipeline table on run page (step, state, time, result, cost, action, view).
+
+**Next**: user re-runs analysis to confirm the fixes; then MVP push (Phase 2 script), with P/headline-index tuning ongoing.
+
+## 2026-11-22 (evening): Phase 1 built (opt-in), awaiting first live run
+
+**Built**
+- Branch `phase0-v1` snapshots Phase 0. Phase 1 lives on the integration branch, opt-in via "Run analysis (Phase 1)".
+- Fan-out: plan → one workflow step per story → merge, for extract, analyze, synthesize. Units write their own files, merge writes usage/status (no races).
+- `chain-v1` extractor (feed text → Readability via linkedom → RSS summary) with quality check, robots.txt, URL cache, per-source report.
+- `haiku-facts-v1` (verbatim-quote verified) and `sonnet-synthesis-v1` (fact-id citations resolved in code). Refusal fallback only requested for Sonnet/Opus (Haiku has none).
+- `/debug/runs/<id>/analysis` page with copyable report. History entries now carry `continuesStoryId` and synthesis summaries.
+
+**Prompt testing (offline)**
+- No API key in the sandbox, so Claude sub-agents stood in for the API on a fictional 4-outlet story (`tests/fixtures/analysis/story-stopgap.json`). Haiku: 43 facts, 0 non-verbatim quotes; loaded framing correctly excluded or attributed. Sonnet: 0 unresolved ids, neutral summary, fair framing.
+- First synthesis found only 1 dispute; prompt revised to name three kinds of disagreement → 3 real disputes on retest. Added a rule against "reported without comment" as a position.
+- Recorded responses are regression fixtures in `tests/fixtures/analysis/responses/`.
+
+**Not verified** (needs the user on Vercel): real page fetches/Readability on live sites, real API calls and cost, step timing.
+
+**Next**
+- User: run analysis on a finished run, paste the analysis report.
+- Then: tune prompts from real output; P fix (todo); Phase 2 planning.
+
 ## 2026-11-22: Phase 0 built, first live runs
 
 **Built**
