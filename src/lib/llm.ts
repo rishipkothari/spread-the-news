@@ -1,11 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { priceFor } from "./config";
+import { config, priceFor } from "./config";
 import type { UsageEntry } from "./types";
 
 let client: Anthropic | null = null;
 export function anthropic(): Anthropic {
-  client ??= new Anthropic();
+  // Many story steps run at once; on 429 (concurrency/rate limit) the SDK backs off and retries,
+  // honoring retry-after. The default of 2 retries wasn't enough for a 15-story fan-out.
+  client ??= new Anthropic({ maxRetries: config.analysis.llmMaxRetries });
   return client;
 }
 

@@ -4,7 +4,7 @@
     "fetch": "rss",
     "cluster": "llm-single-pass",
     "rank": "headline-index-v1",
-    "extract": "chain-v1",
+    "extract": "chain-v2",
     "analyze": "haiku-facts-v1",
     "synthesize": "sonnet-synthesis-v1"
   },
@@ -104,6 +104,11 @@
     "analyzeEffort": "low",
     "synthesizeEffort": "medium",
     "analyzeMaxTokens": 8000,
-    "synthesizeMaxTokens": 16000
+    "synthesizeMaxTokens": 16000,
+    "skipPageFetch": [
+      "thehill"
+    ],
+    "analyzeConcurrency": 2,
+    "llmMaxRetries": 8
   }
 }

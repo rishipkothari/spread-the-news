@@ -1,13 +1,16 @@
 import { Readability } from "@mozilla/readability";
+import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 import { config } from "@/lib/config";
 import type { Article, ExtractedText, TextStatus } from "@/lib/types";
 import { checkRobots } from "../fetch/robots";
+import { decodeEntities } from "../fetch/text";
 import type { ArticleTextExtractor } from "../types";
 
 /**
- * PRD extractor chain: the feed's own full text → fetch the page and run Readability → RSS summary (headline_only).
- * Every link's text passes a quality check (length, paywall phrases) before it's accepted.
+ * Extractor chain: the feed's own full text → (one page fetch, unless the outlet blocks bots) → schema.org
+ * JSON-LD articleBody → Readability → Defuddle → RSS summary (headline_only). Every candidate passes a
+ * quality check (length, paywall phrases); the first "full" wins, otherwise the best "partial".
  */
 
 export interface Assessment {
@@ -40,6 +43,49 @@ export function cleanText(s: string): string {
     .trim();
 }
 
+/** Paragraph-preserving text from an HTML fragment (Readability/Defuddle output). */
+export function blocksToText(contentHtml: string): string | undefined {
+  const { document: frag } = parseHTML(`<!doctype html><html><body>${contentHtml}</body></html>`);
+  const blocks = [...frag.querySelectorAll("p, h2, h3, li, blockquote")].map((el) => (el.textContent ?? "").trim()).filter((t) => t.length > 0);
+  if (blocks.length >= 3) return cleanText(blocks.join("\n\n"));
+  const all = frag.body?.textContent;
+  return all ? cleanText(all) : undefined;
+}
+
+const ARTICLE_TYPES = /^(NewsArticle|Article|ReportageNewsArticle|AnalysisNewsArticle|BlogPosting|OpinionNewsArticle|LiveBlogPosting)$/;
+
+/** The articleBody many news sites embed as schema.org JSON-LD for search engines. */
+export function jsonLdText(html: string): string | undefined {
+  const bodies: string[] = [];
+  const visit = (node: unknown) => {
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (!node || typeof node !== "object") return;
+    const o = node as Record<string, unknown>;
+    const types = ([] as unknown[]).concat(o["@type"] ?? []).map(String);
+    if (types.some((t) => ARTICLE_TYPES.test(t)) && typeof o.articleBody === "string") bodies.push(o.articleBody);
+    if (o["@graph"]) visit(o["@graph"]);
+    if (o.mainEntity) visit(o.mainEntity);
+  };
+  for (const m of html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      visit(JSON.parse(m[1].trim()));
+    } catch {
+      /* malformed JSON-LD is common; skip */
+    }
+  }
+  const best = bodies.sort((a, b) => b.length - a.length)[0];
+  if (!best) return undefined;
+  // articleBody is sometimes HTML, sometimes text with entities.
+  return /<p[\s>]/i.test(best) ? blocksToText(best) : cleanText(decodeEntities(decodeEntities(best)));
+}
+
+/** Defuddle (a second, independent content-extraction algorithm). */
+export function defuddleText(html: string, url: string): string | undefined {
+  const { document } = parseHTML(html);
+  const r = new Defuddle(document as unknown as Document, { url }).parse();
+  return r.content ? blocksToText(r.content) : undefined;
+}
+
 /** Run Readability over an HTML page; returns plain text with paragraph breaks, or undefined. */
 export function readabilityText(html: string, url: string): string | undefined {
   const { document } = parseHTML(html);
@@ -52,12 +98,7 @@ export function readabilityText(html: string, url: string): string | undefined {
   const parsed = new Readability(document as unknown as Document, { charThreshold: 300 }).parse();
   if (!parsed) return undefined;
   // Prefer paragraph structure from the cleaned HTML over textContent's run-on text.
-  if (parsed.content) {
-    const { document: frag } = parseHTML(`<!doctype html><html><body>${parsed.content}</body></html>`);
-    const blocks = [...frag.querySelectorAll("p, h2, h3, li, blockquote")].map((el) => (el.textContent ?? "").trim()).filter((t) => t.length > 0);
-    if (blocks.length >= 3) return cleanText(blocks.join("\n\n"));
-  }
-  return parsed.textContent ? cleanText(parsed.textContent) : undefined;
+  return (parsed.content ? blocksToText(parsed.content) : undefined) ?? (parsed.textContent ? cleanText(parsed.textContent) : undefined);
 }
 
 async function fetchPage(url: string): Promise<string> {
@@ -70,8 +111,14 @@ async function fetchPage(url: string): Promise<string> {
   return res.text();
 }
 
-export const chainV1Extractor: ArticleTextExtractor = {
-  id: "chain-v1",
+const PAGE_EXTRACTORS: [string, (html: string, url: string) => string | undefined][] = [
+  ["json-ld", (html) => jsonLdText(html)],
+  ["readability", readabilityText],
+  ["defuddle", defuddleText],
+];
+
+export const chainExtractor: ArticleTextExtractor = {
+  id: "chain-v2",
   async extract(article: Article): Promise<ExtractedText> {
     const base = { articleId: article.id, url: article.url, fetchedAt: new Date().toISOString() };
     const errors: string[] = [];
@@ -92,13 +139,30 @@ export const chainV1Extractor: ArticleTextExtractor = {
     // 1. The feed's own full text (content:encoded).
     if (consider(article.feedText ? cleanText(article.feedText) : undefined, "feed-content")) return finish();
 
-    // 2. Fetch the page and run Readability.
+    // 2. Outlets that refuse automated page requests: don't ask (their headlines still count).
+    if ((config.analysis.skipPageFetch as string[]).includes(article.sourceId)) {
+      errors.push("page fetch skipped: outlet blocks automated requests");
+      return finish();
+    }
+
+    // 3. Fetch the page once and try each page extractor on it.
+    let html: string;
     try {
-      const html = await fetchPage(article.url);
-      if (consider(readabilityText(html, article.url), "readability")) return finish();
+      html = await fetchPage(article.url);
     } catch (e) {
       const err = e as Error;
-      errors.push(`readability: ${err.name === "TimeoutError" ? "timeout" : err.message}`);
+      errors.push(`page fetch: ${err.name === "TimeoutError" ? "timeout" : err.message}`);
+      return finish();
+    }
+    for (const [name, fn] of PAGE_EXTRACTORS) {
+      let text: string | undefined;
+      try {
+        text = fn(html, article.url);
+      } catch (e) {
+        errors.push(`${name}: ${(e as Error).message}`);
+        continue;
+      }
+      if (consider(text, name)) return finish();
     }
     return finish();
 

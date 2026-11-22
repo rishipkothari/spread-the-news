@@ -2,6 +2,20 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-22 (afternoon): first live Phase 1 run, fixes, UI tidy
+
+**First live analysis** (run `2026-11-22T1313-32021b`, review saved): $0.24 for 15 stories. Extraction full for most outlets; The Hill 0/11 and NewsNation 3/7 blocked (HTTP 403). Syntheses strong with 2+ outlets: caught real discrepancies (cartel affiliation, death toll, player position). Problems: 3 × 429 concurrency errors; one-outlet facts labelled "agreed"; a headlines-only story got a "no facts" summary.
+
+**Changed** (user approved 1–3 and 5; not 4)
+- 429: SDK retries 8×; 2 concurrent fact calls per story.
+- The Hill headline-only (no page fetch).
+- `singleSourceFacts`; summary attributes one-outlet facts.
+- Skip synthesis for stories with no facts.
+- Extractor chain v2 adds JSON-LD articleBody and Defuddle around Readability.
+- UI: ranking legend; per-stage columns on runs list; Pipeline table on run page (step, state, time, result, cost, action, view).
+
+**Next**: user re-runs analysis to confirm the fixes; then MVP push (Phase 2 script), with P/headline-index tuning ongoing.
+
 ## 2026-11-22 (evening): Phase 1 built (opt-in), awaiting first live run
 
 **Built**

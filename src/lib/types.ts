@@ -151,7 +151,8 @@ export interface StorySynthesis {
   storyId: string;
   title: string; // neutral title (may refine the clusterer's)
   summary: string; // 2–4 neutral sentences; also stored in story history
-  agreedFacts: { fact: string; support: { articleId: string; quote: string }[] }[];
+  agreedFacts: { fact: string; support: { articleId: string; quote: string }[] }[]; // reported by 2+ outlets
+  singleSourceFacts?: { fact: string; sourceId: string; support: { articleId: string; quote: string }[] }[]; // one outlet only: attribute when used
   disputed: { claim: string; positions: { position: string; sourceIds: string[]; quote?: string; articleId?: string }[] }[];
   framing: Partial<Record<LeanGroup, string>>; // how each side frames it; omit a side with no coverage
   recently?: string; // "what happened recently", from the linked story chain

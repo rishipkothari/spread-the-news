@@ -12,7 +12,7 @@ Exit criterion: about a week of daily manual runs where the ranked list looks li
   - [ ] Low-volume outlets: The Nation (1/day), Mother Jones (4), HuffPost (4), CSM (6), Daily Wire (6), Daily Caller (10). Decide whether to add feeds, swap outlets, or add outlets (keep left/center/right roughly even).
   - [ ] Consider more sources overall (PRD: replacements if HuffPost/BBC/Breitbart fail; volume asymmetry is a known bias).
   - [ ] Download the edited `sources.json` from `/debug/feeds` and commit it once the feed set settles.
-- [ ] **Ranking tuning** from reviews (re-rank is free on saved runs):
+- [ ] **Fine-tune P and the headline index** (weights, P definition, min outlets, soft-news handling) from daily reviews; re-rank is free on saved runs:
   - [ ] **P fix (agreed, not started):** a 2-outlet story featured on one outlet's homepage ranks too high (sports crash, auction, UK village, Maher in run 0528) because P is a mean over covering outlets, so one featuring outlet out of two gives P ≈ 0.6. Plan: blend P with coverage so it can't lift thin stories, e.g. P' = P × min(1, distinctOutlets / k) with k≈4 in config, or sum of outlet prominence ÷ active outlets. Verify by re-ranking run 2026-11-22T0528-df1c2b (free) and comparing against the review in `docs/reviews/2026-11-22-0528.md`.
   - [ ] Politically significant 2–3 outlet stories rank too low (Schumer challenge, terror warnings, Congress access, Lutnick). Partly a volume problem; revisit after feed work.
   - [ ] Category assignment sometimes odd (FBI hack as us/science). Tighten category guidance in the clusterer prompt.
@@ -20,22 +20,21 @@ Exit criterion: about a week of daily manual runs where the ranked list looks li
 - [ ] Daily runs for a week, each reviewed on `/debug/runs/<id>/review`; save each pasted report to `docs/reviews/`.
 - [ ] Re-check AllSides ratings for the 10 unverified sources (BBC first).
 
-## Now (parallel): Phase 1 (full text and story analysis): built, awaiting first live run
+## Now (parallel): Phase 1 (full text and story analysis): proof of concept working
 
-Built 2026-11-22 on the integration branch, opt-in via "Run analysis (Phase 1)" on a finished run. Prompts tested offline with Claude sub-agents on a fictional fixture story; nothing has hit the real API or real news pages yet.
+First live run 2026-11-22 (`docs/reviews/2026-11-22-1313-analysis.md`): $0.24 for 15 stories; good syntheses where 2+ outlets have text. Opt-in via "Run analysis" on a run's Pipeline table. Goal now: MVP quickly, fine-tune later (every stage is swappable).
 
-- [ ] **First live run (user):** open a finished run → "Run analysis (Phase 1)" → wait for the three stages → "Analysis →" → copy the report and paste it to Claude. Expected cost ≈ $0.30–0.60 for 15 stories.
-- [ ] Check the extraction table: which outlets block page fetches (403/robots/paywall)? Decide per outlet: accept headline-only, find a better feed with full text, or drop.
-- [ ] Check facts: quotes should all be verbatim (non-verbatim ones are dropped and noted in usage). Watch the "dropped" notes on the run page's usage.
-- [ ] Check syntheses: agreed facts really agreed, disputes real, framing fair. Tune `SYNTHESIZE_SYSTEM` / `ANALYZE_SYSTEM`; re-run analysis in place (text is cached, so re-runs mostly cost LLM tokens).
-- [ ] Measure time per stage; if a story step nears the ~300s function limit, lower `analysis.maxArticlesPerStory` or concurrency.
+- [ ] Re-run analysis on a run after the 2026-11-22 fixes and confirm: no 429 errors, The Hill skipped cleanly, single-source facts labelled, headline-only stories not synthesized.
+- [ ] NewsNation blocks some page fetches (3/7 HTTP 403). Watch; add to `analysis.skipPageFetch` if it gets worse.
+- [ ] One-sided or single-outlet "disputes" still appear (e.g. both positions from one outlet). Decided 2026-11-22 to leave for now; revisit in prompt tuning.
+- [ ] Tune `SYNTHESIZE_SYSTEM` / `ANALYZE_SYSTEM` from real output.
+- [ ] Measure time per story step against the ~300s function limit.
 - [ ] Retention: delete `cache/text/*` older than 30 days (PRD). Not built yet.
-- [ ] Phase 1 exit (PRD): spot checks of synthesis hold up against source articles; extraction succeeds for most articles from each source.
-- [x] Scaffold: stages extract → analyze → synthesize, one workflow step per story, merge; history chain links.
-- [x] `chain-v1` extractor (feed text → Readability → RSS summary), quality check, robots.txt, URL cache, per-source report.
-- [x] `haiku-facts-v1` with verbatim-quote verification; `sonnet-synthesis-v1` with fact-id citations resolved in code.
-- [x] Story history: synthesis summaries written back; linked chain passed to the synthesizer.
-- [x] `/debug/runs/<id>/analysis` page with copyable report.
+- [ ] Phase 1 exit (PRD): spot checks hold up against source articles; extraction succeeds for most articles from each source.
+- [x] Fixes after first run: SDK retries 8× with backoff on 429 and 2 concurrent fact calls per story; The Hill marked headline-only (no page fetch); facts from one outlet split into `singleSourceFacts` (summary attributes them); stories with no facts skipped ("headlines only").
+- [x] Extractor chain v2: feed text → JSON-LD articleBody → Readability → Defuddle → RSS summary.
+- [x] Debug UI: ranking legend; per-stage columns on the runs list; Pipeline table with actions and results per step on the run page.
+- [x] Scaffold, `chain` extractor, `haiku-facts-v1`, `sonnet-synthesis-v1`, story history summaries, analysis page.
 
 ## Later
 

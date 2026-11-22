@@ -104,3 +104,15 @@ describe("analysis report", async () => {
     expect(text).toContain("synthesize $0.030");
   });
 });
+
+describe("single-source facts", () => {
+  it("splits facts by number of distinct supporting outlets", () => {
+    const input = load("responses/synth-input.json") as SynthesizeInput;
+    const out = SynthesizeOutput.parse(load("responses/synth.json"));
+    const firstFox = input.articles.findIndex((a) => a.article.sourceId === "fox");
+    const custom = { ...out, agreedFacts: [{ fact: "Only Fox says this", factIds: [`a${firstFox + 1}.f1`] }, ...out.agreedFacts] };
+    const { synthesis } = resolveSynthesis(custom, input);
+    expect(synthesis.singleSourceFacts?.find((f) => f.fact === "Only Fox says this")?.sourceId).toBe("fox");
+    expect(synthesis.agreedFacts.every((f) => new Set(f.support.map((s) => input.articles.find((a) => a.article.id === s.articleId)!.article.sourceId)).size >= 2)).toBe(true);
+  });
+});

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listPaths } from "@/lib/storage";
 import { readStatus } from "@/pipeline/status";
+import { STAGES } from "@/pipeline/stages";
 import { missingEnv } from "@/lib/env";
 import { replayAction, startRunAction } from "../actions";
 
@@ -26,13 +27,20 @@ export default async function RunsPage() {
       </div>
       <div className="scroll">
         <table>
-          <thead><tr><th>Run</th><th>State</th><th>Stages</th><th>Top story</th><th></th></tr></thead>
+          <thead><tr><th>Run</th><th>State</th>{STAGES.map((st) => <th key={st}>{st}</th>)}<th>Top story</th><th></th></tr></thead>
           <tbody>
             {statuses.map((s, i) => s && (
               <tr key={ids[i]}>
                 <td className="mono"><Link href={`/debug/runs/${s.runId}`}>{s.runId}</Link>{s.replayFrom && <div className="muted">replay of {s.replayFrom}</div>}</td>
                 <td className={s.state === "failed" ? "bad" : s.state === "done" ? "ok" : "warn"}>{s.state}</td>
-                <td className="mono">{Object.entries(s.stages).map(([k, v]) => `${k}:${v?.state}`).join(" ")}</td>
+                {STAGES.map((st) => {
+                  const v = s.stages[st]?.state;
+                  return (
+                    <td key={st} className={v === "failed" ? "bad" : v === "done" ? "ok" : v === "running" || v === "pending" ? "warn" : "muted"} style={{ fontSize: 12 }}>
+                      {v === "done" ? "✓" : v === "skipped" || !v ? "–" : v}
+                    </td>
+                  );
+                })}
                 <td>{String(s.stages.rank?.summary?.top ?? "")}</td>
                 <td style={{ whiteSpace: "nowrap" }}>
                   {s.stages.rank?.state === "done" && <Link href={`/debug/runs/${s.runId}/review`} style={{ marginRight: 8 }}>Review</Link>}

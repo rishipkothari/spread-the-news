@@ -100,3 +100,21 @@ describe("phase 1 runner (stub implementations)", () => {
     expect(historyChain(undefined, h)).toEqual([]);
   });
 });
+
+describe("headlines-only stories", () => {
+  beforeEach(() => void seed());
+  it("skips synthesis when no article in the story has facts", async () => {
+    // Remove all text so the stub analyzer finds nothing.
+    const bundle = store.get(paths.bundle(runId)) as StoryBundle;
+    bundle.articles = bundle.articles.map((a) => ({ ...a, feedText: undefined }));
+    store.set(paths.bundle(runId), bundle);
+    for (const stage of ["extract", "analyze", "synthesize"] as const) {
+      const ids = await planUnits(runId, stage);
+      for (const id of ids) await runUnit(runId, stage, id);
+      await mergeStage(runId, stage);
+    }
+    const syn = store.get(paths.stage(runId, "synthesize")) as { syntheses: unknown[]; skipped: string[] };
+    expect(syn.syntheses).toHaveLength(0);
+    expect(syn.skipped.length).toBeGreaterThan(0);
+  });
+});

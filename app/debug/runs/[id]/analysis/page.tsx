@@ -119,6 +119,19 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
                     </ul>
                   </>
                 )}
+                {(s.singleSourceFacts?.length ?? 0) > 0 && (
+                  <>
+                    <h3 style={{ fontSize: 13, margin: "10px 0 4px" }}>Reported by one outlet only</h3>
+                    <ul style={{ margin: 0, paddingLeft: 18 }}>
+                      {s.singleSourceFacts!.map((f, j) => (
+                        <li key={j}>
+                          <span className="muted">{sources.get(f.sourceId)?.name}:</span> {f.fact}
+                          <div className="muted" style={{ fontSize: 12 }}>“{f.support[0]?.quote}”</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
                 {s.disputed.length > 0 && (
                   <>
                     <h3 style={{ fontSize: 13, margin: "10px 0 4px" }}>Disputed</h3>
@@ -153,7 +166,11 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
                 )}
               </>
             ) : (
-              <p className="muted">{synth?.errors.find((e) => e.startsWith(storyId)) ?? "not synthesized yet"}</p>
+              <p className="muted">
+                {synth?.skipped?.includes(storyId)
+                  ? "Headlines only: none of this story's articles had readable text, so it wasn't synthesized."
+                  : synth?.errors.find((e) => e.startsWith(storyId)) ?? "not synthesized yet"}
+              </p>
             )}
             <details style={{ marginTop: 8 }}>
               <summary className="muted" style={{ cursor: "pointer" }}>Articles and extracted facts ({chosen.length})</summary>

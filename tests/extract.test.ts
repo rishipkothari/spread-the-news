@@ -1,11 +1,11 @@
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { assessText, chainV1Extractor, readabilityText } from "@/stages/extract/chain-v1";
+import { assessText, chainExtractor, defuddleText, jsonLdText, readabilityText } from "@/stages/extract/chain";
 import type { Article, Source } from "@/lib/types";
 
 const page = (name: string) => readFileSync(new URL(`./fixtures/pages/${name}`, import.meta.url), "utf8");
 const art = (over: Partial<Article> = {}): Article => ({
-  id: "a1", sourceId: "thehill", url: "https://example.com/politics/senate-passes-stopgap", title: "Senate passes stopgap",
+  id: "a1", sourceId: "dailybeast", url: "https://example.com/politics/senate-passes-stopgap", title: "Senate passes stopgap",
   summary: "The Senate voted late Friday.", feedCategories: [], prominence: "latest", publishedAt: "2026-11-22T00:00:00Z", ...over,
 });
 const source = {} as Source;
@@ -42,38 +42,71 @@ describe("readability", () => {
   });
 });
 
+describe("other page extractors", () => {
+  it("reads schema.org JSON-LD articleBody (incl. @graph)", () => {
+    const body = "First paragraph of the article. ".repeat(40);
+    const html = `<html><head><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage"},{"@type":"NewsArticle","headline":"H","articleBody":"${body} &amp; more"}]}</script></head><body></body></html>`;
+    const t = jsonLdText(html)!;
+    expect(t.startsWith("First paragraph")).toBe(true);
+    expect(t).toContain("& more");
+    expect(jsonLdText("<script type=\"application/ld+json\">{bad json</script>")).toBeUndefined();
+  });
+
+  it("Defuddle extracts the article body", () => {
+    const text = defuddleText(page("article.html"), "https://example.com/x")!;
+    expect(text).toContain("$12 billion in disaster aid");
+    expect(text).not.toContain("All rights reserved");
+  });
+});
+
 describe("extractor chain", () => {
+  it("skips page fetches for outlets that block bots", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const t = await chainExtractor.extract(art({ sourceId: "thehill" }), source);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(t).toMatchObject({ textStatus: "headline_only", extractor: "rss-summary" });
+    expect(t.error).toContain("blocks automated requests");
+  });
+
+  it("prefers JSON-LD when the page has it", async () => {
+    const body = "Structured body sentence. ".repeat(50);
+    mockFetch({ "/robots.txt": { status: 404, body: "" }, "/politics/": { body: `<html><head><script type="application/ld+json">{"@type":"NewsArticle","articleBody":"${body}"}</script></head><body><p>x</p></body></html>` } });
+    const t = await chainExtractor.extract(art({ url: "https://jsonld.example.com/politics/x" }), source);
+    expect(t).toMatchObject({ textStatus: "full", extractor: "json-ld" });
+  });
+
   it("uses the feed's full text when it passes the quality check", async () => {
     mockFetch({});
-    const t = await chainV1Extractor.extract(art({ feedText: "Body sentence. ".repeat(80) }), source);
+    const t = await chainExtractor.extract(art({ feedText: "Body sentence. ".repeat(80) }), source);
     expect(t).toMatchObject({ textStatus: "full", extractor: "feed-content" });
   });
 
   it("falls back to fetching the page", async () => {
     mockFetch({ "/robots.txt": { status: 404, body: "" }, "/politics/": { body: page("article.html") } });
-    const t = await chainV1Extractor.extract(art({ feedText: "too short" }), source);
+    const t = await chainExtractor.extract(art({ feedText: "too short" }), source);
     expect(t).toMatchObject({ textStatus: "full", extractor: "readability" });
     expect(t.text).toContain("$12 billion in disaster aid");
   });
 
   it("marks paywalled pages partial", async () => {
     mockFetch({ "/robots.txt": { status: 404, body: "" }, "/politics/": { body: page("paywall.html") } });
-    const t = await chainV1Extractor.extract(art(), source);
+    const t = await chainExtractor.extract(art(), source);
     expect(t.textStatus === "partial" || t.textStatus === "headline_only").toBe(true);
     expect(t.error).toMatch(/paywall|short/);
   });
 
   it("honors robots.txt and falls back to the RSS summary", async () => {
     mockFetch({ "/robots.txt": { body: "User-agent: *\nDisallow: /politics/", type: "text/plain" }, "/politics/": { body: page("article.html") } });
-    const t = await chainV1Extractor.extract(art({ url: "https://blocked.example.org/politics/x" }), source);
+    const t = await chainExtractor.extract(art({ url: "https://blocked.example.org/politics/x" }), source);
     expect(t).toMatchObject({ textStatus: "headline_only", extractor: "rss-summary", text: "The Senate voted late Friday." });
     expect(t.error).toContain("robots.txt");
   });
 
   it("reports HTTP failures", async () => {
     mockFetch({ "/robots.txt": { status: 404, body: "" }, "/politics/": { status: 403, body: "denied" } });
-    const t = await chainV1Extractor.extract(art({ url: "https://forbidden.example.net/politics/x" }), source);
+    const t = await chainExtractor.extract(art({ url: "https://forbidden.example.net/politics/x" }), source);
     expect(t.textStatus).toBe("headline_only");
-    expect(t.error).toContain("HTTP 403");
+    expect(t.error).toContain("page fetch: HTTP 403");
   });
 });

@@ -9,8 +9,8 @@ export const SYNTHESIZE_SYSTEM = `You compare how outlets across the political s
 
 Return:
 - title: a short neutral headline for the story.
-- summary: 2–4 sentences a listener could hear as the core of the story, using only facts supported by the articles. Neutral wording; attribute contested claims ("X said…").
-- agreedFacts: the facts outlets report consistently (prefer facts reported by two or more outlets, or uncontested specifics like dates, votes, numbers). Each has fact (one neutral sentence) and factIds (every supporting fact id, across outlets).
+- summary: 2–4 sentences a listener could hear as the core of the story, using only facts supported by the articles. Neutral wording; attribute contested claims ("X said…"), and attribute facts that only one outlet reports ("according to BBC News…").
+- agreedFacts: the key facts of the story. Each has fact (one neutral sentence) and factIds (every supporting fact id, across all outlets that report it). Include facts reported by only one outlet too, as long as no outlet contradicts them; they'll be shown as single-source.
 - disputed: points of disagreement present in the material. Each has claim (what's in dispute, neutrally) and positions: each position states one side's view and lists the article ids (a1, a2…) that carry it and, where possible, the fact ids that support it. Look for three kinds:
   1. people or groups quoted in the coverage disagreeing about the story: whether something is adequate, justified, effective, or who is responsible (e.g. a sum one side calls a fair compromise and the other calls far too small; an amendment one party pushed and the other blocked);
   2. outlets reporting different facts: different numbers, dates, counts or sequences of events;
@@ -82,12 +82,18 @@ export function resolveSynthesis(out: SynthesizeOutput, input: SynthesizeInput):
     return a ?? null;
   };
 
-  const agreedFacts = out.agreedFacts
-    .map((af) => ({ fact: af.fact.trim(), support: af.factIds.map(fact).filter((x): x is NonNullable<typeof x> => !!x).map(({ articleId, quote }) => ({ articleId, quote })) }))
+  // A fact is "agreed" only when two or more outlets support it; otherwise it's single-source.
+  const resolved = out.agreedFacts
+    .map((af) => ({ fact: af.fact.trim(), refs: af.factIds.map(fact).filter((x): x is NonNullable<typeof x> => !!x) }))
     .filter((af) => {
-      if (!af.support.length) warnings.push(`agreed fact without valid support dropped: "${af.fact}"`);
-      return af.support.length > 0 && af.fact.length > 0;
+      if (!af.refs.length) warnings.push(`fact without valid support dropped: "${af.fact}"`);
+      return af.refs.length > 0 && af.fact.length > 0;
     });
+  const support = (refs: { articleId: string; quote: string }[]) => refs.map(({ articleId, quote }) => ({ articleId, quote }));
+  const agreedFacts = resolved.filter((af) => new Set(af.refs.map((r) => r.sourceId)).size >= 2).map((af) => ({ fact: af.fact, support: support(af.refs) }));
+  const singleSourceFacts = resolved
+    .filter((af) => new Set(af.refs.map((r) => r.sourceId)).size < 2)
+    .map((af) => ({ fact: af.fact, sourceId: af.refs[0].sourceId, support: support(af.refs) }));
 
   const disputed = out.disputed
     .map((d) => ({
@@ -123,6 +129,7 @@ export function resolveSynthesis(out: SynthesizeOutput, input: SynthesizeInput):
       title: out.title.trim() || input.story.title,
       summary: out.summary.trim(),
       agreedFacts,
+      singleSourceFacts,
       disputed,
       framing,
       ...(recently ? { recently } : {}),

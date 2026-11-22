@@ -33,12 +33,17 @@ export function buildAnalysisReport(
     lines.push("", `## Stories (${synth.syntheses.length})`);
     order.forEach((id, i) => {
       const s = synth.syntheses.find((x) => x.storyId === id);
-      if (!s) return;
+      if (!s) {
+        const title = bundle.stories.find((x) => x.id === id)?.title ?? id;
+        if (synth.skipped?.includes(id)) lines.push("", `### ${i + 1}. ${title}`, "(headlines only: no article text, not synthesized)");
+        return;
+      }
       const chosen = plan?.articleIds[id] ?? [];
       const withFacts = chosen.filter((a) => (factsByArticle.get(a)?.facts.length ?? 0) > 0).length;
       lines.push("", `### ${i + 1}. ${s.title}`, `(${chosen.length} articles, ${withFacts} with facts)`, s.summary);
       if (s.recently) lines.push(`Recently: ${s.recently}`);
       for (const f of s.agreedFacts) lines.push(`- AGREED: ${f.fact} [${[...new Set(f.support.map((x) => name(articleSource.get(x.articleId) ?? "?")))].join(", ")}]`);
+      for (const f of s.singleSourceFacts ?? []) lines.push(`- ONLY ${name(f.sourceId)}: ${f.fact}`);
       for (const d of s.disputed) lines.push(`- DISPUTED: ${d.claim} → ${d.positions.map((p) => `${p.position} [${p.sourceIds.map(name).join(", ")}]`).join(" | ")}`);
       for (const [side, f] of Object.entries(s.framing)) lines.push(`- FRAMING ${side}: ${f}`);
     });

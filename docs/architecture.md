@@ -24,7 +24,7 @@ Stages (`src/pipeline/stages.ts`): `sources → fetch → cluster → rank` (dis
 | fetch | `ArticleFetcher` | `rss` | `normalize.ts` (parse, dates, URLs, dedupe), `robots.ts`, `homepage.ts` (homepage positions) |
 | cluster | `StoryClusterer` | `llm-single-pass` | `prompt.ts`; one Sonnet call, zod-validated via `src/lib/llm.ts structuredCall()` |
 | rank | `StoryRanker` | `headline-index-v1` | pure function of saved signals; weights in config |
-| extract | `ArticleTextExtractor` | `chain-v1` (default), `feed-only` | feed text → Readability → RSS summary; runner caches by URL |
+| extract | `ArticleTextExtractor` | `chain-v2` (default), `feed-only` | feed text → JSON-LD → Readability → Defuddle → RSS summary; `skipPageFetch` outlets go straight to headline-only; runner caches by URL |
 | analyze | `ArticleAnalyzer` | `haiku-facts-v1` (default), `stub` | facts with verbatim quotes, verified in code |
 | synthesize | `StorySynthesizer` | `sonnet-synthesis-v1` (default), `stub` | cites fact ids; `resolveSynthesis` maps them to quotes |
 

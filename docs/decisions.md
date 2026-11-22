@@ -4,6 +4,12 @@ The PRD's decision log (`docs/PRD.md` → "Decision log") is the baseline. This 
 
 | Date | Topic | Decision | Why | PRD change? |
 | :- | :- | :- | :- | :- |
+| 2026-11-22 | The Hill | Headline-only: no page fetches (`analysis.skipPageFetch`); its headlines still count for coverage and framing | It returns HTTP 403 to our honest bot user agent; we don't disguise the bot | No |
+| 2026-11-22 | Single-source facts | "Agreed" requires 2+ outlets; one-outlet facts go to `singleSourceFacts` and the summary attributes them | First run labelled one-outlet facts as agreed | Refines PRD "agreed facts" |
+| 2026-11-22 | Headlines-only stories | Skip synthesis when no article in a story has facts | A synthesis wrote "no extracted facts…" into its summary | No |
+| 2026-11-22 | One-sided disputes | Left as is for now | User's call: MVP first, tune later | No |
+| 2026-11-22 | Rate limits | Anthropic SDK `maxRetries` 8 (backoff, honors retry-after); 2 concurrent fact calls per story step | Org concurrency limit hit with 15 story steps in parallel | No |
+| 2026-11-22 | Extractor chain | feed text → JSON-LD articleBody → Readability → Defuddle → RSS summary (one page fetch) | More fallbacks when a page loads but one parser fails; none of them helps an outlet that blocks the request | Extends PRD chain |
 | 2026-11-22 | Phase 1 rollout | Opt-in: "Start full run" stops after rank; "Run analysis (Phase 1)" runs extract → analyze → synthesize in place on a finished run | Keeps the user's daily Phase 0 runs unchanged while Phase 1 is unproven | Temporary |
 | 2026-11-22 | Branches | `phase0-v1` = frozen Phase 0 snapshot; integration branch carries Phase 1 | User asked to earmark Phase 0 | No |
 | 2026-11-22 | Phase 1 scope per run | Top 15 ranked stories, ≤8 articles each picked round-robin across outlets | Bounds cost/time; avoids one prolific outlet dominating facts | Tunable in config |

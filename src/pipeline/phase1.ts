@@ -24,14 +24,14 @@ export interface AnalysisPlan {
 
 export interface ExtractUnit { storyId: string; texts: ExtractedText[]; cacheHits: number; ms: number }
 export interface AnalyzeUnit { storyId: string; facts: ArticleFacts[]; errors: string[]; usage: LlmUsageEntry[]; ms: number }
-export interface SynthesizeUnit { storyId: string; synthesis?: StorySynthesis; error?: string; usage: LlmUsageEntry[]; ms: number }
+export interface SynthesizeUnit { storyId: string; synthesis?: StorySynthesis; skipped?: "no_facts"; error?: string; usage: LlmUsageEntry[]; ms: number }
 
 export interface ExtractOut {
   texts: Record<string, ExtractedText>;
   report: Record<string, { attempted: number; full: number; partial: number; headline_only: number; byExtractor: Record<string, number>; errors: string[] }>;
 }
 export interface AnalyzeOut { facts: ArticleFacts[]; errors: string[] }
-export interface SynthesizeOut { syntheses: StorySynthesis[]; errors: string[] }
+export interface SynthesizeOut { syntheses: StorySynthesis[]; skipped?: string[]; errors: string[] }
 
 // ---------- helpers ----------
 
@@ -156,7 +156,7 @@ export async function runUnit(runId: string, stage: FanoutStage, storyId: string
     const analyzer = impls.analyze(m);
     const errors: string[] = [];
     const usage: LlmUsageEntry[] = [];
-    const facts = await mapLimit(chosen, 4, async (a): Promise<ArticleFacts> => {
+    const facts = await mapLimit(chosen, config.analysis.analyzeConcurrency, async (a): Promise<ArticleFacts> => {
       const base = { articleId: a.id, sourceId: a.sourceId, storyId };
       if (a.articleType === "opinion") return { ...base, facts: [], skipped: "opinion" };
       const text = extracted[a.id];
@@ -198,6 +198,11 @@ export async function runUnit(runId: string, stage: FanoutStage, storyId: string
     history: historyChain(story.continuesStoryId, history),
   } as const;
   let unit: SynthesizeUnit;
+  // No article text anywhere → nothing grounded to synthesize; never let a "no facts" summary reach a script.
+  if (input.articles.every((a) => a.facts.length === 0)) {
+    await putJson(paths.unit(runId, stage, storyId), { storyId, skipped: "no_facts", usage: [], ms: Date.now() - t0 } satisfies SynthesizeUnit);
+    return;
+  }
   try {
     const r = await impls.synthesize(m).synthesize({ ...input, articles: [...input.articles] });
     unit = { storyId, synthesis: r.synthesis, usage: r.usage, ms: Date.now() - t0 };
@@ -263,13 +268,14 @@ export async function mergeStage(runId: string, stage: FanoutStage): Promise<voi
     const units = (await Promise.all(plan.storyIds.map((id) => load<SynthesizeUnit>(id)))).filter((u): u is SynthesizeUnit => !!u);
     const out: SynthesizeOut = {
       syntheses: units.flatMap((u) => (u.synthesis ? [u.synthesis] : [])),
+      skipped: units.filter((u) => u.skipped).map((u) => u.storyId),
       errors: units.flatMap((u) => (u.error ? [`${u.storyId}: ${u.error}`] : [])),
     };
     await putJson(paths.stage(runId, stage), out);
     await appendUsage(runId, stageUsage(stage, units));
     const bundle = await needBundle(runId);
     await addHistorySummaries(bundle.window.end.slice(0, 10), bundle.stories, out.syntheses);
-    summary = { syntheses: out.syntheses.length, errors: out.errors.length };
+    summary = { syntheses: out.syntheses.length, headlinesOnly: out.skipped?.length ?? 0, errors: out.errors.length };
   }
 
   await updateStatus(runId, (s) => {
