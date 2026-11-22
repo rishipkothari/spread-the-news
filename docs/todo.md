@@ -20,13 +20,22 @@ Exit criterion: about a week of daily manual runs where the ranked list looks li
 - [ ] Daily runs for a week, each reviewed on `/debug/runs/<id>/review`; save each pasted report to `docs/reviews/`.
 - [ ] Re-check AllSides ratings for the 10 unverified sources (BBC first).
 
-## Next: Phase 1 (full text and story analysis)
+## Now (parallel): Phase 1 (full text and story analysis): built, awaiting first live run
 
-- [ ] `ArticleTextExtractor` chain: feed content → fetch + Readability → headline-only; quality check (min length, paywall phrases); robots.txt; cache by URL; per-source success report.
-- [ ] Story history: add synthesis summaries back into `history/stories-14d.json`; pass the linked chain to the synthesizer.
-- [ ] `ArticleAnalyzer` (Haiku 5.5): facts with exact supporting quotes, news/analysis only.
-- [ ] `StorySynthesizer` (Sonnet 5.5): agreed facts, disputed claims, framing by side, "recently" background.
-- [ ] Debug/review views for extraction and synthesis output.
+Built 2026-11-22 on the integration branch, opt-in via "Run analysis (Phase 1)" on a finished run. Prompts tested offline with Claude sub-agents on a fictional fixture story; nothing has hit the real API or real news pages yet.
+
+- [ ] **First live run (user):** open a finished run → "Run analysis (Phase 1)" → wait for the three stages → "Analysis →" → copy the report and paste it to Claude. Expected cost ≈ $0.30–0.60 for 15 stories.
+- [ ] Check the extraction table: which outlets block page fetches (403/robots/paywall)? Decide per outlet: accept headline-only, find a better feed with full text, or drop.
+- [ ] Check facts: quotes should all be verbatim (non-verbatim ones are dropped and noted in usage). Watch the "dropped" notes on the run page's usage.
+- [ ] Check syntheses: agreed facts really agreed, disputes real, framing fair. Tune `SYNTHESIZE_SYSTEM` / `ANALYZE_SYSTEM`; re-run analysis in place (text is cached, so re-runs mostly cost LLM tokens).
+- [ ] Measure time per stage; if a story step nears the ~300s function limit, lower `analysis.maxArticlesPerStory` or concurrency.
+- [ ] Retention: delete `cache/text/*` older than 30 days (PRD). Not built yet.
+- [ ] Phase 1 exit (PRD): spot checks of synthesis hold up against source articles; extraction succeeds for most articles from each source.
+- [x] Scaffold: stages extract → analyze → synthesize, one workflow step per story, merge; history chain links.
+- [x] `chain-v1` extractor (feed text → Readability → RSS summary), quality check, robots.txt, URL cache, per-source report.
+- [x] `haiku-facts-v1` with verbatim-quote verification; `sonnet-synthesis-v1` with fact-id citations resolved in code.
+- [x] Story history: synthesis summaries written back; linked chain passed to the synthesizer.
+- [x] `/debug/runs/<id>/analysis` page with copyable report.
 
 ## Later
 
@@ -40,3 +49,4 @@ Exit criterion: about a week of daily manual runs where the ranked list looks li
 - [x] 2026-11-22: Phase 0 pipeline (sources → fetch → cluster → rank) on Vercel Workflows, Blob storage, run API, debug pages.
 - [x] 2026-11-22: Review page with verdicts and copyable report.
 - [x] 2026-11-22: Graded prominence (homepage position + feed type), feed discovery admin page, Blob-editable sources.
+- [x] 2026-11-22: Phase 0 snapshot branch `phase0-v1`; Phase 1 built on the integration branch (opt-in).

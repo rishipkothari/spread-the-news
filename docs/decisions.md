@@ -4,6 +4,13 @@ The PRD's decision log (`docs/PRD.md` → "Decision log") is the baseline. This 
 
 | Date | Topic | Decision | Why | PRD change? |
 | :- | :- | :- | :- | :- |
+| 2026-11-22 | Phase 1 rollout | Opt-in: "Start full run" stops after rank; "Run analysis (Phase 1)" runs extract → analyze → synthesize in place on a finished run | Keeps the user's daily Phase 0 runs unchanged while Phase 1 is unproven | Temporary |
+| 2026-11-22 | Branches | `phase0-v1` = frozen Phase 0 snapshot; integration branch carries Phase 1 | User asked to earmark Phase 0 | No |
+| 2026-11-22 | Phase 1 scope per run | Top 15 ranked stories, ≤8 articles each picked round-robin across outlets | Bounds cost/time; avoids one prolific outlet dominating facts | Tunable in config |
+| 2026-11-22 | Fact quotes | Facts whose quote isn't found verbatim (after normalizing case, whitespace, quote marks, dashes; "…" gaps allowed) are dropped | The Phase 2 checker traces claims to quotes; an unverifiable quote is worthless | Enforces PRD intent |
+| 2026-11-22 | Synthesis citations | The model cites fact ids (a2.f3); code maps them to article ids and verbatim quotes and drops anything that doesn't resolve | Prevents invented support and keeps output small | Implementation |
+| 2026-11-22 | Effort | Haiku facts `low`, Sonnet synthesis `medium` | Cost; extraction is simple, synthesis needs more judgment | Tunable |
+| 2026-11-22 | Prompt testing | Offline harness (`scripts/prompt-harness.ts`) with Claude sub-agents standing in for the API on a fictional fixture story; responses saved as regression fixtures | Sandbox has no API key or news access | No |
 | 2026-11-22 | Ranking weights | C 0.50, B 0.25, P 0.25 (was 0.55 / 0.30 / 0.15) | P now carries real signal (homepage + feed type) instead of being mostly zero | Yes |
 | 2026-11-22 | Prominence (P) | Per outlet, strongest signal: homepage top-10 1.0, top-40 0.7, listed 0.5; top feed 0.8, latest 0.25, section 0.15. P = mean over covering outlets | Only BBC/HuffPost had true top feeds, so P was 0 for most stories; homepages give every outlet a comparable "was it a headline" signal | Yes (P definition) |
 | 2026-11-22 | Feed types | `top` / `latest` / `section` (was `top` / `section`) | Most outlets' main feed is an everything firehose, not an editorial front page | Yes (data model) |

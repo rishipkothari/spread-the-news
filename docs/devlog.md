@@ -2,6 +2,26 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-22 (evening): Phase 1 built (opt-in), awaiting first live run
+
+**Built**
+- Branch `phase0-v1` snapshots Phase 0. Phase 1 lives on the integration branch, opt-in via "Run analysis (Phase 1)".
+- Fan-out: plan → one workflow step per story → merge, for extract, analyze, synthesize. Units write their own files, merge writes usage/status (no races).
+- `chain-v1` extractor (feed text → Readability via linkedom → RSS summary) with quality check, robots.txt, URL cache, per-source report.
+- `haiku-facts-v1` (verbatim-quote verified) and `sonnet-synthesis-v1` (fact-id citations resolved in code). Refusal fallback only requested for Sonnet/Opus (Haiku has none).
+- `/debug/runs/<id>/analysis` page with copyable report. History entries now carry `continuesStoryId` and synthesis summaries.
+
+**Prompt testing (offline)**
+- No API key in the sandbox, so Claude sub-agents stood in for the API on a fictional 4-outlet story (`tests/fixtures/analysis/story-stopgap.json`). Haiku: 43 facts, 0 non-verbatim quotes; loaded framing correctly excluded or attributed. Sonnet: 0 unresolved ids, neutral summary, fair framing.
+- First synthesis found only 1 dispute; prompt revised to name three kinds of disagreement → 3 real disputes on retest. Added a rule against "reported without comment" as a position.
+- Recorded responses are regression fixtures in `tests/fixtures/analysis/responses/`.
+
+**Not verified** (needs the user on Vercel): real page fetches/Readability on live sites, real API calls and cost, step timing.
+
+**Next**
+- User: run analysis on a finished run, paste the analysis report.
+- Then: tune prompts from real output; P fix (todo); Phase 2 planning.
+
 ## 2026-11-22: Phase 0 built, first live runs
 
 **Built**
