@@ -2,7 +2,7 @@ import Link from "next/link";
 import { listPaths } from "@/lib/storage";
 import { readStatus } from "@/pipeline/status";
 import { missingEnv } from "@/lib/env";
-import { startRunAction } from "../actions";
+import { replayAction, startRunAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,7 @@ export default async function RunsPage() {
       </div>
       <div className="scroll">
         <table>
-          <thead><tr><th>Run</th><th>State</th><th>Stages</th><th>Top story</th></tr></thead>
+          <thead><tr><th>Run</th><th>State</th><th>Stages</th><th>Top story</th><th></th></tr></thead>
           <tbody>
             {statuses.map((s, i) => s && (
               <tr key={ids[i]}>
@@ -34,6 +34,15 @@ export default async function RunsPage() {
                 <td className={s.state === "failed" ? "bad" : s.state === "done" ? "ok" : "warn"}>{s.state}</td>
                 <td className="mono">{Object.entries(s.stages).map(([k, v]) => `${k}:${v?.state}`).join(" ")}</td>
                 <td>{String(s.stages.rank?.summary?.top ?? "")}</td>
+                <td>
+                  {(s.stages.fetch?.state === "done" || s.stages.fetch?.state === "copied") && (
+                    <form action={replayAction}>
+                      <input type="hidden" name="runId" value={s.runId} />
+                      <input type="hidden" name="from" value="cluster" />
+                      <button type="submit">Re-cluster</button>
+                    </form>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

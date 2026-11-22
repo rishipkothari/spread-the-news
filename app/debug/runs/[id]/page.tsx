@@ -127,7 +127,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
       </div>
 
       <div className="row" style={{ margin: "12px 0" }}>
-        {status.stages.fetch?.state === "done" && (
+        {(status.stages.fetch?.state === "done" || status.stages.fetch?.state === "copied") && (
           <form action={replayAction}>
             <input type="hidden" name="runId" value={id} />
             <input type="hidden" name="from" value="cluster" />
