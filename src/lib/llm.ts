@@ -23,9 +23,33 @@ export function usageFrom(model: string, u: { input_tokens: number; output_token
   return { model, inputTokens: u.input_tokens, outputTokens: u.output_tokens, cacheReadTokens: cacheRead, cacheWriteTokens: cacheWrite, costUsd };
 }
 
-function jsonSchemaFor(schema: z.ZodType): Record<string, unknown> {
-  const { $schema: _drop, ...rest } = z.toJSONSchema(schema, { target: "draft-2020-12" }) as Record<string, unknown>;
-  return rest;
+/**
+ * Keywords the structured-outputs schema subset rejects. Zod still enforces them
+ * when the response is validated, so dropping them from the request loses nothing.
+ */
+const UNSUPPORTED_KEYS = new Set([
+  "$schema", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
+  "minLength", "maxLength", "pattern", "minItems", "maxItems", "uniqueItems", "minProperties", "maxProperties",
+]);
+
+export function sanitizeSchema(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(sanitizeSchema);
+  if (node && typeof node === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(node)) {
+      if (UNSUPPORTED_KEYS.has(k)) continue;
+      // "properties" maps names → schemas; never treat a property *name* as a keyword.
+      out[k] = k === "properties" && v && typeof v === "object"
+        ? Object.fromEntries(Object.entries(v).map(([name, sub]) => [name, sanitizeSchema(sub)]))
+        : sanitizeSchema(v);
+    }
+    return out;
+  }
+  return node;
+}
+
+export function jsonSchemaFor(schema: z.ZodType): Record<string, unknown> {
+  return sanitizeSchema(z.toJSONSchema(schema, { target: "draft-2020-12" })) as Record<string, unknown>;
 }
 
 /**
