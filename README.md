@@ -79,3 +79,7 @@ Regenerate the synthetic ranking fixture after changing it:
 ```bash
 npx tsx scripts/make-fixture-bundle.ts
 ```
+
+## Project docs
+
+`docs/` holds the PRD, backlog (`todo.md`), dev log, decisions, architecture, stack record and saved run reviews. `CLAUDE.md` is the short entry point for Claude sessions.
