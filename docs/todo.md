@@ -13,7 +13,7 @@ Exit criterion: about a week of daily manual runs where the ranked list looks li
   - [ ] Consider more sources overall (PRD: replacements if HuffPost/BBC/Breitbart fail; volume asymmetry is a known bias).
   - [ ] Download the edited `sources.json` from `/debug/feeds` and commit it once the feed set settles.
 - [ ] **Ranking tuning** from reviews (re-rank is free on saved runs):
-  - [ ] 2-outlet stories with one outlet featuring them (sports crash, auction, UK village) rank too high: P from a single outlet carries too much. Options: blend P by coverage, require ≥3 outlets for full P, or raise C weight.
+  - [ ] **P fix (agreed, not started):** a 2-outlet story featured on one outlet's homepage ranks too high (sports crash, auction, UK village, Maher in run 0528) because P is a mean over covering outlets, so one featuring outlet out of two gives P ≈ 0.6. Plan: blend P with coverage so it can't lift thin stories, e.g. P' = P × min(1, distinctOutlets / k) with k≈4 in config, or sum of outlet prominence ÷ active outlets. Verify by re-ranking run 2026-11-22T0528-df1c2b (free) and comparing against the review in `docs/reviews/2026-11-22-0528.md`.
   - [ ] Politically significant 2–3 outlet stories rank too low (Schumer challenge, terror warnings, Congress access, Lutnick). Partly a volume problem; revisit after feed work.
   - [ ] Category assignment sometimes odd (FBI hack as us/science). Tighten category guidance in the clusterer prompt.
 - [ ] Verify the homepage check works per outlet (Homepage column in Source health); for JS-rendered homepages, decide on a fallback.
@@ -34,7 +34,6 @@ Exit criterion: about a week of daily manual runs where the ranked list looks li
 - Phase 3: `TTSProvider` (edge-tts; Kokoro fallback), audio cache, `EpisodeAssembler`, private web player.
 - Phase 4: Neon + Drizzle story bank, playlists. Phase 5: lean slider.
 - Ops: cron trigger (thin route over `startRun`); 30-day retention cleanup for article text and non-vanilla audio.
-- Housekeeping: log this project in the stack playbook's `projects.md` (needs access to `rishipkothari/dev-stack-playbook`).
 
 ## Done
 
