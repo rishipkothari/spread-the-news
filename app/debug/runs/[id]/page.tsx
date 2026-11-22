@@ -145,7 +145,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
             <button type="submit">{status.stages.synthesize?.state === "done" ? "Re-run analysis (Phase 1)" : "Run analysis (Phase 1)"}</button>
           </form>
         )}
-        {status.stages.synthesize?.state === "done" && <Link href={`/debug/runs/${id}/analysis`} className="big" style={{ margin: 0, padding: "6px 12px" }}>Analysis →</Link>}
+        {(status.stages.extract?.state ?? "skipped") !== "skipped" && <Link href={`/debug/runs/${id}/analysis`} className="big" style={{ margin: 0, padding: "6px 12px" }}>Analysis →</Link>}
         {status.stages.cluster?.state === "done" && (
           <form action={rerankAction}>
             <input type="hidden" name="runId" value={id} />

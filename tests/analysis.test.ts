@@ -80,3 +80,27 @@ describe("story synthesis (recorded Sonnet response)", () => {
     expect(user).toMatch(/a1\.f1 \(event\)/);
   });
 });
+
+describe("analysis report", async () => {
+  const { buildAnalysisReport } = await import("@/review/analysis-report");
+  it("summarizes extraction, facts and syntheses", () => {
+    const input = load("responses/synth-input.json") as SynthesizeInput;
+    const { synthesis } = resolveSynthesis(SynthesizeOutput.parse(load("responses/synth.json")), input);
+    const sources = story.articles.map((a: { article: { sourceId: string }; sourceName: string; lean: string; leanValue: number }) => ({ id: a.article.sourceId, name: a.sourceName, lean: a.lean, leanValue: a.leanValue }));
+    const bundle = { runId: "r1", articles: input.articles.map((a) => a.article), sources, stories: [input.story] } as never;
+    const text = buildAnalysisReport(
+      bundle,
+      { storyIds: [input.story.id], articleIds: { [input.story.id]: input.articles.map((a) => a.article.id) } },
+      { texts: {}, report: { thehill: { attempted: 3, full: 2, partial: 0, headline_only: 1, byExtractor: { readability: 2, "rss-summary": 1 }, errors: ["readability: HTTP 403"] } } },
+      { facts: input.articles.map((a) => ({ articleId: a.article.id, sourceId: a.article.sourceId, storyId: input.story.id, facts: a.facts })), errors: [] },
+      { syntheses: [synthesis], errors: [] },
+      [{ stage: "synthesize", ms: 1, costUsd: 0.03 }],
+    );
+    expect(text).toContain("The Hill: 2/0/1 of 3");
+    expect(text).toContain("### 1. ");
+    expect(text).toContain("- AGREED:");
+    expect(text).toContain("- DISPUTED:");
+    expect(text).toContain("FRAMING right:");
+    expect(text).toContain("synthesize $0.030");
+  });
+});
