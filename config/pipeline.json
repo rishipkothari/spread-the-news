@@ -3,7 +3,10 @@
     "sources": "blob-json",
     "fetch": "rss",
     "cluster": "llm-single-pass",
-    "rank": "headline-index-v1"
+    "rank": "headline-index-v1",
+    "extract": "feed-only",
+    "analyze": "stub",
+    "synthesize": "stub"
   },
   "models": {
     "cluster": "claude-sonnet-5-5",
@@ -81,5 +84,26 @@
     },
     "orderStrategy": "top-then-category",
     "scriptStyle": "neutral-v1"
+  },
+  "analysis": {
+    "_note": "Phase 1. Stories selected = top N ranked; articles per story capped, picked round-robin across outlets.",
+    "topStories": 15,
+    "maxArticlesPerStory": 8,
+    "minTextChars": 800,
+    "maxCharsForLlm": 15000,
+    "extractConcurrency": 4,
+    "paywallPhrases": [
+      "subscribe to continue",
+      "subscribers only",
+      "already a subscriber",
+      "to continue reading",
+      "create a free account",
+      "sign in to read",
+      "this content is for subscribers"
+    ],
+    "analyzeEffort": "low",
+    "synthesizeEffort": "medium",
+    "analyzeMaxTokens": 8000,
+    "synthesizeMaxTokens": 16000
   }
 }

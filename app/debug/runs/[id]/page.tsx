@@ -3,7 +3,7 @@ import { config } from "@/lib/config";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus } from "@/pipeline/status";
-import { replayAction, rerankAction } from "../../actions";
+import { analysisAction, replayAction, rerankAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -139,6 +139,13 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
             <button type="submit">Re-cluster these articles (new run)</button>
           </form>
         )}
+        {bundle && (
+          <form action={analysisAction}>
+            <input type="hidden" name="runId" value={id} />
+            <button type="submit">{status.stages.synthesize?.state === "done" ? "Re-run analysis (Phase 1)" : "Run analysis (Phase 1)"}</button>
+          </form>
+        )}
+        {status.stages.synthesize?.state === "done" && <Link href={`/debug/runs/${id}/analysis`} className="big" style={{ margin: 0, padding: "6px 12px" }}>Analysis →</Link>}
         {status.stages.cluster?.state === "done" && (
           <form action={rerankAction}>
             <input type="hidden" name="runId" value={id} />

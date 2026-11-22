@@ -111,7 +111,50 @@ export interface HistoryStory {
   date: string;
   title: string;
   category: Category;
-  summary?: string;
+  continuesStoryId?: string; // link to an earlier history entry, to walk the chain
+  summary?: string; // StorySynthesis.summary, added after the synthesize stage
+}
+
+// ---------- Phase 1: full text and story analysis ----------
+
+export type TextStatus = "full" | "partial" | "headline_only";
+
+/** Output of the extract stage for one article (also cached by URL). */
+export interface ExtractedText {
+  articleId: string;
+  url: string;
+  text?: string; // plain text; absent when headline_only and no summary
+  textStatus: TextStatus;
+  extractor: string; // which link of the chain produced it: "feed-content" | "readability" | "rss-summary" | …
+  chars: number;
+  error?: string; // why earlier links of the chain failed (paywall, robots, http, too short…)
+  fetchedAt: string;
+}
+
+/** One fact from one article, with the exact sentence(s) that support it. */
+export interface Fact {
+  claim: string; // the fact, restated neutrally
+  quote: string; // verbatim excerpt from the article text that supports it
+  kind: "event" | "statistic" | "statement" | "background";
+  speaker?: string; // for statements: who said it
+}
+
+export interface ArticleFacts {
+  articleId: string;
+  sourceId: string;
+  storyId: string;
+  facts: Fact[];
+  skipped?: "opinion" | "no_text";
+}
+
+export interface StorySynthesis {
+  storyId: string;
+  title: string; // neutral title (may refine the clusterer's)
+  summary: string; // 2–4 neutral sentences; also stored in story history
+  agreedFacts: { fact: string; support: { articleId: string; quote: string }[] }[];
+  disputed: { claim: string; positions: { position: string; sourceIds: string[]; quote?: string; articleId?: string }[] }[];
+  framing: Partial<Record<LeanGroup, string>>; // how each side frames it; omit a side with no coverage
+  recently?: string; // "what happened recently", from the linked story chain
 }
 
 export interface UsageEntry {

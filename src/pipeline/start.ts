@@ -5,7 +5,7 @@ import { newRunId } from "@/lib/hash";
 import { CATEGORIES } from "@/lib/types";
 import { pipelineWorkflow } from "@/workflows/pipeline";
 import { copyStages, stagesBefore } from "./run";
-import { STAGES, stageRange, type StageId } from "./stages";
+import { ANALYSIS_STAGES, STAGES, stageRange, type StageId } from "./stages";
 import { type RunStatus, readStatus, updateStatus, writeStatus } from "./status";
 
 const stageEnum = z.enum(STAGES);
@@ -64,15 +64,26 @@ export async function startRun(body: z.infer<typeof StartRunBody>): Promise<RunS
 
 /** Re-run a single stage in place on an existing run (e.g. re-rank with new weights). */
 export async function rerunStage(runId: string, stage: StageId): Promise<RunStatus> {
+  return rerunStages(runId, [stage]);
+}
+
+/** Run Phase 1 (extract → analyze → synthesize) in place on a run that finished ranking. */
+export async function startAnalysis(runId: string): Promise<RunStatus> {
+  const s = await readStatus(runId);
+  if (s?.stages.rank?.state !== "done" && s?.stages.rank?.state !== "copied") throw new Error(`run ${runId} hasn't finished ranking`);
+  return rerunStages(runId, ANALYSIS_STAGES);
+}
+
+export async function rerunStages(runId: string, stages: StageId[]): Promise<RunStatus> {
   const s = await readStatus(runId);
   if (!s) throw new Error(`run ${runId} not found`);
   const updated = await updateStatus(runId, (st) => {
     st.state = "queued";
     st.methods = { ...config.methods };
-    st.stages[stage] = { state: "pending" };
-    st.errors = st.errors.filter((e) => !e.startsWith(`${stage}:`));
+    for (const stage of stages) st.stages[stage] = { state: "pending" };
+    st.errors = st.errors.filter((e) => !stages.some((stage) => e.startsWith(`${stage}:`)));
   });
-  const wf = await start(pipelineWorkflow, [runId, [stage]]);
+  const wf = await start(pipelineWorkflow, [runId, stages]);
   updated.workflowRunId = wf.runId;
   await writeStatus(updated);
   return updated;

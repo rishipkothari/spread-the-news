@@ -4,6 +4,9 @@ import { rssFetcher } from "./fetch/rss";
 import { headlineIndexV1 } from "./rank/headline-index-v1";
 import { blobJsonRegistry } from "./sources/blob-json";
 import { staticJsonRegistry } from "./sources/static-json";
+import { analyzers } from "./analyze";
+import { extractors } from "./extract";
+import { synthesizers } from "./synthesize";
 import type { ArticleFetcher, SourceRegistry, StoryClusterer, StoryRanker } from "./types";
 
 const registries: Record<string, SourceRegistry> = { [staticJsonRegistry.id]: staticJsonRegistry, [blobJsonRegistry.id]: blobJsonRegistry };
@@ -24,4 +27,7 @@ export const impls = {
   fetch: (m: Methods) => pick(fetchers, m.fetch, "fetch"),
   cluster: (m: Methods) => pick(clusterers, m.cluster, "cluster"),
   rank: (m: Methods) => pick(rankers, m.rank, "rank"),
+  extract: (m: Methods) => pick(extractors, m.extract, "extract"),
+  analyze: (m: Methods) => pick(analyzers, m.analyze, "analyze"),
+  synthesize: (m: Methods) => pick(synthesizers, m.synthesize, "synthesize"),
 };

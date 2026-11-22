@@ -4,7 +4,7 @@ import type { Article, Source, SourceHealth, Story, StoryBundle, UsageEntry } fr
 import { impls, type Methods } from "@/stages/registry";
 import type { TimeWindow } from "@/stages/types";
 import { readHistory, updateHistory } from "./history";
-import { STAGES, type StageId } from "./stages";
+import { STAGES, type FanoutStage, type StageId } from "./stages";
 import { appendUsage, readStatus, updateStatus } from "./status";
 
 interface SourcesOut { sources: Source[] }
@@ -20,7 +20,7 @@ async function need<T>(runId: string, stage: StageId): Promise<T> {
 
 type StageFn = (runId: string, methods: Methods) => Promise<{ summary: Record<string, unknown>; usage: Omit<UsageEntry, "stage" | "ms">[] }>;
 
-const runners: Record<StageId, StageFn> = {
+const runners: Record<Exclude<StageId, FanoutStage>, StageFn> = {
   async sources(runId, m) {
     const sources = await impls.sources(m).getSources();
     await putJson(paths.stage(runId, "sources"), { sources } satisfies SourcesOut);
@@ -80,11 +80,12 @@ const runners: Record<StageId, StageFn> = {
     await putJson(paths.bundle(runId), bundle);
     await updateHistory(fetched.window.end.slice(0, 10), stories);
     return { summary: { ranked: stories.filter((s) => s.ranked).length, top: stories[0]?.title }, usage: [] };
+    // (Phase 1 stages run through src/pipeline/phase1.ts, one step per story.)
   },
 };
 
 /** Execute one stage against a run's saved inputs, recording status and usage. */
-export async function runStage(runId: string, stage: StageId): Promise<void> {
+export async function runStage(runId: string, stage: Exclude<StageId, FanoutStage>): Promise<void> {
   const status = await updateStatus(runId, (s) => {
     s.state = "running";
     s.stages[stage] = { state: "running", startedAt: new Date().toISOString() };
