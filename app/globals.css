@@ -33,3 +33,17 @@ th { font-weight: 600; color: var(--muted); font-size: 12px; }
 .scroll { overflow-x: auto; }
 button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; }
 button:hover { border-color: var(--muted); }
+.nav { display: flex; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--card); }
+.nav a { text-decoration: none; font-weight: 600; }
+.sticky { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--line); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { padding: 2px 10px; font-size: 12px; border-radius: 999px; }
+.chip.on-good { background: var(--ok); border-color: var(--ok); color: #fff; }
+.chip.on-bad { background: var(--warn); border-color: var(--warn); color: #fff; }
+button.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 600; }
+button.linkish { border: none; background: none; padding: 0; color: inherit; text-decoration: underline; font-size: 12px; }
+input, select, textarea { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--fg); }
+.field { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+.field textarea { width: 100%; }
+.big { display: inline-block; padding: 14px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); text-decoration: none; font-weight: 600; margin: 0 10px 10px 0; }
+.big:hover { border-color: var(--muted); }

@@ -42,5 +42,6 @@ export const paths = {
   stage: (runId: string, stage: string) => `runs/${runId}/${stage}.json`,
   bundle: (runId: string) => `runs/${runId}/bundle.json`,
   usage: (runId: string) => `runs/${runId}/usage.json`,
+  review: (runId: string) => `runs/${runId}/review.json`,
   history: () => `history/stories-14d.json`,
 };

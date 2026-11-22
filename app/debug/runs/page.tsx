@@ -34,7 +34,8 @@ export default async function RunsPage() {
                 <td className={s.state === "failed" ? "bad" : s.state === "done" ? "ok" : "warn"}>{s.state}</td>
                 <td className="mono">{Object.entries(s.stages).map(([k, v]) => `${k}:${v?.state}`).join(" ")}</td>
                 <td>{String(s.stages.rank?.summary?.top ?? "")}</td>
-                <td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {s.stages.rank?.state === "done" && <Link href={`/debug/runs/${s.runId}/review`} style={{ marginRight: 8 }}>Review</Link>}
                   {(s.stages.fetch?.state === "done" || s.stages.fetch?.state === "copied") && (
                     <form action={replayAction}>
                       <input type="hidden" name="runId" value={s.runId} />

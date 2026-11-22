@@ -127,6 +127,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
       </div>
 
       <div className="row" style={{ margin: "12px 0" }}>
+        {bundle && <Link href={`/debug/runs/${id}/review`} className="big" style={{ margin: 0, padding: "6px 12px" }}>Review this run →</Link>}
         {(status.stages.fetch?.state === "done" || status.stages.fetch?.state === "copied") && (
           <form action={replayAction}>
             <input type="hidden" name="runId" value={id} />
