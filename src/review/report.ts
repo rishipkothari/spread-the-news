@@ -71,7 +71,7 @@ export function buildReport(bundle: StoryBundle, usage: UsageEntry[], review: Ru
   const flagged = unranked.filter((s) => review.shouldRank.includes(s.id));
   if (flagged.length) {
     lines.push("");
-    lines.push(`## Below the 3-outlet minimum but should be ranked`);
+    lines.push(`## Below the outlet minimum but should be ranked`);
     for (const s of flagged) lines.push(storyLine(s, null, articles, sources));
   }
   if (warnings.length) {

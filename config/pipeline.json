@@ -41,7 +41,7 @@
     "skewPenalty": 0.5,
     "recencyHalfLifeHours": 24,
     "opinionWeight": 0.5,
-    "minOutlets": 3
+    "minOutlets": 2
   },
   "fetch": {
     "windowHours": 24,

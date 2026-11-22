@@ -4,7 +4,7 @@ import type { ArticleFetcher, FetchResult, TimeWindow } from "../types";
 import { dedupe, parseFeed, toArticle } from "./normalize";
 import { checkRobots } from "./robots";
 
-async function fetchFeed(url: string): Promise<string> {
+async function fetchFeed(url: string): Promise<{ xml: string; contentType: string; finalUrl: string }> {
   const { userAgent, timeoutMs } = config.fetch;
   if (!(await checkRobots(url, userAgent, timeoutMs))) throw new Error("disallowed by robots.txt");
   const res = await fetch(url, {
@@ -13,12 +13,19 @@ async function fetchFeed(url: string): Promise<string> {
     redirect: "follow",
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
+  return { xml: await res.text(), contentType: res.headers.get("content-type") ?? "?", finalUrl: res.url };
+}
+
+/** Short diagnostic for a response that parsed to zero items (block page, redirect, empty feed). */
+export function describeBody(body: string, contentType = "?", finalUrl?: string, requestedUrl?: string): string {
+  const snippet = body.replace(/\s+/g, " ").trim().slice(0, 120);
+  const redirected = finalUrl && requestedUrl && finalUrl !== requestedUrl ? ` redirected to ${finalUrl};` : "";
+  return `${contentType}, ${body.length} bytes;${redirected} starts: ${snippet || "(empty)"}`;
 }
 
 /** Pure step after network: parse, normalize, dedupe, window. Exported for fixture tests. */
 export function processFeeds(
-  results: { source: Source; feedIndex: number; xml?: string; error?: string }[],
+  results: { source: Source; feedIndex: number; xml?: string; error?: string; contentType?: string; finalUrl?: string }[],
   window: TimeWindow,
   now: Date,
 ): FetchResult {
@@ -34,7 +41,7 @@ export function processFeeds(
     }
     try {
       const items = parseFeed(r.xml, now, config.fetch.maxSummaryChars);
-      h.feeds!.push({ url: feed.url, ok: items.length > 0, items: items.length, error: items.length ? undefined : "no items parsed" });
+      h.feeds!.push({ url: feed.url, ok: items.length > 0, items: items.length, error: items.length ? undefined : `no items parsed — ${describeBody(r.xml, r.contentType, r.finalUrl, feed.url)}` });
       for (const item of items) all.push({ ...toArticle(item, r.source.id, feed, now.toISOString()), guid: item.guid });
     } catch (e) {
       h.feeds!.push({ url: feed.url, ok: false, items: 0, error: `parse error: ${(e as Error).message}` });
@@ -65,7 +72,7 @@ export const rssFetcher: ArticleFetcher = {
     const results = await Promise.all(
       jobs.map(async (j) => {
         try {
-          return { ...j, xml: await fetchFeed(j.source.feeds[j.feedIndex].url) };
+          return { ...j, ...(await fetchFeed(j.source.feeds[j.feedIndex].url)) };
         } catch (e) {
           const err = e as Error;
           return { ...j, error: err.name === "TimeoutError" ? "timeout" : err.message };

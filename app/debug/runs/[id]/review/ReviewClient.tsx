@@ -215,7 +215,7 @@ export default function ReviewClient({ bundle, usage, warnings, initial }: { bun
         />
       ))}
 
-      <h2>Below the 3-outlet minimum ({unranked.length})</h2>
+      <h2>Below the outlet minimum ({unranked.length})</h2>
       <p className="muted" style={{ marginTop: 0 }}>Tick any that are real headlines and deserved a rank.</p>
       <div className="story">
         {unranked.map((s) => (

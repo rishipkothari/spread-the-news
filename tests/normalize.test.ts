@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { canonicalUrl, normalizeDate, parseFeed } from "@/stages/fetch/normalize";
-import { processFeeds } from "@/stages/fetch/rss";
+import { describeBody, processFeeds } from "@/stages/fetch/rss";
 import { staticSources } from "@/lib/config";
 
 const rss = readFileSync(new URL("./fixtures/feeds/rss-sample.xml", import.meta.url), "utf8");
@@ -32,6 +32,11 @@ describe("normalize", () => {
     expect(e.url).toBe("https://atom.example.org/storm");
     expect(e.categories).toEqual(["Weather"]);
     expect(e.publishedAt).toBe("2026-11-22T01:30:00.000Z");
+  });
+
+  it("describes unparseable responses", () => {
+    expect(describeBody("<!DOCTYPE html><html>Access denied</html>", "text/html", "https://a/consent", "https://a/feed"))
+      .toBe("text/html, 41 bytes; redirected to https://a/consent; starts: <!DOCTYPE html><html>Access denied</html>");
   });
 
   it("dedupes, windows and reports health", () => {

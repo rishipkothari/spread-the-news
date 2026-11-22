@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fixture from "./fixtures/bundle-synthetic.json";
 import { normalizedEntropy, rankStories } from "@/stages/rank/headline-index-v1";
+import { config } from "@/lib/config";
 import type { Article, Source, SourceHealth, Story } from "@/lib/types";
 
 const input = {
@@ -12,7 +13,9 @@ const input = {
 };
 
 describe("headline index", () => {
-  const ranked = rankStories(input);
+  // Pin the rule under test so config tuning doesn't silently change these expectations.
+  const rc = { ...config.ranking, minOutlets: 3 };
+  const ranked = rankStories(input, rc);
   const byId = Object.fromEntries(ranked.map((s) => [s.id, s]));
 
   it("entropy bounds", () => {
@@ -47,6 +50,12 @@ describe("headline index", () => {
   it("applies the minimum-outlet rule", () => {
     expect(byId["too-small"].ranked).toBe(false);
     expect(ranked.filter((s) => s.ranked).every((s) => s.signals!.distinctOutlets >= 3)).toBe(true);
+  });
+
+  it("minimum is configurable", () => {
+    const loose = rankStories(input, { ...rc, minOutlets: 2 });
+    expect(loose.find((s) => s.id === "too-small")!.ranked).toBe(true);
+    expect(loose.find((s) => s.id === "failed-source")!.ranked).toBe(true);
   });
 
   it("decays with recency", () => {

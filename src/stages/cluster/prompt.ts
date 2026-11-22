@@ -2,7 +2,7 @@ import type { Article, HistoryStory, Source } from "@/lib/types";
 
 export const CLUSTER_SYSTEM = `You group news articles from many outlets into stories for a neutral daily news digest.
 
-A "story" is one specific news event or development (e.g. "Senate passes stopgap funding bill"), not a broad topic (not "US politics"). Articles about the same event from different outlets belong together even when their framing differs. Follow-ups, reactions and analysis about that same event belong to it too. Do not merge distinct events just because they share a theme.
+A "story" is one specific news event or development (e.g. "Senate passes stopgap funding bill"), not a broad topic (not "US politics"). Articles about the same event from different outlets belong together even when their framing differs. Follow-ups, reactions and analysis about that same event belong to it too, including officials' or politicians' comments on it (e.g. "Trump comments on the FBI breach" belongs with the FBI breach story, not a separate story). Do not merge distinct events just because they share a theme.
 
 For each story return:
 - title: a short, neutral, factual headline (no loaded words, no outlet framing, no clickbait).

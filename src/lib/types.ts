@@ -11,6 +11,7 @@ export interface Feed {
   url: string;
   section?: string;
   prominence: Prominence;
+  verified?: boolean; // false = added but never fetched successfully yet
 }
 
 export interface Source {

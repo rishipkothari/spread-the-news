@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { config } from "@/lib/config";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus } from "@/pipeline/status";
@@ -176,7 +177,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           <h2>Ranked stories ({ranked.length})</h2>
           <p className="muted">index = (0.55·C + 0.30·B + 0.15·P) × (1 − 0.5·S) × R. Click a story for its articles. Bars: left / center / right outlets.</p>
           {ranked.map((s, i) => <StoryCard key={s.id} story={s} rank={i + 1} articles={articles} sources={sourceMap} />)}
-          <h2>Below the {"3-outlet"} minimum ({unranked.length})</h2>
+          <h2>Below the {config.ranking.minOutlets}-outlet minimum ({unranked.length})</h2>
           {unranked.map((s) => <StoryCard key={s.id} story={s} articles={articles} sources={sourceMap} />)}
         </>
       )}
