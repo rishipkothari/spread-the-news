@@ -2,6 +2,7 @@ import { config } from "@/lib/config";
 import type { Article, Source, SourceHealth } from "@/lib/types";
 import type { ArticleFetcher, FetchResult, TimeWindow } from "../types";
 import { dedupe, parseFeed, toArticle } from "./normalize";
+import { annotateHomepageRanks, fetchHomepage, type HomepageResult } from "./homepage";
 import { checkRobots } from "./robots";
 
 async function fetchFeed(url: string): Promise<{ xml: string; contentType: string; finalUrl: string }> {
@@ -28,6 +29,7 @@ export function processFeeds(
   results: { source: Source; feedIndex: number; xml?: string; error?: string; contentType?: string; finalUrl?: string }[],
   window: TimeWindow,
   now: Date,
+  homepages: Record<string, HomepageResult> = {},
 ): FetchResult {
   const sourceHealth: SourceHealth = {};
   const all: (Article & { guid?: string })[] = [];
@@ -53,6 +55,12 @@ export function processFeeds(
     .filter((a) => a.publishedAt >= window.start && a.publishedAt <= window.end)
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1)); // newest first; Daily Caller orders by score
 
+  const matched = annotateHomepageRanks(inWindow, homepages);
+  for (const [id, hp] of Object.entries(homepages)) {
+    if (!sourceHealth[id]) continue;
+    sourceHealth[id].homepage = { ok: !!hp.links, articleLinks: hp.links?.length ?? 0, matched: matched[id] ?? 0, error: hp.error };
+  }
+
   for (const [id, h] of Object.entries(sourceHealth)) {
     h.items = deduped.filter((a) => a.sourceId === id).length;
     h.inWindow = inWindow.filter((a) => a.sourceId === id).length;
@@ -69,6 +77,9 @@ export const rssFetcher: ArticleFetcher = {
   id: "rss",
   async fetch(sources, window) {
     const jobs = sources.flatMap((source) => source.feeds.map((_, feedIndex) => ({ source, feedIndex })));
+    const homepagePromise = config.fetch.homepage
+      ? Promise.all(sources.map(async (s) => [s.id, await fetchHomepage(s.homepage)] as const)).then((e) => Object.fromEntries(e))
+      : Promise.resolve({});
     const results = await Promise.all(
       jobs.map(async (j) => {
         try {
@@ -79,6 +90,6 @@ export const rssFetcher: ArticleFetcher = {
         }
       }),
     );
-    return processFeeds(results, window, new Date(window.end));
+    return processFeeds(results, window, new Date(window.end), await homepagePromise);
   },
 };

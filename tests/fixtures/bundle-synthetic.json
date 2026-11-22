@@ -11,7 +11,13 @@
       "feeds": [
         {
           "url": "https://www.motherjones.com/feed/",
-          "prominence": "section"
+          "prominence": "latest"
+        },
+        {
+          "url": "https://www.motherjones.com/politics/feed/",
+          "section": "us",
+          "prominence": "section",
+          "verified": false
         }
       ],
       "lean": "left",
@@ -32,7 +38,7 @@
       "feeds": [
         {
           "url": "https://www.thedailybeast.com/arc/outboundfeeds/rss/articles/",
-          "prominence": "section"
+          "prominence": "latest"
         }
       ],
       "lean": "left",
@@ -53,7 +59,12 @@
       "feeds": [
         {
           "url": "https://www.thenation.com/feed/?post_type=article",
-          "prominence": "section"
+          "prominence": "latest"
+        },
+        {
+          "url": "https://www.thenation.com/feed/",
+          "prominence": "latest",
+          "verified": false
         }
       ],
       "lean": "left",
@@ -75,6 +86,18 @@
         {
           "url": "https://www.huffpost.com/section/front-page/feed",
           "prominence": "top"
+        },
+        {
+          "url": "https://www.huffpost.com/section/politics/feed",
+          "section": "us",
+          "prominence": "section",
+          "verified": false
+        },
+        {
+          "url": "https://www.huffpost.com/section/world-news/feed",
+          "section": "world",
+          "prominence": "section",
+          "verified": false
         }
       ],
       "lean": "left",
@@ -141,7 +164,13 @@
       "feeds": [
         {
           "url": "https://thehill.com/feed/",
-          "prominence": "section"
+          "prominence": "latest"
+        },
+        {
+          "url": "https://thehill.com/homenews/feed/",
+          "section": "us",
+          "prominence": "section",
+          "verified": false
         }
       ],
       "lean": "center",
@@ -162,7 +191,13 @@
       "feeds": [
         {
           "url": "https://www.newsnationnow.com/feed/",
-          "prominence": "section"
+          "prominence": "latest"
+        },
+        {
+          "url": "https://www.newsnationnow.com/politics/feed/",
+          "section": "us",
+          "prominence": "section",
+          "verified": false
         }
       ],
       "lean": "center",
@@ -183,7 +218,7 @@
       "feeds": [
         {
           "url": "https://rss.csmonitor.com/feeds/all",
-          "prominence": "section"
+          "prominence": "latest"
         }
       ],
       "lean": "center",
@@ -204,7 +239,25 @@
       "feeds": [
         {
           "url": "https://moxie.foxnews.com/google-publisher/latest.xml",
-          "prominence": "section"
+          "prominence": "latest"
+        },
+        {
+          "url": "https://moxie.foxnews.com/google-publisher/politics.xml",
+          "section": "us",
+          "prominence": "section",
+          "verified": false
+        },
+        {
+          "url": "https://moxie.foxnews.com/google-publisher/us.xml",
+          "section": "us",
+          "prominence": "section",
+          "verified": false
+        },
+        {
+          "url": "https://moxie.foxnews.com/google-publisher/world.xml",
+          "section": "world",
+          "prominence": "section",
+          "verified": false
         }
       ],
       "lean": "right",
@@ -225,7 +278,7 @@
       "feeds": [
         {
           "url": "https://www.dailywire.com/feeds/rss.xml",
-          "prominence": "section"
+          "prominence": "latest"
         }
       ],
       "lean": "right",
@@ -246,7 +299,13 @@
       "feeds": [
         {
           "url": "https://dailycaller.com/feed/",
-          "prominence": "section"
+          "prominence": "latest"
+        },
+        {
+          "url": "https://dailycaller.com/section/politics/feed/",
+          "section": "us",
+          "prominence": "section",
+          "verified": false
         }
       ],
       "lean": "right",
@@ -267,7 +326,7 @@
       "feeds": [
         {
           "url": "https://feeds.feedburner.com/breitbart",
-          "prominence": "section"
+          "prominence": "latest"
         }
       ],
       "lean": "right",
@@ -352,7 +411,7 @@
       "url": "https://example.com/motherjones/universal/1",
       "title": "Senate passes stopgap funding bill (motherjones)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -362,7 +421,7 @@
       "url": "https://example.com/dailybeast/universal/2",
       "title": "Senate passes stopgap funding bill (dailybeast)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -382,7 +441,7 @@
       "url": "https://example.com/thenation/universal/4",
       "title": "Senate passes stopgap funding bill (thenation)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "opinion"
     },
@@ -402,7 +461,7 @@
       "url": "https://example.com/thehill/universal/6",
       "title": "Senate passes stopgap funding bill (thehill)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -412,7 +471,7 @@
       "url": "https://example.com/newsnation/universal/7",
       "title": "Senate passes stopgap funding bill (newsnation)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -422,9 +481,10 @@
       "url": "https://example.com/fox/universal/8",
       "title": "Senate passes stopgap funding bill (fox)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
-      "articleType": "news"
+      "articleType": "news",
+      "homepageRank": 2
     },
     {
       "id": "a9",
@@ -432,7 +492,7 @@
       "url": "https://example.com/dailywire/universal/9",
       "title": "Senate passes stopgap funding bill (dailywire)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -442,7 +502,7 @@
       "url": "https://example.com/dailycaller/universal/10",
       "title": "Senate passes stopgap funding bill (dailycaller)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -452,7 +512,7 @@
       "url": "https://example.com/fox/right-only/11",
       "title": "Border crossing numbers spark debate (fox)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -462,7 +522,7 @@
       "url": "https://example.com/fox/right-only/12",
       "title": "Border crossing numbers spark debate (fox)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "opinion"
     },
@@ -472,7 +532,7 @@
       "url": "https://example.com/dailywire/right-only/13",
       "title": "Border crossing numbers spark debate (dailywire)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -482,7 +542,7 @@
       "url": "https://example.com/dailycaller/right-only/14",
       "title": "Border crossing numbers spark debate (dailycaller)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -492,7 +552,7 @@
       "url": "https://example.com/dailycaller/right-only/15",
       "title": "Border crossing numbers spark debate (dailycaller)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "opinion"
     },
@@ -502,7 +562,7 @@
       "url": "https://example.com/breitbart/right-only/16",
       "title": "Border crossing numbers spark debate (breitbart)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -512,7 +572,7 @@
       "url": "https://example.com/thehill/right-only/17",
       "title": "Border crossing numbers spark debate (thehill)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -522,7 +582,7 @@
       "url": "https://example.com/motherjones/left-lean/18",
       "title": "Union drive at warehouse chain (motherjones)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -532,7 +592,7 @@
       "url": "https://example.com/huffpost/left-lean/19",
       "title": "Union drive at warehouse chain (huffpost)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -542,7 +602,7 @@
       "url": "https://example.com/dailybeast/left-lean/20",
       "title": "Union drive at warehouse chain (dailybeast)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -552,7 +612,7 @@
       "url": "https://example.com/thenation/left-lean/21",
       "title": "Union drive at warehouse chain (thenation)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -562,7 +622,7 @@
       "url": "https://example.com/csmonitor/left-lean/22",
       "title": "Union drive at warehouse chain (csmonitor)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "opinion"
     },
@@ -602,7 +662,7 @@
       "url": "https://example.com/dailybeast/old-balanced/26",
       "title": "Supreme Court hears tariff case (dailybeast)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-21T10:00:00.000Z",
       "articleType": "news"
     },
@@ -612,7 +672,7 @@
       "url": "https://example.com/thehill/old-balanced/27",
       "title": "Supreme Court hears tariff case (thehill)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-21T10:00:00.000Z",
       "articleType": "news"
     },
@@ -622,7 +682,7 @@
       "url": "https://example.com/newsnation/old-balanced/28",
       "title": "Supreme Court hears tariff case (newsnation)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-21T09:00:00.000Z",
       "articleType": "news"
     },
@@ -632,7 +692,7 @@
       "url": "https://example.com/fox/old-balanced/29",
       "title": "Supreme Court hears tariff case (fox)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-21T08:00:00.000Z",
       "articleType": "news"
     },
@@ -642,7 +702,7 @@
       "url": "https://example.com/motherjones/old-balanced/30",
       "title": "Supreme Court hears tariff case (motherjones)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-21T10:00:00.000Z",
       "articleType": "news"
     },
@@ -652,7 +712,7 @@
       "url": "https://example.com/thehill/too-small/31",
       "title": "Local zoning dispute (thehill)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -662,7 +722,7 @@
       "url": "https://example.com/newsnation/too-small/32",
       "title": "Local zoning dispute (newsnation)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -672,7 +732,7 @@
       "url": "https://example.com/breitbart/failed-source/33",
       "title": "Celebrity trial verdict (breitbart)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -682,7 +742,7 @@
       "url": "https://example.com/fox/failed-source/34",
       "title": "Celebrity trial verdict (fox)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     },
@@ -692,7 +752,7 @@
       "url": "https://example.com/dailywire/failed-source/35",
       "title": "Celebrity trial verdict (dailywire)",
       "feedCategories": [],
-      "prominence": "section",
+      "prominence": "latest",
       "publishedAt": "2026-11-22T03:00:00.000Z",
       "articleType": "news"
     }

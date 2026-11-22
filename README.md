@@ -56,7 +56,13 @@ Status, per-stage state and usage:
 curl "$BASE/api/runs/<runId>" -H "Authorization: Bearer $RUN_SECRET"
 ```
 
-Debug pages (browser, any username + `PLAYER_PASSWORD`): `/debug/runs` and `/debug/runs/<runId>`.
+Debug pages (browser, any username + `PLAYER_PASSWORD`): `/debug/runs`, `/debug/runs/<runId>`, `/debug/runs/<runId>/review`, and `/debug/feeds`.
+
+## Sources and feeds
+
+`config/sources.json` is the default source list. Edits made on `/debug/feeds` (add, remove or retype feeds; enable or disable sources) are saved to Blob at `config/sources.json` and win from the next run. "Download sources.json" on that page exports the live list in the repo format so it can be committed back.
+
+Feed types: `top` (editorial front page), `latest` (everything), `section` (one topic; its section is a category hint). Each run also fetches every outlet's homepage and records where our articles appear on it (`homepageRank`). The ranker's prominence term P is the mean, over covering outlets, of each outlet's strongest signal: homepage lead, featured or listed, then top, latest or section feed. Weights live in `config/pipeline.json` under `ranking.prominence`.
 
 ## Development
 

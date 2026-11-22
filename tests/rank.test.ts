@@ -62,17 +62,18 @@ describe("headline index", () => {
     expect(byId["old-balanced"].signals!.recency).toBeCloseTo(Math.pow(0.5, 20 / 24), 3);
   });
 
-  it("prominence counts only outlets that have a top feed", () => {
-    // universal: huffpost + bbc both have top feeds and both carried it there
-    expect(byId.universal.signals!.prominence).toBe(1);
-    expect(byId["small-balanced"].signals!.prominence).toBe(0);
+  it("prominence is the mean of each outlet's best signal", () => {
+    // universal: huffpost & bbc top feeds (0.8), fox on homepage at #2 (lead, 1.0), 7 others latest (0.25)
+    const p = rc.prominence;
+    expect(byId.universal.signals!.prominence).toBeCloseTo((2 * p.topFeed + p.homepageLead + 7 * p.latestFeed) / 10);
+    expect(byId["small-balanced"].signals!.prominence).toBeCloseTo(p.sectionFeed);
   });
 
   it("skew example from the PRD: 10 left + 1 right ≈ 0.8", () => {
     const sources = input.sources;
     const arts: Article[] = [
-      ...Array.from({ length: 10 }, (_, i) => ({ id: `l${i}`, sourceId: ["motherjones", "dailybeast", "thenation", "huffpost"][i % 4], url: "", title: "", feedCategories: [], prominence: "section" as const, publishedAt: input.windowEnd, articleType: "news" as const })),
-      { id: "r0", sourceId: "fox", url: "", title: "", feedCategories: [], prominence: "section", publishedAt: input.windowEnd, articleType: "news" },
+      ...Array.from({ length: 10 }, (_, i) => ({ id: `l${i}`, sourceId: ["motherjones", "dailybeast", "thenation", "huffpost"][i % 4], url: "", title: "", feedCategories: [], prominence: "latest" as const, publishedAt: input.windowEnd, articleType: "news" as const })),
+      { id: "r0", sourceId: "fox", url: "", title: "", feedCategories: [], prominence: "latest", publishedAt: input.windowEnd, articleType: "news" },
     ];
     const [s] = rankStories({ ...input, articles: arts, stories: [{ id: "x", title: "x", category: "us", articleIds: arts.map((a) => a.id), headlineIndex: 0 }], sources });
     expect(s.signals!.skew).toBeCloseTo(0.818, 2);

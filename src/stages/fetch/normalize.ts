@@ -1,6 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import { sha } from "@/lib/hash";
-import type { Article, Feed } from "@/lib/types";
+import { PROMINENCE_ORDER, type Article, type Feed } from "@/lib/types";
 import { decodeEntities, htmlToText, truncate } from "./text";
 
 const TRACKING_PARAMS = /^(utm_|fbclid$|gclid$|mc_cid$|mc_eid$|cmpid$|ref$|source$|taid$|intcmp$)/i;
@@ -135,7 +135,7 @@ export function toArticle(item: ParsedItem, sourceId: string, feed: Feed, fallba
 
 /**
  * Merge duplicate articles (same canonical URL or GUID) within a source.
- * A story seen in a top feed and a section feed keeps "top" prominence and the section label.
+ * An article seen in several feeds keeps the strongest feed type (top > latest > section) and the section label.
  */
 export function dedupe(articles: (Article & { guid?: string })[]): Article[] {
   const byKey = new Map<string, Article>();
@@ -153,7 +153,7 @@ export function dedupe(articles: (Article & { guid?: string })[]): Article[] {
     const prev = byKey.get(existingKey)!;
     byKey.set(existingKey, {
       ...prev,
-      prominence: prev.prominence === "top" || a.prominence === "top" ? "top" : "section",
+      prominence: PROMINENCE_ORDER[a.prominence] > PROMINENCE_ORDER[prev.prominence] ? a.prominence : prev.prominence,
       section: prev.section ?? a.section,
       summary: prev.summary ?? a.summary,
       feedText: prev.feedText ?? a.feedText,

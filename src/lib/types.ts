@@ -2,7 +2,9 @@ export type LeanLabel = "left" | "lean_left" | "center" | "lean_right" | "right"
 export type LeanGroup = "left" | "center" | "right";
 export type Category = "us" | "world" | "business" | "science" | "sports" | "other";
 export type ArticleType = "news" | "analysis" | "opinion";
-export type Prominence = "top" | "section";
+/** Feed type: "top" = editorial front page, "latest" = everything the outlet publishes, "section" = one topic. */
+export type Prominence = "top" | "latest" | "section";
+export const PROMINENCE_ORDER: Record<Prominence, number> = { top: 3, latest: 2, section: 1 };
 
 export const CATEGORIES: Category[] = ["us", "world", "business", "science", "sports", "other"];
 export const ARTICLE_TYPES: ArticleType[] = ["news", "analysis", "opinion"];
@@ -38,6 +40,7 @@ export interface Article {
   section?: string;
   prominence: Prominence;
   publishedAt: string;
+  homepageRank?: number; // 1-based position among article links on the outlet's homepage at fetch time
   articleType?: ArticleType;
   text?: string;
   textStatus?: "full" | "partial" | "headline_only";
@@ -80,7 +83,14 @@ export interface RunParams {
 
 export type SourceHealth = Record<
   string,
-  { ok: boolean; items: number; inWindow: number; error?: string; feeds?: { url: string; ok: boolean; items: number; error?: string }[] }
+  {
+    ok: boolean;
+    items: number;
+    inWindow: number;
+    error?: string;
+    feeds?: { url: string; ok: boolean; items: number; error?: string }[];
+    homepage?: { ok: boolean; articleLinks: number; matched: number; error?: string };
+  }
 >;
 
 export interface StoryBundle {

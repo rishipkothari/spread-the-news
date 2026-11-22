@@ -8,7 +8,7 @@
       "feeds": [
         {
           "url": "https://www.motherjones.com/feed/",
-          "prominence": "section"
+          "prominence": "latest"
         },
         {
           "url": "https://www.motherjones.com/politics/feed/",
@@ -35,7 +35,7 @@
       "feeds": [
         {
           "url": "https://www.thedailybeast.com/arc/outboundfeeds/rss/articles/",
-          "prominence": "section"
+          "prominence": "latest"
         }
       ],
       "lean": "left",
@@ -56,11 +56,11 @@
       "feeds": [
         {
           "url": "https://www.thenation.com/feed/?post_type=article",
-          "prominence": "section"
+          "prominence": "latest"
         },
         {
           "url": "https://www.thenation.com/feed/",
-          "prominence": "section",
+          "prominence": "latest",
           "verified": false
         }
       ],
@@ -161,7 +161,7 @@
       "feeds": [
         {
           "url": "https://thehill.com/feed/",
-          "prominence": "section"
+          "prominence": "latest"
         },
         {
           "url": "https://thehill.com/homenews/feed/",
@@ -188,7 +188,7 @@
       "feeds": [
         {
           "url": "https://www.newsnationnow.com/feed/",
-          "prominence": "section"
+          "prominence": "latest"
         },
         {
           "url": "https://www.newsnationnow.com/politics/feed/",
@@ -215,7 +215,7 @@
       "feeds": [
         {
           "url": "https://rss.csmonitor.com/feeds/all",
-          "prominence": "section"
+          "prominence": "latest"
         }
       ],
       "lean": "center",
@@ -236,7 +236,7 @@
       "feeds": [
         {
           "url": "https://moxie.foxnews.com/google-publisher/latest.xml",
-          "prominence": "section"
+          "prominence": "latest"
         },
         {
           "url": "https://moxie.foxnews.com/google-publisher/politics.xml",
@@ -275,7 +275,7 @@
       "feeds": [
         {
           "url": "https://www.dailywire.com/feeds/rss.xml",
-          "prominence": "section"
+          "prominence": "latest"
         }
       ],
       "lean": "right",
@@ -296,7 +296,7 @@
       "feeds": [
         {
           "url": "https://dailycaller.com/feed/",
-          "prominence": "section"
+          "prominence": "latest"
         },
         {
           "url": "https://dailycaller.com/section/politics/feed/",
@@ -323,7 +323,7 @@
       "feeds": [
         {
           "url": "https://feeds.feedburner.com/breitbart",
-          "prominence": "section"
+          "prominence": "latest"
         }
       ],
       "lean": "right",

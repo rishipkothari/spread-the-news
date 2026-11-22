@@ -8,6 +8,14 @@ export function leanGroup(leanValue: number): LeanGroup {
   return leanValue < 0 ? "left" : leanValue > 0 ? "right" : "center";
 }
 
+/** One article's prominence score: the stronger of its homepage position and its feed type. */
+export function articleProminence(a: Article, rc: RankingConfig): number {
+  const p = rc.prominence;
+  const feed = a.prominence === "top" ? p.topFeed : a.prominence === "latest" ? p.latestFeed : p.sectionFeed;
+  const home = a.homepageRank == null ? 0 : a.homepageRank <= p.leadRank ? p.homepageLead : a.homepageRank <= p.featuredRank ? p.homepageFeatured : p.homepageListed;
+  return Math.max(feed, home);
+}
+
 /** Normalized Shannon entropy of non-negative shares over `n` buckets. */
 export function normalizedEntropy(shares: number[]): number {
   const n = shares.length;
@@ -33,11 +41,11 @@ export function computeSignals(
 
   // Per-outlet weight: 1 if any non-opinion article, else opinionWeight.
   const outletWeight = new Map<string, number>();
-  const outletTop = new Map<string, boolean>();
+  const outletProm = new Map<string, number>();
   for (const a of arts) {
     const w = a.articleType === "opinion" ? rc.opinionWeight : 1;
     outletWeight.set(a.sourceId, Math.max(outletWeight.get(a.sourceId) ?? 0, w));
-    outletTop.set(a.sourceId, (outletTop.get(a.sourceId) ?? false) || a.prominence === "top");
+    outletProm.set(a.sourceId, Math.max(outletProm.get(a.sourceId) ?? 0, articleProminence(a, rc)));
   }
   const outletCount = [...outletWeight.values()].reduce((a, b) => a + b, 0);
   const coverage = activeSourceIds.size ? outletCount / activeSourceIds.size : 0;
@@ -54,9 +62,9 @@ export function computeSignals(
   const presentGroups = groups.filter((g) => activeByGroup[g] > 0);
   const balance = normalizedEntropy(presentGroups.map((g) => coverByGroup[g] / activeByGroup[g]));
 
-  // Prominence: among covering outlets that have a top-stories feed, share that carried it there.
-  const withTopFeed = [...outletWeight.keys()].filter((id) => sourcesById.get(id)?.feeds.some((f) => f.prominence === "top"));
-  const prominence = withTopFeed.length ? withTopFeed.filter((id) => outletTop.get(id)).length / withTopFeed.length : 0;
+  // Prominence: mean over covering outlets of each outlet's strongest signal for this story.
+  const promValues = [...outletProm.values()];
+  const prominence = promValues.length ? promValues.reduce((a, b) => a + b, 0) / promValues.length : 0;
 
   // Skew: |article-weighted mean lean| / 2, opinion weighted down.
   let wSum = 0;

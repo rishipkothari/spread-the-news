@@ -10,6 +10,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <nav className="nav">
           <Link href="/">Spread the News</Link>
           <Link href="/debug/runs">Runs</Link>
+          <Link href="/debug/feeds">Feeds</Link>
         </nav>
         {children}
       </body>

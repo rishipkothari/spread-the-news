@@ -54,7 +54,7 @@ function StoryCard({ story, rank, articles, sources }: { story: Story; rank?: nu
           return (
             <li key={a.id}>
               <span className="dot" style={{ background: leanColor(src?.leanValue ?? 0) }} />
-              <b>{src?.name ?? a.sourceId}</b> <span className="muted">[{a.articleType ?? "?"}{a.prominence === "top" ? ", top" : ""}]</span>{" "}
+              <b>{src?.name ?? a.sourceId}</b> <span className="muted">[{a.articleType ?? "?"}, {a.prominence}{a.homepageRank ? `, homepage #${a.homepageRank}` : ""}]</span>{" "}
               <a href={a.url} target="_blank" rel="noreferrer">{a.title}</a>{" "}
               <span className="muted mono">{a.publishedAt.slice(5, 16).replace("T", " ")}</span>
             </li>
@@ -69,7 +69,7 @@ function HealthTable({ health, sources }: { health: SourceHealth; sources: Sourc
   return (
     <div className="scroll">
       <table>
-        <thead><tr><th>Source</th><th>Lean</th><th>Status</th><th>In window</th><th>Parsed</th><th>Feeds / errors</th></tr></thead>
+        <thead><tr><th>Source</th><th>Lean</th><th>Status</th><th>In window</th><th>Parsed</th><th>Homepage</th><th>Feeds / errors</th></tr></thead>
         <tbody>
           {sources.map((src) => {
             const h = health[src.id];
@@ -80,6 +80,9 @@ function HealthTable({ health, sources }: { health: SourceHealth; sources: Sourc
                 <td className={h?.ok ? "ok" : "bad"}>{h ? (h.ok ? "ok" : "failed") : "–"}</td>
                 <td>{h?.inWindow ?? "–"}</td>
                 <td>{h?.items ?? "–"}</td>
+                <td className={h?.homepage ? (h.homepage.ok ? "" : "bad") : "muted"}>
+                  {h?.homepage ? (h.homepage.ok ? `${h.homepage.matched} of ours / ${h.homepage.articleLinks} links` : h.homepage.error) : "–"}
+                </td>
                 <td className="mono">
                   {h?.error && <div className="bad">{h.error}</div>}
                   {h?.feeds?.map((f) => <div key={f.url} className={f.ok ? "muted" : "bad"}>{f.ok ? "✓" : "✗"} {f.url} ({f.items}){f.error ? ` – ${f.error}` : ""}</div>)}
@@ -175,7 +178,10 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
       {bundle && (
         <>
           <h2>Ranked stories ({ranked.length})</h2>
-          <p className="muted">index = (0.55·C + 0.30·B + 0.15·P) × (1 − 0.5·S) × R. Click a story for its articles. Bars: left / center / right outlets.</p>
+          <p className="muted">
+            index = ({config.ranking.weights.coverage}·C + {config.ranking.weights.balance}·B + {config.ranking.weights.prominence}·P) × (1 − {config.ranking.skewPenalty}·S) × R.
+            P = mean over covering outlets of their best signal (homepage lead/featured/listed, then top / latest / section feed). Click a story for its articles. Bars: left / center / right outlets.
+          </p>
           {ranked.map((s, i) => <StoryCard key={s.id} story={s} rank={i + 1} articles={articles} sources={sourceMap} />)}
           <h2>Below the {config.ranking.minOutlets}-outlet minimum ({unranked.length})</h2>
           {unranked.map((s) => <StoryCard key={s.id} story={s} articles={articles} sources={sourceMap} />)}

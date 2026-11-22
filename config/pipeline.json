@@ -1,6 +1,6 @@
 {
   "methods": {
-    "sources": "static-json",
+    "sources": "blob-json",
     "fetch": "rss",
     "cluster": "llm-single-pass",
     "rank": "headline-index-v1"
@@ -34,20 +34,32 @@
   },
   "ranking": {
     "weights": {
-      "coverage": 0.55,
-      "balance": 0.3,
-      "prominence": 0.15
+      "coverage": 0.5,
+      "balance": 0.25,
+      "prominence": 0.25
     },
     "skewPenalty": 0.5,
     "recencyHalfLifeHours": 24,
     "opinionWeight": 0.5,
-    "minOutlets": 2
+    "minOutlets": 2,
+    "prominence": {
+      "_note": "Per outlet, the strongest signal for the story; P = mean over covering outlets.",
+      "homepageLead": 1.0,
+      "homepageFeatured": 0.7,
+      "homepageListed": 0.5,
+      "topFeed": 0.8,
+      "latestFeed": 0.25,
+      "sectionFeed": 0.15,
+      "leadRank": 10,
+      "featuredRank": 40
+    }
   },
   "fetch": {
     "windowHours": 24,
     "timeoutMs": 15000,
     "userAgent": "SpreadTheNewsBot/0.1 (personal podcast; RSS reader)",
-    "maxSummaryChars": 400
+    "maxSummaryChars": 400,
+    "homepage": true
   },
   "cluster": {
     "minOutletsPerStory": 2,
