@@ -31,3 +31,5 @@ th { font-weight: 600; color: var(--muted); font-size: 12px; }
 .arts li { padding: 4px 0; border-top: 1px dashed var(--line); font-size: 13px; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 .scroll { overflow-x: auto; }
+button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; }
+button:hover { border-color: var(--muted); }

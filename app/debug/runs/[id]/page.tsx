@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus } from "@/pipeline/status";
+import { replayAction, rerankAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -114,7 +115,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
 
   return (
     <main>
-      <p className="muted"><Link href="/debug/runs">← runs</Link></p>
+      {(status.state === "queued" || status.state === "running") && <meta httpEquiv="refresh" content="5" />}
+      <p className="muted"><Link href="/debug/runs">← runs</Link>{status.state === "queued" || status.state === "running" ? " · refreshing every 5s" : ""}</p>
       <h1 className="mono" style={{ fontSize: 18 }}>{id}</h1>
       <div className="row muted">
         <span className={status.state === "failed" ? "bad" : status.state === "done" ? "ok" : "warn"}>{status.state}</span>
@@ -122,6 +124,22 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         <span>cost ${cost.toFixed(4)}</span>
         {status.replayFrom && <span>replay of <Link href={`/debug/runs/${status.replayFrom}`}>{status.replayFrom}</Link></span>}
         <span className="mono">{Object.entries(status.methods).map(([k, v]) => `${k}=${v}`).join(" ")}</span>
+      </div>
+
+      <div className="row" style={{ margin: "12px 0" }}>
+        {status.stages.fetch?.state === "done" && (
+          <form action={replayAction}>
+            <input type="hidden" name="runId" value={id} />
+            <input type="hidden" name="from" value="cluster" />
+            <button type="submit">Re-cluster these articles (new run)</button>
+          </form>
+        )}
+        {status.stages.cluster?.state === "done" && (
+          <form action={rerankAction}>
+            <input type="hidden" name="runId" value={id} />
+            <button type="submit">Re-rank (free)</button>
+          </form>
+        )}
       </div>
 
       <h2>Stages</h2>

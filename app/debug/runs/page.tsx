@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { listPaths } from "@/lib/storage";
 import { readStatus } from "@/pipeline/status";
+import { missingEnv } from "@/lib/env";
+import { startRunAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,17 @@ export default async function RunsPage() {
   return (
     <main>
       <h1>Runs</h1>
+      {missingEnv().length > 0 && <p className="bad">Missing environment variables: {missingEnv().join(", ")}</p>}
+      <div className="row" style={{ margin: "12px 0 20px" }}>
+        <form action={startRunAction}>
+          <input type="hidden" name="mode" value="fetch-only" />
+          <button type="submit">Check feeds (free)</button>
+        </form>
+        <form action={startRunAction}>
+          <input type="hidden" name="mode" value="full" />
+          <button type="submit">Start full run (uses Claude, ~$0.10–0.30)</button>
+        </form>
+      </div>
       <div className="scroll">
         <table>
           <thead><tr><th>Run</th><th>State</th><th>Stages</th><th>Top story</th></tr></thead>
