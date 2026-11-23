@@ -2,6 +2,21 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23: Phase 2 planning
+
+**Agreed with the user** (details in `docs/decisions.md`; tone rules in the new `docs/tone-guide.md`)
+- Style: straight news plus one tasteful coverage line; light and relatable (Gen Alpha enjoys, millennials take seriously).
+- No outlet names on air (sides only); every story told fresh; no direct quotes; nameless narrator; fixed intro/outro.
+- Episode profile generalizes `RunParams`; generic = defaults; straight rank order.
+- Writer and checker per story in one step, rewrite once then drop; checker also enforces tone.
+- Failure policy: function exists, returns true for now.
+- Opt-in button now; completion-based automation later.
+- Branch `phase2-v1` from `main` (= `phase1-v1`).
+
+**Next**
+- Build planner, writer/checker, script page; offline prompt tests.
+- User: fresh run + analysis so there's real input for scripts.
+
 ## 2026-11-22 (afternoon): first live Phase 1 run, fixes, UI tidy
 
 **First live analysis** (run `2026-11-22T1313-32021b`, review saved): $0.24 for 15 stories. Extraction full for most outlets; The Hill 0/11 and NewsNation 3/7 blocked (HTTP 403). Syntheses strong with 2+ outlets: caught real discrepancies (cartel affiliation, death toll, player position). Problems: 3 × 429 concurrency errors; one-outlet facts labelled "agreed"; a headlines-only story got a "no facts" summary.

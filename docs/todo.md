@@ -2,6 +2,19 @@
 
 Phases follow `docs/PRD.md`. Check items off as they're done; add new items where they belong. Newest discoveries go at the top of their section.
 
+## Now: Phase 2 (script and checker), branch `phase2-v1`
+
+Plan agreed 2026-11-23 (see `docs/decisions.md`, `docs/tone-guide.md`). Exit (PRD): scripts read well and pass the checker without manual edits for several consecutive runs.
+
+- [ ] Episode profile (`RunParams`: categories "all" or % mix, rank / top-then-category order); `EpisodePlanner` picks from synthesized stories by word budget (~150 wpm).
+- [ ] `ScriptWriter` + `ScriptChecker` per story in one step (write → check → rewrite once → drop); tone rules from `docs/tone-guide.md`; "recently" input switchable (off).
+- [ ] Fixed intro/outro templates.
+- [ ] `meetsFailurePolicy()` stub returning true.
+- [ ] Storage: `runs/{id}/plan.json`, `runs/{id}/script.json`, `segments/{scriptHash}.json`.
+- [ ] Opt-in "Write script (Phase 2)" button; `/debug/runs/<id>/script` page with full read-through, word counts, minutes, checker verdicts, per-segment 👍/👎 + notes, copyable report.
+- [ ] Offline prompt tests with Claude stand-ins on fixtures; recorded responses as regression fixtures.
+- [ ] User: fresh run → "Run analysis" → "Write script"; paste report into `docs/reviews/`.
+
 ## Now: Phase 0 exit (story discovery)
 
 Exit criterion: about a week of daily manual runs where the ranked list looks like that day's real headlines.
@@ -38,10 +51,12 @@ First live run 2026-11-22 (`docs/reviews/2026-11-22-1313-analysis.md`): $0.24 fo
 
 ## Later
 
-- Phase 2: `EpisodePlanner` (top-then-category), script prompt design, `ScriptWriter`, `ScriptChecker` (rewrite-then-drop).
+- Failure policy: real thresholds in `meetsFailurePolicy()` (PRD: ≥8/12 sources, ≥5 checked stories) once sources are adequate. Stub returns true.
+- "Already covered" tracking across episodes (needs an episode history); "recently" background into the script once story history is reliable.
+- Intro/outro wording per profile once episodes are customizable.
 - Phase 3: `TTSProvider` (edge-tts; Kokoro fallback), audio cache, `EpisodeAssembler`, private web player.
 - Phase 4: Neon + Drizzle story bank, playlists. Phase 5: lean slider.
-- Ops: cron trigger (thin route over `startRun`); 30-day retention cleanup for article text and non-vanilla audio.
+- Ops: automatic mode that chains stages on completion (rank → analysis → script → audio), then a daily trigger that only starts the first stage; 30-day retention cleanup for article text and non-vanilla audio.
 
 ## Done
 

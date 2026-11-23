@@ -4,6 +4,18 @@ The PRD's decision log (`docs/PRD.md` → "Decision log") is the baseline. This 
 
 | Date | Topic | Decision | Why | PRD change? |
 | :- | :- | :- | :- | :- |
+| 2026-11-23 | Script style | Straight news plus at most one tasteful coverage-difference line per story (PRD option "coverage-difference line"); light, relatable tone for Gen Alpha and millennials. Rules live in `docs/tone-guide.md`, which can be added to | User's choice; point/counterpoint saved for Phase 5 framed styles | Settles PRD open question |
+| 2026-11-23 | Outlet names | The script never names an outlet; it says "left-leaning / right-leaning / centrist outlets", and single-source facts become "one right-leaning outlet reports…". The checker flags any outlet name | User's choice | New |
+| 2026-11-23 | Story framing | Every story is told fresh, as if the listener heard no news; no "update" framing. The "recently" background is a separate, switchable input to the writer (off until story history is reliable) | User's choice; PRD said repeats are framed as updates | Yes (cross-day framing) |
+| 2026-11-23 | Direct quotes | Not read on air; the script paraphrases | Quotes without outlet names sound odd; less re-voicing of copyrighted text | New |
+| 2026-11-23 | Intro and outro | Fixed templates (show name, nameless narrator, list of today's stories; one-line sign-off), no LLM | Episodes will be customizable; not worth tuning yet | Yes (PRD: written by the script writer) |
+| 2026-11-23 | Narrator | Show is "Spread the News"; narrator is nameless | User's choice | Settles part of PRD open question |
+| 2026-11-23 | Episode profile | `RunParams` is the episode profile: lean, categories ("all" or percentage mix), target duration, story-count range, order strategy, script style. The generic episode is every default (lean 0, all categories, rank order); nothing special-cases it | Lets Phase 4 playlists and Phase 5 lean reuse the same planner | Extends `RunParams` |
+| 2026-11-23 | Story order | Default `rank` (straight rank order); `top-then-category` kept as an option | User's choice, subject to change | Yes (PRD vanilla: top then category) |
+| 2026-11-23 | Failure policy | `meetsFailurePolicy()` exists and is called, but returns true for now: any number of checked stories (≥1) becomes a script. Real thresholds are a long-term todo | Sources and stories are thin during MVP | Temporarily suspends PRD policy |
+| 2026-11-23 | Script + checker | One step per story: write → check → one rewrite with the checker's notes → check → drop. Checker verifies claims against Phase 1 facts/quotes, the coverage line against Phase 1 framing, and the tone guide | PRD rewrite-then-drop policy, plus tone | Adds tone checks |
+| 2026-11-23 | Phase 2 rollout | Opt-in "Write script" button on a run with analysis; later an automatic mode chains stages on completion (rank done → analysis → script), not on a timer | Same as Phase 1; automation is completion-based | No |
+| 2026-11-23 | Branches | `phase1-v1` = `main` at 379d403 (Phase 1 snapshot); Phase 2 work on `phase2-v1` | User's choice | No |
 | 2026-11-22 | The Hill | Headline-only: no page fetches (`analysis.skipPageFetch`); its headlines still count for coverage and framing | It returns HTTP 403 to our honest bot user agent; we don't disguise the bot | No |
 | 2026-11-22 | Single-source facts | "Agreed" requires 2+ outlets; one-outlet facts go to `singleSourceFacts` and the summary attributes them | First run labelled one-outlet facts as agreed | Refines PRD "agreed facts" |
 | 2026-11-22 | Headlines-only stories | Skip synthesis when no article in a story has facts | A synthesis wrote "no extracted facts…" into its summary | No |
