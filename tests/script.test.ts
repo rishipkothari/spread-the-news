@@ -193,6 +193,8 @@ describe("templates and policy", () => {
   it("welcome is generic, rundown lists the stories, each template can be switched off", () => {
     expect(listTitles(["A.", "B", "C"])).toBe("A; B; and C");
     expect(templateText("rundown", ["One"])).toContain("One");
+    expect(templateText("rundown", ["A", "B", "C", "D", "E"])).toBe("Here's what's up today: A; B; C; and more.");
+    expect(templateText("rundown", ["A", "B", "C"])).toBe("Here's what's up today: A; B; and C.");
     expect(templateText("welcome", ["One"])).not.toContain("One");
     expect(enabledTemplates()).toEqual({ before: ["welcome", "rundown"], after: ["outro"] });
     expect(enabledTemplates(["rundown"])).toEqual({ before: ["rundown"], after: [] });
@@ -346,5 +348,37 @@ describe("phase 2 refinements", () => {
     expect(whyNoSynthesis("z", analysis)).toBe("outside the top 3 stories analyzed");
     expect(whyNoSynthesis("b", analysis)).toMatch(/headlines only/);
     expect(whyNoSynthesis("c", analysis)).toBe("analysis failed: timeout");
+  });
+});
+
+describe("who's who, one-sided coverage", () => {
+  it("finds role phrases across today's material and offers only the missing ones", async () => {
+    const { extractRoles, whoIsWhoFor } = await import("@/stages/script/whoswho");
+    const roles = extractRoles([
+      "Transportation Secretary Sean Duffy said the FBI found no evidence of a cyberattack.",
+      "Homeland Security Secretary Mullin suggested AI could have played a role.",
+      "The Director of National Intelligence Clayton says outages stem from upgrades.",
+      "President Trump Says Iran is more aggressive.",
+      "Senate Democrats push back.",
+    ]);
+    const phrases = roles.map((r) => r.phrase);
+    expect(phrases).toEqual(expect.arrayContaining(["Transportation Secretary Sean Duffy", "Homeland Security Secretary Mullin", "Director of National Intelligence Clayton", "President Trump"]));
+    expect(phrases.some((p) => /Democrats|Says/.test(p))).toBe(false);
+    expect(whoIsWhoFor("another official, Duffy, said so. Homeland Security Secretary Mullin agreed.", roles)).toEqual(["Transportation Secretary Sean Duffy"]);
+  });
+
+  it("who's-who lines are citable material", () => {
+    const { input } = stopgap();
+    const withW = { ...input, whoIsWho: ["Majority Leader John Doe"] };
+    expect(buildMaterial(withW)).toMatch(/^W1: Majority Leader John Doe$/m);
+    expect(materialIds(withW).has("W1")).toBe(true);
+  });
+
+  it("one-sided coverage: say so instead of comparing sides", () => {
+    const { input } = stopgap();
+    const right = { ...input, coverage: { left: 0, center: 0, right: 2 } };
+    expect(buildMaterial(right)).toContain("COVERAGE NOTE: only right-leaning outlets covered this story");
+    expect(buildMaterial(right)).toContain("FRAMING (one side only");
+    expect(buildMaterial(input)).not.toContain("COVERAGE NOTE");
   });
 });

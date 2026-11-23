@@ -35,9 +35,11 @@ export const TONE_RULES = `### Voice
 - At most one sentence per story on how coverage differed across the spectrum, and only when it really differed.
 - Tasteful, not vengeful: describe emphasis, not motives. "Right-leaning outlets zeroed in on the cost; left-leaning ones on who's affected." Not "conveniently ignored", not "but critics say", no scorekeeping.
 - Skip it when coverage was similar. Never invent a difference to fill the slot.
+- If only one side covered the story, don't compare: say so plainly in one sentence ("This one was covered mostly by right-leaning outlets"). That absence is part of the story.
+- Vary the wording. Don't open with the same stock phrase ("Coverage differed in emphasis") every time.
 
 ### Written for the ear
 - Numbers as people say them ("about two point four million", "nearly half"). Round where precision doesn't matter.
 - No parentheses, brackets, bullet points, URLs, hashtags or emoji.
 - Expand abbreviations the first time unless everyone knows them (FBI, NASA are fine).
-- No direct quotes read on air: paraphrase. (Avoids re-voicing copyrighted reporting and quotes without outlet names sound odd.)`;
+- No long direct quotes read on air: paraphrase. A short attributed phrase of a few words is fine when paraphrasing would change its meaning or soften a loaded word ("the White House called the probes blatant criminality"). Never more than one short phrase in a row.`;

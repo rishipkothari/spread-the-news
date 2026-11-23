@@ -125,7 +125,7 @@
     "writeEffort": "medium",
     "checkEffort": "medium",
     "maxTokens": 16000,
-    "_templates": "Fixed (non-LLM) segments around the stories, in this order: welcome, rundown, [stories], outro. Remove a kind from 'templates' to drop it; {stories} in the rundown becomes the episode's story titles.",
+    "_templates": "Fixed (non-LLM) segments around the stories, in this order: welcome, rundown, [stories], outro. Remove a kind from 'templates' to drop it; {stories} in the rundown becomes the top 'rundownTop' story titles, plus 'and more' when there are others.",
     "templates": [
       "welcome",
       "rundown",
@@ -135,6 +135,7 @@
     "rundown": "Here's what's up today: {stories}.",
     "outro": "That's the news for today. This has been Spread the News. Catch you tomorrow.",
     "maxAttempts": 3,
-    "maxHeadlines": 12
+    "maxHeadlines": 12,
+    "rundownTop": 3
   }
 }

@@ -11,10 +11,10 @@ export const CHECK_SYSTEM = `You fact-check and tone-check one story segment for
 
 1. Claims. Split the segment into its factual claims: every statement of what happened, who did or said what, numbers, dates, causes, and descriptions of how outlets or sides covered it. For each claim give:
    - claim: the claim in a few words;
-   - support: the material ids that support it (F3, D1a, H2, FR-right, COV, BG); empty if none;
+   - support: the material ids that support it (F3, D1a, H2, W1, FR-right, COV, BG); empty if none;
    - related: when the claim isn't fully supported, the ids of the material closest to it (what the writer should have used), if any;
    - status: "supported" if the material says it; "distorted" if the material says something related but the segment changes its meaning, certainty, numbers, attribution or who holds a position; "unsupported" if the material doesn't say it at all.
-   Plain narration with no factual content ("Here's what happened") is not a claim. Reasonable paraphrase and rounding ("nearly half" for 48%) count as supported. Headlines (H…) support who people are and basic context (a title, a role, what something is), not extra details about events. A single-outlet fact (marked "one … outlet") is supported only if the segment attributes it: by side when the side matters, otherwise "one report says…" is enough.
+   Plain narration with no factual content ("Here's what happened") is not a claim. Reasonable paraphrase and rounding ("nearly half" for 48%) count as supported. Headlines (H…) and WHO'S WHO lines (W…) support who people are and basic context (a title, a role, what something is), not extra details about events. A single-outlet fact (marked "one … outlet") is supported only if the segment attributes it: by side when the side matters, otherwise "one report says…" is enough.
 
 2. Issues. List every problem a listener or editor would object to, each with kind, severity, excerpt (the exact words from the segment), problem, and fix:
    - "unsupported" / "distorted": restate any such claim from step 1 as a must_fix issue.
@@ -23,9 +23,9 @@ export const CHECK_SYSTEM = `You fact-check and tone-check one story segment for
    - "false_contrast": details from different sides placed side by side as if they conflict when they don't ("The left-leaning outlet says… The right-leaning outlet says…" about unrelated details). must_fix if a listener would hear a left/right dispute that isn't there; otherwise minor.
    - "one_sided_dispute": a disagreement presented as two-sided when the material says all positions come from one outlet or one side. must_fix.
    - "missing_side": a DISAGREEMENT THAT MATTERS is left out, or only one of its positions is given, or the positions get unequal care or a hinted winner. must_fix.
-   - "coverage_line": the coverage line invents a difference, judges motives, keeps score, or isn't backed by the FR lines. must_fix.
+   - "coverage_line": the coverage line invents a difference, judges motives, keeps score, isn't backed by the FR lines, or compares sides when the material says only one side covered the story. must_fix.
    - "tone": breaks the tone guide below: opinion in the narrator's voice, loaded words not attributed, wit at a side's expense or on a tragedy, dated slang, stiff newsreader phrasing, an "update" or "as we told you" framing. must_fix if a listener would hear bias or bad taste; minor for style nits.
-   - "ear": hard to follow when heard: parentheses, unexpanded abbreviations, number soup, direct quotes read aloud. Usually minor; must_fix if it would confuse.
+   - "ear": hard to follow when heard: parentheses, unexpanded abbreviations, number soup, long direct quotes read aloud. A short attributed phrase of a few words kept to preserve meaning is fine, not an issue. Usually minor; must_fix if it would confuse.
    Don't invent problems. An empty issues list is a good outcome.
 
 The tone guide:
@@ -61,6 +61,7 @@ export function materialIds(input: ScriptInput): Set<string> {
   });
   for (const side of ["left", "center", "right"] as const) if (s.framing[side]) ids.add(`FR-${side}`);
   input.headlines.forEach((_, i) => ids.add(`H${i + 1}`));
+  input.whoIsWho.forEach((_, i) => ids.add(`W${i + 1}`));
   if (input.includeRecently && s.recently) ids.add("BG");
   return ids;
 }

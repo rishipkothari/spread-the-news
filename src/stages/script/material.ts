@@ -4,7 +4,7 @@ import { outletAliases } from "./checks";
 
 /**
  * The story material shown to both the writer and the checker, with stable ids the checker cites:
- * F1… facts, D1… disagreements (D1a, D1b… positions; material ones only), H1… headlines, FR-left/center/right framing, COV coverage, BG background.
+ * F1… facts, D1… disagreements (D1a, D1b… positions; material ones only), H1… headlines, W1… who's who, FR-left/center/right framing, COV coverage, BG background.
  * Outlets appear only by side: the script must never name one (docs/tone-guide.md).
  */
 
@@ -52,7 +52,7 @@ export function materialDisputes(s: StorySynthesis): StorySynthesis["disputed"] 
 export function materialEntries(input: ScriptInput): Record<string, string> {
   const out: Record<string, string> = {};
   for (const line of buildMaterial(input).split("\n")) {
-    const m = line.match(/^\s*(COV|BG|F\d+|D\d+[a-z]?|H\d+|FR-(?:left|center|right))\b(.*)$/);
+    const m = line.match(/^\s*(COV|BG|F\d+|D\d+[a-z]?|H\d+|W\d+|FR-(?:left|center|right))\b(.*)$/);
     if (m) out[m[1]] = line.trim();
   }
   return out;
@@ -98,9 +98,25 @@ function rawMaterial(input: ScriptInput): string {
     input.headlines.forEach((h, i) => lines.push(`H${i + 1} [${SIDE_LABEL[h.side]}]: ${h.text}`));
     lines.push("");
   }
+  if (input.whoIsWho.length) {
+    lines.push("WHO'S WHO (roles stated in other stories' checked material today; cite only for who someone is):");
+    input.whoIsWho.forEach((w, i) => lines.push(`W${i + 1}: ${w}`));
+    lines.push("");
+  }
+  const coveringSides = SIDES.filter((side) => coverage[side] > 0);
+  if (coveringSides.length === 1) {
+    lines.push(
+      `COVERAGE NOTE: only ${SIDE_LABEL[coveringSides[0]]} outlets covered this story. Don't compare sides; instead say so plainly in one sentence (e.g. "This one was covered mostly by ${SIDE_LABEL[coveringSides[0]]} outlets").`,
+      "",
+    );
+  }
   const framed = SIDES.filter((side) => s.framing[side]);
   if (framed.length) {
-    lines.push("FRAMING BY SIDE (source for the optional coverage line; describe emphasis, never motives):");
+    lines.push(
+      coveringSides.length === 1
+        ? "FRAMING (one side only: context for emphasis, not for a coverage-difference line):"
+        : "FRAMING BY SIDE (source for the optional coverage line; describe emphasis, never motives):",
+    );
     for (const side of framed) lines.push(`FR-${side} [${SIDE_LABEL[side]} outlets]: ${s.framing[side]}`);
     lines.push("");
   }

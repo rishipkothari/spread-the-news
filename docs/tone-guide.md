@@ -41,16 +41,19 @@ Someone who wants to know what happened today and has heard no news at all: not 
 - At most one sentence per story on how coverage differed across the spectrum, and only when it really differed.
 - Tasteful, not vengeful: describe emphasis, not motives. "Right-leaning outlets zeroed in on the cost; left-leaning ones on who's affected." Not "conveniently ignored", not "but critics say", no scorekeeping.
 - Skip it when coverage was similar. Never invent a difference to fill the slot.
+- If only one side covered the story, don't compare: say so plainly in one sentence ("This one was covered mostly by right-leaning outlets"). That absence is part of the story.
+- Vary the wording. Don't open with the same stock phrase ("Coverage differed in emphasis") every time.
 
 ### Written for the ear
 - Numbers as people say them ("about two point four million", "nearly half"). Round where precision doesn't matter.
 - No parentheses, brackets, bullet points, URLs, hashtags or emoji.
 - Expand abbreviations the first time unless everyone knows them (FBI, NASA are fine).
-- No direct quotes read on air: paraphrase. (Avoids re-voicing copyrighted reporting and quotes without outlet names sound odd.)
+- No long direct quotes read on air: paraphrase. A short attributed phrase of a few words is fine when paraphrasing would change its meaning or soften a loaded word ("the White House called the probes blatant criminality"). Never more than one short phrase in a row.
 
 ## Addenda
 
 | Date | Change | Why |
 | :- | :- | :- |
+| 2026-11-23 | Short attributed phrases allowed when paraphrase would distort; one-sided coverage stated plainly; vary the coverage line | Second script: the checker rejected every paraphrase of "blatant criminality" and then flagged the exact words; Schumer segment compared sides when only one covered it; "Coverage differed in emphasis" repeated |
 | 2026-11-23 | Side labels only where the side matters; no false contrasts; new "Where accounts differ" section | First live script: single-outlet details labelled by side read like a left/right dispute (Tom Jackson segment); trivial mismatches were presented as disagreements |
 | 2026-11-23 | First version | Phase 2 planning with the user: style 1b (straight news + one coverage line), light and relatable, sides not outlet names, every story told fresh, no direct quotes |

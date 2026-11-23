@@ -28,7 +28,7 @@ Stages (`src/pipeline/stages.ts`): `sources → fetch → cluster → rank` (dis
 | analyze | `ArticleAnalyzer` | `haiku-facts-v1` (default), `stub` | facts with verbatim quotes, verified in code |
 | synthesize | `StorySynthesizer` | `sonnet-synthesis-v1` (default), `stub` | cites fact ids; `resolveSynthesis` maps them to quotes |
 | plan | `EpisodePlanner` | `word-budget-v1` | pure; picks synthesized stories by profile (categories "all" / list / % mix), orders by `orderStrategy` (`rank` default, `top-then-category`), word budgets at 150 wpm, never pads |
-| script | `ScriptWriter` | `neutral-v1` (default), `stub` | one segment per story from `material.ts` (numbered facts F1…, material disputes D1a… (minor ones excluded), headlines H1…, framing FR-side; outlet names replaced by sides); tone rules from `tone.ts` = `docs/tone-guide.md` Rules (test-enforced) |
+| script | `ScriptWriter` | `neutral-v1` (default), `stub` | one segment per story from `material.ts` (numbered facts F1…, material disputes D1a… (minor ones excluded), headlines H1…, who's who W1… (`whoswho.ts`: role phrases from the whole run), framing FR-side; outlet names replaced by sides); tone rules from `tone.ts` = `docs/tone-guide.md` Rules (test-enforced) |
 | check | `ScriptChecker` | `quote-trace-v1` (default), `stub` | claims → material ids + tone issues; code decides pass (`checks.ts verdict`) and adds deterministic checks (outlet names, parentheses, URLs, read-aloud quotes, length note) |
 
 `src/lib/llm.ts` is the single place that calls Claude: streaming, structured output (schema sanitized for the API), one retry on invalid output, refusal fallback, usage and cost.

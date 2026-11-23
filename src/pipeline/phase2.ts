@@ -6,6 +6,8 @@ import { impls, type Methods } from "@/stages/registry";
 import { leanGroup } from "@/stages/rank/headline-index-v1";
 import { codeChecks, lengthIssue, verdict, wordCount } from "@/stages/script/checks";
 import { enabledTemplates, templateText } from "@/stages/script/templates";
+import { buildMaterial } from "@/stages/script/material";
+import { extractRoles, runTexts, whoIsWhoFor } from "@/stages/script/whoswho";
 import type { LlmUsageEntry, Revision, ScriptInput } from "@/stages/types";
 import { isSystemic, stageUsage, type SynthesizeOut } from "./phase1";
 import { meetsFailurePolicy } from "./policy";
@@ -73,6 +75,7 @@ export function buildScriptInput(story: Story, synthesis: StorySynthesis, bundle
   return {
     story: { id: story.id, title: synthesis.title, category: story.category },
     headlines,
+    whoIsWho: [],
     synthesis,
     sideOf,
     outlets: bundle.sources.map((s) => ({ name: s.name, side: leanGroup(s.leanValue) })),
@@ -107,6 +110,9 @@ export async function runScriptUnit(runId: string, storyId: string): Promise<voi
   if (!planned || !story || !synthesis) throw new Error(`story ${storyId} is not in the plan, bundle and synthesis of run ${runId}`);
 
   const input = buildScriptInput(story, synthesis, bundle, planned);
+  // Who's who: roles stated anywhere in today's checked material, for people this story names without one.
+  const roles = extractRoles(runTexts(synth.syntheses, bundle.articles.map((a) => a.title)));
+  input.whoIsWho = whoIsWhoFor(buildMaterial(input), roles);
   const writer = impls.script(m);
   const checker = impls.check(m);
   const unit: ScriptUnit = { storyId, title: synthesis.title, attempts: [], usage: [], ms: 0 };

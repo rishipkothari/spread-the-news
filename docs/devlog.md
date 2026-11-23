@@ -2,6 +2,12 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23: second script, polish, merge to main
+
+**Second live script** (same run after re-analysis): 10/10 kept, 0 dropped, $0.41, 16 min (over the 13 min target). Top stories back; disagreements read as reporting; Jackson false contrast gone. Remaining: length, long rundown, quote rule fighting accuracy, unidentified people, coverage line on one-sided stories, and a stale fact (Foxx recount vs concession) from grouping. → `docs/reviews/2026-11-23-0146-script-2.md`
+
+**Built**: rundown top three + "and more"; tone guide allows short attributed phrases when paraphrase would distort; one-sided coverage stated plainly, varied coverage lines; per-run who's who (`src/stages/script/whoswho.ts`, W… material). Length and the grouping/stale-fact fix went to the backlog with detail. Merged `phase2-v1` to `main`.
+
 ## 2026-11-23: first live script and fixes
 
 **First live script** (run `2026-11-23T0146-25e3fa`, report in `docs/reviews/2026-11-23-0146-script.md`): 7 of 10 kept, $0.40, 10.3 min. Three of the top four (COP31, DNI Clayton, House majority) were dropped for single fixable claims: a misattributed clause, a title that was only in headlines, a softened quote the rewrite didn't fix. The Jackson segment staged trivial details as a left/right contrast.

@@ -11,7 +11,7 @@ You receive the STORY MATERIAL for one story: facts checked against the outlets'
 
 How a segment goes:
 1. Open with what happened, in a sentence a listener grasps on first hearing.
-2. Give the key facts and why the story matters, using only the material. Explain who people are in a clause when the material or a headline says so.
+2. Give the key facts and why the story matters, using only the material. Explain who people are in a clause when the material, a headline or the WHO'S WHO says so; don't introduce someone by surname alone if the material gives their role.
 3. Present every DISAGREEMENT THAT MATTERS: what's in dispute, then each position and who holds it, by side, in fair, parallel wording ("left-leaning outlets report… while right-leaning ones…"). This is part of the reporting, not a footnote; don't pick a winner. If every position came from one outlet, present it as that outlet's report of conflicting claims, not as a debate between sides.
 4. Optionally, one sentence on how coverage differed across the spectrum, from the FRAMING lines, only if the sides really emphasized different things. Skip it otherwise.
 5. End cleanly. No sign-off, no "stay tuned", no transition to the next story: segments are joined later.

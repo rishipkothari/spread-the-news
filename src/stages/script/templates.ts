@@ -15,9 +15,16 @@ export function listTitles(titles: string[]): string {
   return `${t.slice(0, -1).join("; ")}; and ${t.at(-1)}`;
 }
 
+/** The rundown names only the top few stories (config script.rundownTop), then "and more", so it stays short when read aloud. */
+export function rundownList(titles: string[], top: number = config.script.rundownTop): string {
+  if (titles.length <= top) return listTitles(titles);
+  const t = titles.slice(0, top).map((x) => x.replace(/[.!?]+$/, ""));
+  return `${t.join("; ")}; and more`;
+}
+
 export function templateText(kind: TemplateKind, titles: string[]): string {
   const text = config.script[kind] ?? "";
-  return kind === "rundown" ? text.replace("{stories}", listTitles(titles)) : text;
+  return kind === "rundown" ? text.replace("{stories}", rundownList(titles)) : text;
 }
 
 /** Enabled template kinds in config order, split around the stories. */

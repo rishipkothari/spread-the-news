@@ -116,6 +116,7 @@ export interface ScriptInput {
   sideOf: Record<string, LeanGroup>; // sourceId → side, for every outlet that covered the story
   outlets: { name: string; side: LeanGroup }[]; // every source in the run, so names in Phase 1 text can be replaced by sides
   headlines: { text: string; side: LeanGroup }[]; // covering outlets' own headlines (citable for identities and basic context)
+  whoIsWho: string[]; // role phrases for people in this story, found in other stories' material today ("Transportation Secretary Sean Duffy")
   coverage: Record<LeanGroup, number>; // covering outlets per side
   wordBudget: number;
   lead: boolean;
