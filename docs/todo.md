@@ -21,6 +21,16 @@ Plan agreed 2026-11-23 (see `docs/decisions.md`, `docs/tone-guide.md`). Exit (PR
 - [ ] Exit (PRD): scripts read well and pass the checker without manual edits for several consecutive runs.
 - [x] Built 2026-11-23: episode profile (`RunParams` categories "all" / list / % mix; `rank` default, `top-then-category`); `word-budget-v1` planner; `neutral-v1` writer + `quote-trace-v1` checker per story (rewrite once, then drop) with code checks; outlet names scrubbed from material; fixed intro/outro; `meetsFailurePolicy()` (always ok, notes only); story bank `segments/`; "Write script" button and `/debug/runs/<id>/script` page with 👍/👎 + notes and copyable report; harness `script-prompts` / `check-script`.
 
+## Next: Phase 3 (audio and delivery)
+
+Plan: `docs/phase3-plan.md` (planned 2026-11-23, not built). Phase 3 only, no backlog items. Exit (PRD): a vanilla episode can be triggered and played on a phone end to end.
+
+- [ ] `TTSProvider` interface + `edge-tts` and `stub` adapters; sentence chunking, retries.
+- [ ] Audio cache by `audioKey`; `voice` stage (one step per segment); `assemble` stage (`mp3-concat`, pauses, duration, manifest).
+- [ ] Run page: Voice/Assemble rows, "Make audio" button; `/debug/voices` voice test page.
+- [ ] Player `/player` + `/player/[id]` (chapters, speed, resume, lock-screen controls); Range-capable `/audio/...` route.
+- [ ] User: voice test on Vercel, pick a voice, make audio for a scripted run, play on phone; intro/outro wording.
+
 ## Now: Phase 0 exit (story discovery)
 
 Exit criterion: about a week of daily manual runs where the ranked list looks like that day's real headlines.
@@ -65,7 +75,7 @@ First live run 2026-11-22 (`docs/reviews/2026-11-22-1313-analysis.md`): $0.24 fo
 - Failure policy: real thresholds in `meetsFailurePolicy()` (PRD: ≥8/12 sources, ≥5 checked stories) once sources are adequate. Stub returns true.
 - "Already covered" tracking across episodes (needs an episode history); "recently" background into the script once story history is reliable.
 - Intro/outro wording per profile once episodes are customizable.
-- Phase 3: `TTSProvider` (edge-tts; Kokoro fallback), audio cache, `EpisodeAssembler`, private web player.
+- **Fallback voice: Google Chirp 3 HD** (decided 2026-11-23; replaces Kokoro as the fallback). Waiting on the user: create a Google Cloud project, enable the Text-to-Speech API, create an API key restricted to it, add it in Vercel as `GOOGLE_TTS_API_KEY`. Then: `google-chirp3-hd` adapter behind `TTSProvider`, voices on `/debug/voices`, switch `methods.tts` in config. Check current pricing first (expected cents to tens of cents per episode).
 - Phase 4: Neon + Drizzle story bank, playlists. Phase 5: lean slider = story *selection* only (presentation always all sides), disclosed on air; consider a shared core of top cross-spectrum stories.
 
 ## Wish list (long term)

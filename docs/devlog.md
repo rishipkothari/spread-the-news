@@ -2,6 +2,10 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23: Phase 3 planned
+
+Planned Phase 3 (audio and delivery) in `docs/phase3-plan.md`; nothing built. User chose Phase 3 only (no backlog items) and Google Chirp 3 HD as the fallback voice instead of Kokoro (Kokoro is too heavy for Vercel functions); Chirp waits in the backlog for the user's API key. Main risk is whether edge-tts works from Vercel; the voice test page checks it first.
+
 ## 2026-11-23: second script, polish, merge to main
 
 **Second live script** (same run after re-analysis): 10/10 kept, 0 dropped, $0.41, 16 min (over the 13 min target). Top stories back; disagreements read as reporting; Jackson false contrast gone. Remaining: length, long rundown, quote rule fighting accuracy, unidentified people, coverage line on one-sided stories, and a stale fact (Foxx recount vs concession) from grouping. → `docs/reviews/2026-11-23-0146-script-2.md`
