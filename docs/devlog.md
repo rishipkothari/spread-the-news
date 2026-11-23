@@ -8,7 +8,9 @@ One entry per work session, newest first: what changed, what we learned, what's 
 
 **Checked here**: typecheck, 105 tests, `next build`; the MP3 joiner against real ffmpeg-encoded 24 kHz mono files (decodes cleanly, exact length, silent pauses). Not checked: edge-tts itself (this sandbox can't reach Microsoft), Blob Range behaviour, and the phone's audio player with Basic auth: all three are in the user's morning steps.
 
-**Next**: user's live check (todo, Phase 3 section); pick a voice; intro/outro wording.
+**Live**: user confirmed it works on Vercel (edge-tts reachable, episode plays). Merged to `main`.
+
+**Next**: pick a voice; confirm phone details (lock screen, resume); intro/outro wording.
 
 ## 2026-11-23: Phase 3 planned
 
