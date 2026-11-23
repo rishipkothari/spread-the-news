@@ -160,7 +160,8 @@ export interface StorySynthesis {
   summary: string; // 2–4 neutral sentences; also stored in story history
   agreedFacts: { fact: string; support: { articleId: string; quote: string }[] }[]; // reported by 2+ outlets
   singleSourceFacts?: { fact: string; sourceId: string; support: { articleId: string; quote: string }[] }[]; // one outlet only: attribute when used
-  disputed: { claim: string; positions: { position: string; sourceIds: string[]; quote?: string; articleId?: string }[] }[];
+  // significance: "material" changes what a listener understands; "minor" is a small mismatch. Missing (older runs) = material.
+  disputed: { claim: string; significance?: "material" | "minor"; positions: { position: string; sourceIds: string[]; quote?: string; articleId?: string }[] }[];
   framing: Partial<Record<LeanGroup, string>>; // how each side frames it; omit a side with no coverage
   recently?: string; // "what happened recently", from the linked story chain
 }
@@ -199,7 +200,7 @@ export interface EpisodePlan {
   skipped: { storyId: string; title: string; reason: string }[];
 }
 
-export type CheckIssueKind = "unsupported" | "distorted" | "outlet_named" | "attribution" | "one_sided_dispute" | "coverage_line" | "tone" | "ear" | "length" | "other";
+export type CheckIssueKind = "unsupported" | "distorted" | "outlet_named" | "attribution" | "false_contrast" | "one_sided_dispute" | "missing_side" | "coverage_line" | "tone" | "ear" | "length" | "other";
 
 export interface CheckIssue {
   kind: CheckIssueKind;
@@ -212,16 +213,20 @@ export interface CheckIssue {
 
 export interface CheckResult {
   pass: boolean;
-  claims: { claim: string; support: string[]; status: "supported" | "unsupported" | "distorted" }[]; // support = material ids (F1, D1a, FR-left…)
+  // support = material ids (F1, D1a, FR-left, H2…) that back the claim; related = closest material ids, shown to the writer on a rewrite
+  claims: { claim: string; support: string[]; related?: string[]; status: "supported" | "unsupported" | "distorted" }[];
   issues: CheckIssue[];
   checker: string;
 }
 
 /** PRD Segment: one piece of an episode. scriptHash = hash of text, the key in the story bank. */
+/** Fixed segments: welcome (generic show intro), rundown (this episode's story list), outro. */
+export type TemplateKind = "welcome" | "rundown" | "outro";
+
 export interface Segment {
   id: string;
   storyId?: string;
-  kind: "intro" | "story" | "outro";
+  kind: TemplateKind | "story";
   text: string;
   checkerResult: CheckResult | { pass: true; template: true };
   scriptHash: string;

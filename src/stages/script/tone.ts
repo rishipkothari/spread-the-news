@@ -21,8 +21,15 @@ export const TONE_RULES = `### Voice
 
 ### Outlets and sides
 - Never name an outlet. Refer to sides: "left-leaning outlets", "right-leaning outlets", "centrist outlets", "one right-leaning outlet".
-- A fact reported by only one outlet is attributed to it by side: "one left-leaning outlet reports…".
+- A fact reported by only one outlet is always attributed. Name its side only when the side matters: a political claim, a contested point, or something a side has a stake in ("one right-leaning outlet reports…"). For uncontested, non-political details, say "one report says…", or leave minor details out.
+- Never place two sides' details next to each other as if they conflict when they don't. Different outlets adding different details is not a disagreement.
 - A disagreement only counts as two-sided if outlets on different sides actually hold the positions. If every position came from one outlet, say so ("one outlet reports conflicting figures") rather than staging a debate.
+
+### Where accounts differ
+- Disagreements that matter are part of the story, not a footnote: what happened, who's responsible, how many were hurt, how much money, whether something works or is legal, what each side wants.
+- Present each one plainly: what's in dispute, then who says what, by side, in fair and parallel wording. Give each position the same care.
+- Don't pick a winner or hint at one. If the material doesn't settle it, the segment doesn't either.
+- Leave out small mismatches that don't change the story (dates of past events, career lengths, exact times).
 
 ### The coverage line
 - At most one sentence per story on how coverage differed across the spectrum, and only when it really differed.

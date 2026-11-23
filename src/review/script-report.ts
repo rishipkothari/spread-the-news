@@ -42,6 +42,16 @@ export function buildScriptReport(
   if (review.notes.trim()) lines.push("", "## My overall notes", review.notes.trim());
 
   const byId = new Map(units.map((u) => [u.storyId, u]));
+  if (script?.dropped.length) {
+    lines.push("", `## Dropped from this episode (${script.dropped.length})`);
+    for (const d of script.dropped) {
+      const p = plan?.stories.find((s) => s.storyId === d.storyId);
+      lines.push(`- #${p?.rank ?? "?"} ${d.title}: ${d.reason}`);
+      for (const [k, a] of (byId.get(d.storyId)?.attempts ?? []).entries()) {
+        lines.push(`  draft ${k + 1}: ${a.text.replace(/\s+/g, " ")}`, ...issueLines(a.check, "    "));
+      }
+    }
+  }
   if (script?.segments.length) {
     lines.push("", "## Script");
     let n = 0;
@@ -54,23 +64,13 @@ export function buildScriptReport(
       }
       const unit = byId.get(seg.storyId!);
       const p = plan?.stories.find((s) => s.storyId === seg.storyId);
-      lines.push("", `### ${++n}. ${unit?.title ?? seg.storyId} (rank ${p?.rank ?? "?"}, ${p?.category ?? "?"}, budget ${p?.wordBudget ?? "?"}, ${seg.words} words${unit && unit.attempts.length > 1 ? ", rewritten" : ""})${fbText ? ` ${fbText}` : ""}`);
+      lines.push("", `### ${++n}. ${unit?.title ?? seg.storyId} (rank ${p?.rank ?? "?"}, ${p?.category ?? "?"}, budget ${p?.wordBudget ?? "?"}, ${seg.words} words${unit && unit.attempts.length > 1 ? `, passed on attempt ${unit.attempts.length}` : ""})${fbText ? ` ${fbText}` : ""}`);
       lines.push(seg.text);
       if ("claims" in seg.checkerResult) {
         lines.push(`checker: ${checkLine(seg.checkerResult)}`);
         lines.push(...issueLines(seg.checkerResult));
       }
-      if (unit && unit.attempts.length > 1) {
-        lines.push("first draft failed:", ...issueLines(unit.attempts[0].check));
-      }
-    }
-  }
-  if (script?.dropped.length) {
-    lines.push("", "## Dropped by the checker");
-    for (const d of script.dropped) {
-      lines.push(`- ${d.title}: ${d.reason}`);
-      const last = byId.get(d.storyId)?.attempts.at(-1);
-      if (last) lines.push(`  last draft: ${last.text}`);
+      for (const [k, a] of (unit?.attempts.slice(0, -1) ?? []).entries()) lines.push(`draft ${k + 1} failed:`, ...issueLines(a.check));
     }
   }
   if (plan?.skipped.length) {

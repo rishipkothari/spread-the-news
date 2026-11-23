@@ -1,10 +1,10 @@
-import type { LeanGroup } from "@/lib/types";
+import type { LeanGroup, StorySynthesis } from "@/lib/types";
 import type { ScriptInput } from "../types";
 import { outletAliases } from "./checks";
 
 /**
  * The story material shown to both the writer and the checker, with stable ids the checker cites:
- * F1… facts, D1… disagreements (D1a, D1b… positions), FR-left/center/right framing, COV coverage, BG background.
+ * F1… facts, D1… disagreements (D1a, D1b… positions; material ones only), H1… headlines, FR-left/center/right framing, COV coverage, BG background.
  * Outlets appear only by side: the script must never name one (docs/tone-guide.md).
  */
 
@@ -43,6 +43,21 @@ export function buildMaterial(input: ScriptInput): string {
   return scrubOutlets(rawMaterial(input), input.outlets);
 }
 
+/** Disagreements the script presents: material ones only (minor mismatches stay on the analysis page). Older runs have no level: treat as material. */
+export function materialDisputes(s: StorySynthesis): StorySynthesis["disputed"] {
+  return s.disputed.filter((d) => d.significance !== "minor");
+}
+
+/** id → material line (as the writer saw it, names scrubbed), for showing the writer what a flagged claim should have used. */
+export function materialEntries(input: ScriptInput): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of buildMaterial(input).split("\n")) {
+    const m = line.match(/^\s*(COV|BG|F\d+|D\d+[a-z]?|H\d+|FR-(?:left|center|right))\b(.*)$/);
+    if (m) out[m[1]] = line.trim();
+  }
+  return out;
+}
+
 function rawMaterial(input: ScriptInput): string {
   const { synthesis: s, sideOf, coverage } = input;
   const total = coverage.left + coverage.center + coverage.right;
@@ -60,19 +75,27 @@ function rawMaterial(input: ScriptInput): string {
     lines.push("");
   }
   if (s.singleSourceFacts?.length) {
-    lines.push('FACTS FROM ONE OUTLET ONLY (attribute by side if used, e.g. "one right-leaning outlet reports…"):');
+    lines.push(
+      'FACTS FROM ONE OUTLET ONLY (attribute when used. Name the side only if it matters: a political claim, a contested point, or something a side has a stake in: "one right-leaning outlet reports…". Otherwise "one report says…". Leave out minor details.):',
+    );
     for (const sf of s.singleSourceFacts) lines.push(`F${++f} [${describeOutlets([sf.sourceId], sideOf)}]: ${sf.fact}`);
     lines.push("");
   }
-  if (s.disputed.length) {
-    lines.push("DISAGREEMENTS:");
-    s.disputed.forEach((d, i) => {
+  const disputes = materialDisputes(s);
+  if (disputes.length) {
+    lines.push("DISAGREEMENTS THAT MATTER (present each one, saying who holds each position):");
+    disputes.forEach((d, i) => {
       const all = new Set(d.positions.flatMap((p) => p.sourceIds));
       const sides = new Set([...all].map((id) => sideOf[id] ?? "center"));
       const note = all.size <= 1 ? " (every position comes from the same single outlet: not a two-sided debate)" : sides.size === 1 ? ` (all positions from ${SIDE_LABEL[[...sides][0]]} outlets)` : "";
       lines.push(`D${i + 1}: ${d.claim}${note}`);
       d.positions.forEach((p, j) => lines.push(`  D${i + 1}${String.fromCharCode(97 + j)} [${describeOutlets(p.sourceIds, sideOf)}]: ${p.position}`));
     });
+    lines.push("");
+  }
+  if (input.headlines.length) {
+    lines.push("HEADLINES (the outlets' own; citable for who people are and basic context, not as extra facts about events):");
+    input.headlines.forEach((h, i) => lines.push(`H${i + 1} [${SIDE_LABEL[h.side]}]: ${h.text}`));
     lines.push("");
   }
   const framed = SIDES.filter((side) => s.framing[side]);

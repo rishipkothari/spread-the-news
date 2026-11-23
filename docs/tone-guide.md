@@ -27,8 +27,15 @@ Someone who wants to know what happened today and has heard no news at all: not 
 
 ### Outlets and sides
 - Never name an outlet. Refer to sides: "left-leaning outlets", "right-leaning outlets", "centrist outlets", "one right-leaning outlet".
-- A fact reported by only one outlet is attributed to it by side: "one left-leaning outlet reports…".
+- A fact reported by only one outlet is always attributed. Name its side only when the side matters: a political claim, a contested point, or something a side has a stake in ("one right-leaning outlet reports…"). For uncontested, non-political details, say "one report says…", or leave minor details out.
+- Never place two sides' details next to each other as if they conflict when they don't. Different outlets adding different details is not a disagreement.
 - A disagreement only counts as two-sided if outlets on different sides actually hold the positions. If every position came from one outlet, say so ("one outlet reports conflicting figures") rather than staging a debate.
+
+### Where accounts differ
+- Disagreements that matter are part of the story, not a footnote: what happened, who's responsible, how many were hurt, how much money, whether something works or is legal, what each side wants.
+- Present each one plainly: what's in dispute, then who says what, by side, in fair and parallel wording. Give each position the same care.
+- Don't pick a winner or hint at one. If the material doesn't settle it, the segment doesn't either.
+- Leave out small mismatches that don't change the story (dates of past events, career lengths, exact times).
 
 ### The coverage line
 - At most one sentence per story on how coverage differed across the spectrum, and only when it really differed.
@@ -45,4 +52,5 @@ Someone who wants to know what happened today and has heard no news at all: not 
 
 | Date | Change | Why |
 | :- | :- | :- |
+| 2026-11-23 | Side labels only where the side matters; no false contrasts; new "Where accounts differ" section | First live script: single-outlet details labelled by side read like a left/right dispute (Tom Jackson segment); trivial mismatches were presented as disagreements |
 | 2026-11-23 | First version | Phase 2 planning with the user: style 1b (straight news + one coverage line), light and relatable, sides not outlet names, every story told fresh, no direct quotes |

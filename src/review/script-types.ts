@@ -11,7 +11,7 @@ export const ScriptReview = z.object({
   runId: z.string(),
   savedAt: z.string().optional(),
   notes: z.string().max(4000),
-  segments: z.record(z.string(), SegmentFeedback), // keyed by segment id (seg-intro, seg-<storyId>, seg-outro)
+  segments: z.record(z.string(), SegmentFeedback), // keyed by segment id (seg-welcome, seg-rundown, seg-<storyId>, seg-outro)
 });
 export type ScriptReview = z.infer<typeof ScriptReview>;
 

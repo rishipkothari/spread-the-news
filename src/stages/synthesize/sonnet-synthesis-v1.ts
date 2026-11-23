@@ -16,6 +16,11 @@ Return:
   2. outlets reporting different facts: different numbers, dates, counts or sequences of events;
   3. claims one outlet treats as fact that another attributes or questions.
   Every position must be a view someone actually holds; "reported it without comment" is not a position. Don't list a disagreement as an agreed fact. Include only disagreements present in the material; an empty list is fine.
+  Outlets including different details is not a disagreement: one outlet mentioning the cause of death is unknown while another quotes a friend is two details, not a conflict. List it only if the claims can't both be true, or people in the story hold opposing views.
+  Each disagreement has significance:
+  - "material" if it changes what a listener would understand about the story: what happened, who is responsible, how many were hurt or killed, how much money or how many people are involved, whether something is legal, effective, adequate or justified, or what each side actually wants;
+  - "minor" for small mismatches that don't change the story: dates or durations of past events, career lengths, exact times of day, ordinal details, wording.
+  The podcast presents material disagreements with each side's position and leaves minor ones out, so judge by whether a listener would care.
 - framing: for each side that covered the story (left, center, right), one sentence on what that side's coverage emphasizes or how it frames the story, judged from headlines, article types and chosen facts. Describe, don't judge. Omit a side with no coverage.
 - recently: only if RECENT HISTORY is given, one or two sentences on what happened before, from that history alone. Otherwise omit.
 
@@ -57,6 +62,7 @@ export const SynthesizeOutput = z.object({
   disputed: z.array(
     z.object({
       claim: z.string(),
+      significance: z.enum(["material", "minor"]).optional(),
       positions: z.array(z.object({ position: z.string(), articleIds: z.array(z.string()), factIds: z.array(z.string()).optional() })),
     }),
   ),
@@ -98,6 +104,7 @@ export function resolveSynthesis(out: SynthesizeOutput, input: SynthesizeInput):
   const disputed = out.disputed
     .map((d) => ({
       claim: d.claim.trim(),
+      significance: d.significance ?? "material",
       positions: d.positions
         .map((p) => {
           const arts = p.articleIds.map(article).filter((a): a is NonNullable<typeof a> => !!a);

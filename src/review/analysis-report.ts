@@ -44,7 +44,7 @@ export function buildAnalysisReport(
       if (s.recently) lines.push(`Recently: ${s.recently}`);
       for (const f of s.agreedFacts) lines.push(`- AGREED: ${f.fact} [${[...new Set(f.support.map((x) => name(articleSource.get(x.articleId) ?? "?")))].join(", ")}]`);
       for (const f of s.singleSourceFacts ?? []) lines.push(`- ONLY ${name(f.sourceId)}: ${f.fact}`);
-      for (const d of s.disputed) lines.push(`- DISPUTED: ${d.claim} → ${d.positions.map((p) => `${p.position} [${p.sourceIds.map(name).join(", ")}]`).join(" | ")}`);
+      for (const d of s.disputed) lines.push(`- DISPUTED (${d.significance ?? "material"}): ${d.claim} → ${d.positions.map((p) => `${p.position} [${p.sourceIds.map(name).join(", ")}]`).join(" | ")}`);
       for (const [side, f] of Object.entries(s.framing)) lines.push(`- FRAMING ${side}: ${f}`);
     });
     for (const e of synth.errors) lines.push(`- synthesis error: ${e}`);

@@ -76,9 +76,17 @@ export function wordBudgets(count: number, targetWords: number): number[] {
   return want.map((w) => Math.max(s.minStoryWords, Math.round((w * scale) / 10) * 10));
 }
 
+export function whyNoSynthesis(storyId: string, analysis: PlanInput["analysis"]): string {
+  if (!analysis) return "no synthesis";
+  if (!analysis.analyzedIds.includes(storyId)) return `outside the top ${analysis.analyzedIds.length} stories analyzed`;
+  if (analysis.headlinesOnly.includes(storyId)) return "headlines only: none of its articles had readable text";
+  if (analysis.errors[storyId]) return `analysis failed: ${analysis.errors[storyId]}`;
+  return "analyzed but no synthesis was saved";
+}
+
 export const wordBudgetV1: EpisodePlanner = {
   id: "word-budget-v1",
-  plan({ stories, syntheses, params }: PlanInput) {
+  plan({ stories, syntheses, params, analysis }: PlanInput) {
     const synthBy = new Map(syntheses.map((s) => [s.storyId, s]));
     const skipped: { storyId: string; title: string; reason: string }[] = [];
     const cands: Candidate[] = [];
@@ -88,7 +96,7 @@ export const wordBudgetV1: EpisodePlanner = {
       rank++;
       const synthesis = synthBy.get(story.id);
       if (!synthesis) {
-        skipped.push({ storyId: story.id, title: story.title, reason: "no synthesis (not analyzed, headlines only, or failed)" });
+        skipped.push({ storyId: story.id, title: story.title, reason: whyNoSynthesis(story.id, analysis) });
         continue;
       }
       if (synthesis.agreedFacts.length + (synthesis.singleSourceFacts?.length ?? 0) === 0) {

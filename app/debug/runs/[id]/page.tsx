@@ -5,7 +5,7 @@ import { config } from "@/lib/config";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus, stageWallMs } from "@/pipeline/status";
-import { isFanout } from "@/pipeline/stages";
+import { ANALYSIS_STAGES, SCRIPT_STAGES, isFanout } from "@/pipeline/stages";
 import { analysisAction, replayAction, rerankAction, scriptAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -131,6 +131,13 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   const unranked = bundle?.stories.filter((s) => !s.ranked) ?? [];
   const cost = (usage ?? []).reduce((a, u) => a + (u.costUsd ?? 0), 0);
   const window = bundle?.window ?? fetched?.window;
+  // Total time = sum of each stage's elapsed time. Phases are started separately, so idle time between button clicks isn't counted.
+  const fmt = (ms: number) => (ms >= 60_000 ? `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s` : `${(ms / 1000).toFixed(1)}s`);
+  const phaseMs = (stages: StageId[]) => stages.reduce((a, s) => a + (stageWallMs(status.stages[s]) ?? 0), 0);
+  const phases = ([["discovery", ["sources", "fetch", "cluster", "rank"]], ["analysis", ANALYSIS_STAGES], ["script", SCRIPT_STAGES]] as [string, StageId[]][])
+    .map(([name, stages]) => [name, phaseMs(stages)] as const)
+    .filter(([, ms]) => ms > 0);
+  const totalMs = phases.reduce((a, [, ms]) => a + ms, 0);
 
   return (
     <main>
@@ -141,6 +148,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         <span className={status.state === "failed" ? "bad" : status.state === "done" ? "ok" : "warn"}>{status.state}</span>
         {window && <span>window {window.start.slice(0, 16)} → {window.end.slice(0, 16)} UTC</span>}
         <span>cost ${cost.toFixed(4)}</span>
+        {totalMs > 0 && (
+          <span title="Sum of each stage's elapsed time; waiting between phases isn't counted">
+            total time {fmt(totalMs)}{phases.length > 1 ? ` (${phases.map(([n, ms]) => `${n} ${fmt(ms)}`).join(" · ")})` : ""}
+          </span>
+        )}
         {status.replayFrom && <span>replay of <Link href={`/debug/runs/${status.replayFrom}`}>{status.replayFrom}</Link></span>}
         <span className="mono">{Object.entries(status.methods).map(([k, v]) => `${k}=${v}`).join(" ")}</span>
       </div>
@@ -227,6 +239,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         </table>
       </div>
       {status.errors.length > 0 && <ul className="bad">{status.errors.map((e) => <li key={e}>{e}</li>)}</ul>}
+      {Number(status.stages.script?.summary?.dropped ?? 0) > 0 && (
+        <p className="bad">
+          {String(status.stages.script!.summary!.dropped)} {Number(status.stages.script!.summary!.dropped) === 1 ? "story was" : "stories were"} dropped from the script. <Link href={`/debug/runs/${id}/script`}>See which and why →</Link>
+        </p>
+      )}
 
       {health && (<><h2>Source health</h2><HealthTable health={health} sources={sources} /></>)}
 

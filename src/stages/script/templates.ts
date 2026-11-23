@@ -1,9 +1,13 @@
 import { config } from "@/lib/config";
+import type { TemplateKind } from "@/lib/types";
 
 /**
- * Fixed intro and outro (no LLM). Wording lives in config/pipeline.json → script.intro / script.outro;
- * {stories} becomes the episode's story titles. To be replaced per profile once episodes are customizable.
+ * Fixed segments (no LLM), each switchable: welcome (generic show intro), rundown (today's stories), outro.
+ * Wording and which ones play live in config/pipeline.json → script.templates / welcome / rundown / outro.
+ * To be replaced per profile once episodes are customizable.
  */
+export const TEMPLATE_KINDS: TemplateKind[] = ["welcome", "rundown", "outro"];
+
 export function listTitles(titles: string[]): string {
   const t = titles.map((x) => x.replace(/[.!?]+$/, ""));
   if (t.length <= 1) return t[0] ?? "";
@@ -11,10 +15,13 @@ export function listTitles(titles: string[]): string {
   return `${t.slice(0, -1).join("; ")}; and ${t.at(-1)}`;
 }
 
-export function introText(titles: string[]): string {
-  return config.script.intro.replace("{stories}", listTitles(titles));
+export function templateText(kind: TemplateKind, titles: string[]): string {
+  const text = config.script[kind] ?? "";
+  return kind === "rundown" ? text.replace("{stories}", listTitles(titles)) : text;
 }
 
-export function outroText(): string {
-  return config.script.outro;
+/** Enabled template kinds in config order, split around the stories. */
+export function enabledTemplates(enabled: string[] = config.script.templates): { before: TemplateKind[]; after: TemplateKind[] } {
+  const on = TEMPLATE_KINDS.filter((k) => enabled.includes(k) && config.script[k]?.trim());
+  return { before: on.filter((k) => k !== "outro"), after: on.filter((k) => k === "outro") };
 }

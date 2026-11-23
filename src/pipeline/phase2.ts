@@ -1,11 +1,11 @@
 import { config } from "@/lib/config";
 import { sha } from "@/lib/hash";
 import { getJson, paths, putJson } from "@/lib/storage";
-import type { CheckResult, EpisodePlan, EpisodeScript, LeanGroup, PlannedStory, Segment, Story, StoryBundle, StorySynthesis } from "@/lib/types";
+import type { CheckResult, EpisodePlan, EpisodeScript, LeanGroup, PlannedStory, Segment, Story, StoryBundle, StorySynthesis, TemplateKind } from "@/lib/types";
 import { impls, type Methods } from "@/stages/registry";
 import { leanGroup } from "@/stages/rank/headline-index-v1";
 import { codeChecks, lengthIssue, verdict, wordCount } from "@/stages/script/checks";
-import { introText, outroText } from "@/stages/script/templates";
+import { enabledTemplates, templateText } from "@/stages/script/templates";
 import type { LlmUsageEntry, Revision, ScriptInput } from "@/stages/types";
 import { isSystemic, stageUsage, type SynthesizeOut } from "./phase1";
 import { meetsFailurePolicy } from "./policy";
@@ -14,7 +14,7 @@ import { appendUsage, readStatus, updateStatus } from "./status";
 /**
  * Phase 2 script stage, one workflow step per planned story (the "plan" stage runs first, in run.ts):
  *   planScriptUnits → runScriptUnit × N (write → check → one rewrite → check → keep or drop; runs/{id}/script/{storyId}.json)
- *   → mergeScript (intro + kept segments + outro → runs/{id}/script.json; usage; status; failure policy).
+ *   → mergeScript (welcome + rundown + kept segments + outro, each template switchable → runs/{id}/script.json; usage; status; failure policy).
  * Kept segments also go to the story bank at segments/{scriptHash}.json.
  */
 
@@ -61,8 +61,18 @@ export function buildScriptInput(story: Story, synthesis: StorySynthesis, bundle
   const covering = new Set(story.articleIds.map((id) => articles.get(id)?.sourceId).filter((x): x is string => !!x));
   const coverage: Record<LeanGroup, number> = { left: 0, center: 0, right: 0 };
   for (const sourceId of covering) coverage[sideOf[sourceId]]++;
+  const headlines: ScriptInput["headlines"] = [];
+  const seen = new Set<string>();
+  for (const id of story.articleIds) {
+    const a = articles.get(id);
+    const key = a?.title.trim().toLowerCase();
+    if (!a || !key || seen.has(key) || headlines.length >= config.script.maxHeadlines) continue;
+    seen.add(key);
+    headlines.push({ text: a.title.trim(), side: sideOf[a.sourceId] });
+  }
   return {
     story: { id: story.id, title: synthesis.title, category: story.category },
+    headlines,
     synthesis,
     sideOf,
     outlets: bundle.sources.map((s) => ({ name: s.name, side: leanGroup(s.leanValue) })),
@@ -103,7 +113,8 @@ export async function runScriptUnit(runId: string, storyId: string): Promise<voi
 
   try {
     let revision: Revision | undefined;
-    for (let attempt = 0; attempt < 2 && !unit.segment; attempt++) {
+    // Up to maxAttempts full writes (first draft + full rewrites with the checker's notes); never patched or cut.
+    for (let attempt = 0; attempt < config.script.maxAttempts && !unit.segment; attempt++) {
       const w = await writer.write(input, revision);
       unit.usage.push(...w.usage);
       const c = await checker.check(input, w.text);
@@ -126,7 +137,7 @@ export async function runScriptUnit(runId: string, storyId: string): Promise<voi
         ...(last?.issues.filter((i) => i.severity === "must_fix").map((i) => `${i.kind}: ${i.problem}`) ?? []),
         ...(last?.claims.filter((c) => c.status !== "supported").map((c) => `${c.status}: ${c.claim}`) ?? []),
       ];
-      unit.dropped = `failed the check twice: ${why.slice(0, 3).join("; ") || "unknown"}`;
+      unit.dropped = `failed the check ${unit.attempts.length} times: ${why.slice(0, 3).join("; ") || "unknown"}`;
     }
   } catch (e) {
     if (isSystemic(e)) throw e;
@@ -150,8 +161,12 @@ export async function mergeScript(runId: string): Promise<void> {
   const stories = plan.stories.map((p) => byId.get(p.storyId)?.segment).filter((s): s is Segment => !!s);
   const titles = plan.stories.filter((p) => byId.get(p.storyId)?.segment).map((p) => byId.get(p.storyId)!.title);
 
-  const template = (kind: "intro" | "outro", text: string): Segment => ({ id: `seg-${kind}`, kind, text, checkerResult: { pass: true, template: true }, scriptHash: sha(text), words: wordCount(text) });
-  const segments = stories.length ? [template("intro", introText(titles)), ...stories, template("outro", outroText())] : [];
+  const template = (kind: TemplateKind): Segment => {
+    const text = templateText(kind, titles);
+    return { id: `seg-${kind}`, kind, text, checkerResult: { pass: true, template: true }, scriptHash: sha(text), words: wordCount(text) };
+  };
+  const { before, after } = enabledTemplates();
+  const segments = stories.length ? [...before.map(template), ...stories, ...after.map(template)] : [];
   const dropped = plan.stories
     .filter((p) => !byId.get(p.storyId)?.segment)
     .map((p) => ({ storyId: p.storyId, title: p.title, reason: byId.get(p.storyId)?.dropped ?? "no output (step didn't run)" }));

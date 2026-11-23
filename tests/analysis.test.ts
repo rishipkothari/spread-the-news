@@ -99,7 +99,7 @@ describe("analysis report", async () => {
     expect(text).toContain("The Hill: 2/0/1 of 3");
     expect(text).toContain("### 1. ");
     expect(text).toContain("- AGREED:");
-    expect(text).toContain("- DISPUTED:");
+    expect(text).toContain("- DISPUTED (material):");
     expect(text).toContain("FRAMING right:");
     expect(text).toContain("synthesize $0.030");
   });

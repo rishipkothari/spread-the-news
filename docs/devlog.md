@@ -2,6 +2,18 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23: first live script and fixes
+
+**First live script** (run `2026-11-23T0146-25e3fa`, report in `docs/reviews/2026-11-23-0146-script.md`): 7 of 10 kept, $0.40, 10.3 min. Three of the top four (COP31, DNI Clayton, House majority) were dropped for single fixable claims: a misattributed clause, a title that was only in headlines, a softened quote the rewrite didn't fix. The Jackson segment staged trivial details as a left/right contrast.
+
+**Agreed with the user**: presentation is always all sides; lean will only change story selection. Disagreements that matter are part of the reporting. No patching or cutting (it can remove one side), no backfill for now, web search on the wish list, grouping fixes logged under Phase 0.
+
+**Built**
+- Phase 1: synthesis marks disputes `material` / `minor`; "different details aren't a disagreement" rule; shown on the analysis page.
+- Phase 2: headlines (H1…) in material; only material disputes; side labels only where the side matters; rewrites show the exact material for flagged claims (`related` ids from the checker); 3 full attempts; new checker kinds `false_contrast`, `missing_side`; tone guide "Where accounts differ".
+- Visibility: red drop banner on the script page, notice on the run page, dropped stories first in the report with all drafts; precise "Not planned" reasons (outside the analyzed top N / headlines only / analysis failed).
+- Also: total time on the run page; intro split into `welcome` / `rundown` / `outro`, each switchable.
+
 ## 2026-11-23: step-time fix
 
 User saw steps reported as taking ~2 minutes that finished sooner. Two bugs:

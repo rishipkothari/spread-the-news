@@ -99,6 +99,8 @@ export interface PlanInput {
   stories: Story[]; // the run's stories in rank order (ranked and unranked)
   syntheses: StorySynthesis[];
   params: RunParams;
+  /** What Phase 1 did, so a story without a synthesis gets a precise reason. */
+  analysis?: { analyzedIds: string[]; headlinesOnly: string[]; errors: Record<string, string> };
 }
 
 /** Picks and orders the episode's stories and gives each a word budget. Pure: no LLM, no I/O. */
@@ -113,6 +115,7 @@ export interface ScriptInput {
   synthesis: StorySynthesis;
   sideOf: Record<string, LeanGroup>; // sourceId → side, for every outlet that covered the story
   outlets: { name: string; side: LeanGroup }[]; // every source in the run, so names in Phase 1 text can be replaced by sides
+  headlines: { text: string; side: LeanGroup }[]; // covering outlets' own headlines (citable for identities and basic context)
   coverage: Record<LeanGroup, number>; // covering outlets per side
   wordBudget: number;
   lead: boolean;

@@ -41,7 +41,7 @@ const { codeChecks, outletAliases } = await import("@/stages/script/checks");
 const { toCheckResult, materialIds, CHECK_SYSTEM } = await import("@/stages/script/quote-trace-v1");
 const { WRITE_SYSTEM, buildWriteUser } = await import("@/stages/script/neutral-v1");
 const { resolveSynthesis, SynthesizeOutput } = await import("@/stages/synthesize/sonnet-synthesis-v1");
-const { introText, listTitles } = await import("@/stages/script/templates");
+const { templateText, enabledTemplates, listTitles } = await import("@/stages/script/templates");
 const { buildScriptInput, planScriptUnits, runScriptUnit, mergeScript } = await import("@/pipeline/phase2");
 const { runStage } = await import("@/pipeline/run");
 const { meetsFailurePolicy } = await import("@/pipeline/policy");
@@ -190,9 +190,12 @@ describe("checker verdict (quote-trace-v1)", () => {
 });
 
 describe("templates and policy", () => {
-  it("lists titles for the intro", () => {
+  it("welcome is generic, rundown lists the stories, each template can be switched off", () => {
     expect(listTitles(["A.", "B", "C"])).toBe("A; B; and C");
-    expect(introText(["One"])).toContain("One");
+    expect(templateText("rundown", ["One"])).toContain("One");
+    expect(templateText("welcome", ["One"])).not.toContain("One");
+    expect(enabledTemplates()).toEqual({ before: ["welcome", "rundown"], after: ["outro"] });
+    expect(enabledTemplates(["rundown"])).toEqual({ before: ["rundown"], after: [] });
   });
   it("failure policy is suspended: always ok, but notes what would fail", () => {
     const r = meetsFailurePolicy({ sourceHealth: { a: { ok: true, items: 1, inWindow: 1 } }, checkedStories: 1 }, config.failurePolicy);
@@ -225,13 +228,13 @@ describe("phase 2 runner", () => {
     return ids;
   }
 
-  it("rewrites once on failure, drops a story that fails twice, assembles intro + stories + outro", async () => {
+  it("rewrites once on failure, drops a story that fails twice, assembles welcome + rundown + stories + outro", async () => {
     seed({ script: "flaky", check: "pass-all" });
     const ids = await runPhase2();
     expect(ids.length).toBe(4);
     const script = store.get(paths.stage(runId, "script")) as import("@/lib/types").EpisodeScript;
     const kinds = script.segments.map((s) => s.kind);
-    expect(kinds[0]).toBe("intro");
+    expect(kinds.slice(0, 2)).toEqual(["welcome", "rundown"]);
     expect(kinds.at(-1)).toBe("outro");
     expect(kinds.filter((k) => k === "story").length).toBe(3);
     expect(script.dropped.map((d) => d.storyId)).toEqual([ALWAYS_NAMES]);
@@ -251,8 +254,12 @@ describe("phase 2 runner", () => {
     const report = buildScriptReport(runId, store.get(paths.stage(runId, "plan")) as never, script, ids.map((id) => store.get(paths.unit(runId, "script", id))) as never, [], { runId, notes: "Too formal", segments: { [`seg-${ids[0]}`]: { vote: "down", note: "stiff" } } });
     expect(report).toContain("## Script");
     expect(report).toContain("👎 my note: stiff");
-    expect(report).toContain("first draft failed");
-    expect(report).toContain("## Dropped by the checker");
+    expect(report).toContain("draft 1 failed");
+    expect(report).toContain("## Dropped from this episode (1)");
+    expect(report.indexOf("## Dropped from this episode")).toBeLessThan(report.indexOf("## Script"));
+    const dropped = store.get(paths.unit(runId, "script", ALWAYS_NAMES)) as import("@/pipeline/phase2").ScriptUnit;
+    expect(dropped.attempts.length).toBe(config.script.maxAttempts); // full rewrites until the limit, then dropped
+    expect(script.dropped[0].reason).toMatch(/failed the check 3 times/);
   });
 
   it("stub writer + stub checker: everything passes for free", async () => {
@@ -261,7 +268,7 @@ describe("phase 2 runner", () => {
     const script = store.get(paths.stage(runId, "script")) as import("@/lib/types").EpisodeScript;
     expect(script.dropped).toEqual([]);
     expect(script.segments.filter((s) => s.kind === "story").length).toBe(4);
-    expect((script.segments[1].checkerResult as CheckResult).checker).toBe("stub");
+    expect((script.segments.find((s) => s.kind === "story")!.checkerResult as CheckResult).checker).toBe("stub");
   });
 });
 
@@ -285,5 +292,59 @@ describe("sample segment (tone reference, written offline from the fixture's wri
   it("passes the code checks", () => {
     const text = readFileSync(new URL("./fixtures/script/sample-segment.txt", import.meta.url), "utf8");
     expect(codeChecks(text, sources)).toEqual([]);
+  });
+});
+
+describe("phase 2 refinements", () => {
+  it("minor disagreements stay out of the script material; older runs without a level count as material", () => {
+    const { input } = stopgap();
+    const disputed = [
+      { claim: "ESPN tenure", significance: "minor" as const, positions: [{ position: "since 1987", sourceIds: ["motherjones"] }, { position: "29 years", sourceIds: ["fox"] }] },
+      { claim: "Death toll", significance: "material" as const, positions: [{ position: "12", sourceIds: ["motherjones"] }, { position: "15", sourceIds: ["fox"] }] },
+      { claim: "Legacy run", positions: [{ position: "x", sourceIds: ["motherjones"] }, { position: "y", sourceIds: ["fox"] }] },
+    ];
+    const m = buildMaterial({ ...input, synthesis: { ...input.synthesis, disputed } });
+    expect(m).not.toContain("ESPN tenure");
+    expect(m).toContain("D1: Death toll");
+    expect(m).toContain("D2: Legacy run");
+    expect(materialIds({ ...input, synthesis: { ...input.synthesis, disputed } }).has("D3")).toBe(false);
+  });
+
+  it("synthesis defaults a missing significance to material", () => {
+    const si = synthInput as unknown as SynthesizeInput;
+    const { synthesis } = resolveSynthesis(SynthesizeOutput.parse(synthResponse), si);
+    expect(synthesis.disputed.every((d) => d.significance === "material")).toBe(true);
+  });
+
+  it("headlines are citable material, with outlet names replaced", () => {
+    const { input } = stopgap();
+    const withName = { ...input, headlines: [{ text: "Fox News: Senate passes stopgap", side: "right" as const }, ...input.headlines] };
+    const m = buildMaterial(withName);
+    expect(m).toMatch(/^H1 \[right-leaning\]: A right-leaning outlet: Senate passes stopgap$/m);
+    expect(materialIds(withName).has("H1")).toBe(true);
+    expect(input.headlines.length).toBeGreaterThan(0);
+  });
+
+  it("a rewrite shows the material the flagged claim should have used", () => {
+    const { input } = stopgap();
+    const user = buildWriteUser(input, {
+      text: "Draft.",
+      issues: [],
+      claims: [
+        { claim: "Vote was 61 to 38", support: [], related: ["F1"], status: "distorted" },
+        { claim: "Lead azide is an explosive", support: [], status: "unsupported" },
+      ],
+    });
+    expect(user).toMatch(/the material says: F1: The Senate passed/);
+    expect(user).toContain("nothing in the material says this: leave it out");
+    expect(user).toContain("Write the whole segment again");
+  });
+
+  it("not-planned reasons say exactly why", async () => {
+    const { whyNoSynthesis } = await import("@/stages/plan/word-budget-v1");
+    const analysis = { analyzedIds: ["a", "b", "c"], headlinesOnly: ["b"], errors: { c: "timeout" } };
+    expect(whyNoSynthesis("z", analysis)).toBe("outside the top 3 stories analyzed");
+    expect(whyNoSynthesis("b", analysis)).toMatch(/headlines only/);
+    expect(whyNoSynthesis("c", analysis)).toBe("analysis failed: timeout");
   });
 });

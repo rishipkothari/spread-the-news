@@ -125,7 +125,16 @@
     "writeEffort": "medium",
     "checkEffort": "medium",
     "maxTokens": 16000,
-    "intro": "This is Spread the News, where we read across the spectrum so you don't have to. Here's what's up today: {stories}.",
-    "outro": "That's the news for today. This has been Spread the News. Catch you tomorrow."
+    "_templates": "Fixed (non-LLM) segments around the stories, in this order: welcome, rundown, [stories], outro. Remove a kind from 'templates' to drop it; {stories} in the rundown becomes the episode's story titles.",
+    "templates": [
+      "welcome",
+      "rundown",
+      "outro"
+    ],
+    "welcome": "This is Spread the News, where we read across the spectrum so you don't have to.",
+    "rundown": "Here's what's up today: {stories}.",
+    "outro": "That's the news for today. This has been Spread the News. Catch you tomorrow.",
+    "maxAttempts": 3,
+    "maxHeadlines": 12
   }
 }

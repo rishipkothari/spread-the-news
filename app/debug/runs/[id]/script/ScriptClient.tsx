@@ -100,7 +100,7 @@ export default function ScriptClient(props: {
   const renderSegment = (seg: Segment) => {
     const unit = seg.storyId ? byId.get(seg.storyId) : undefined;
     const p = plan.stories.find((s) => s.storyId === seg.storyId);
-    const heading = seg.kind === "story" ? `${++storyNo}. ${unit?.title ?? seg.storyId}` : seg.kind === "intro" ? "Intro" : "Outro";
+    const heading = seg.kind === "story" ? `${++storyNo}. ${unit?.title ?? seg.storyId}` : (({ welcome: "Welcome", rundown: "Rundown (today's stories)", outro: "Outro" }) as Record<string, string>)[seg.kind] ?? seg.kind;
     return (
       <div className="story" key={seg.id}>
         <div className="row">
@@ -108,18 +108,18 @@ export default function ScriptClient(props: {
           {p && <span className="pill">{p.category}</span>}
           <span className="muted" style={{ fontSize: 13 }}>
             {seg.kind === "story" ? `rank ${p?.rank} · ${seg.words} / ${p?.wordBudget} words` : "fixed template"}
-            {unit && unit.attempts.length > 1 ? " · rewritten once" : ""}
+            {unit && unit.attempts.length > 1 ? ` · passed on attempt ${unit.attempts.length}` : ""}
           </span>
         </div>
         <div style={{ whiteSpace: "pre-wrap", margin: "8px 0", lineHeight: 1.55, fontSize: 16 }}>{seg.text}</div>
         {"claims" in seg.checkerResult && <CheckDetails check={seg.checkerResult} label="Checker" />}
-        {unit && unit.attempts.length > 1 && (
-          <details style={{ marginTop: 4 }}>
-            <summary className="muted" style={{ cursor: "pointer", fontSize: 13 }}>First draft (failed the check)</summary>
-            <div style={{ whiteSpace: "pre-wrap", fontSize: 14, margin: "6px 0" }} className="muted">{unit.attempts[0].text}</div>
-            <CheckDetails check={unit.attempts[0].check} label="First check" />
+        {unit?.attempts.slice(0, -1).map((a, k) => (
+          <details key={k} style={{ marginTop: 4 }}>
+            <summary className="muted" style={{ cursor: "pointer", fontSize: 13 }}>Draft {k + 1} (failed the check)</summary>
+            <div style={{ whiteSpace: "pre-wrap", fontSize: 14, margin: "6px 0" }} className="muted">{a.text}</div>
+            <CheckDetails check={a.check} label={`Check ${k + 1}`} />
           </details>
-        )}
+        ))}
         <Feedback value={review.segments[seg.id]} onChange={(f) => setSeg(seg.id, f)} />
       </div>
     );
@@ -145,6 +145,18 @@ export default function ScriptClient(props: {
           : <>Writing {plan.stories.length} stories… </>}
         Read it as a listener would. Mark each segment 👍 or 👎 and add a note on anything off (tone, accuracy, length), then copy the report to Claude.
       </p>
+      {script && script.dropped.length > 0 && (
+        <div className="story" style={{ borderLeft: "4px solid var(--bad)" }}>
+          <b className="bad">{script.dropped.length} {script.dropped.length === 1 ? "story" : "stories"} dropped from this episode</b>
+          <ul style={{ margin: "6px 0 0", fontSize: 14 }}>
+            {script.dropped.map((d) => {
+              const p = plan.stories.find((s) => s.storyId === d.storyId);
+              return <li key={d.storyId}><b>#{p?.rank ?? "?"} {d.title}</b> <span className="muted">{d.reason}</span></li>;
+            })}
+          </ul>
+          <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Drafts and checker notes are under &quot;Dropped by the checker&quot; below. Dropped stories aren&apos;t replaced yet (no backfill).</div>
+        </div>
+      )}
       {script?.policy.reasons.map((r) => <p key={r} className="warn" style={{ margin: "2px 0" }}>{r}</p>)}
       {script?.errors.map((e) => <p key={e} className="bad">{e}</p>)}
 
