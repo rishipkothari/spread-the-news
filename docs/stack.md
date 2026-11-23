@@ -3,8 +3,8 @@
 Personal daily news podcast for one user: cross-spectrum RSS → LLM story grouping and ranking → summaries → TTS episode in a private web player.
 
 - **Repo:** rishipkothari/spread-the-news
-- **Planned:** 2026-11-21 · **Last updated:** 2026-11-22
-- **Status:** in progress (Phase 0)
+- **Planned:** 2026-11-21 · **Last updated:** 2026-11-23
+- **Status:** in progress (Phase 3 built, being verified)
 - **Budget:** ~$2/day soft target for Claude usage; Vercel Hobby
 - **Learning goals:** durable workflows, LLM pipelines with structured output, cost-aware ranking design
 - **New for me (★):** Vercel Workflows, Vercel Blob
@@ -33,7 +33,7 @@ Personal daily news podcast for one user: cross-spectrum RSS → LLM story group
 | Auth | Basic auth password gate (pages) + Bearer secret (API) | | components/auth.md |
 | Secrets and env vars | Vercel environment variables | | components/secrets.md |
 | Environments | Vercel Preview + Production; no local dev | | components/environments.md |
-| Third-party APIs | Anthropic Claude API; news RSS feeds | | components/apis.md |
+| Third-party APIs | Anthropic Claude API; news RSS feeds; Microsoft Edge Read Aloud voices via `msedge-tts` (unofficial, free); Google Chirp 3 HD planned as fallback | | components/apis.md |
 | Payments | Not needed (personal) | | components/payments.md |
 | File storage | Vercel Blob (private) | ★ | components/storage.md |
 | Email | Not needed | | components/email.md |
@@ -60,6 +60,7 @@ Personal daily news podcast for one user: cross-spectrum RSS → LLM story group
 | :- | :- | :- | :- | :- |
 | Vercel | Hobby | $0 | Function duration ≈300s per step | |
 | Vercel Blob | Hobby allowance | $0 | | |
+| Edge TTS | Free (unofficial endpoint) | $0 | Can change or block without notice | Fallback: Google Chirp 3 HD (backlog) |
 | Anthropic API | Pay as you go | ~$3/month so far (≈$0.10 per run, cluster only) | Console spend limit | Will grow with Phase 1–2 |
 
 ## Open questions
@@ -70,3 +71,4 @@ Personal daily news podcast for one user: cross-spectrum RSS → LLM story group
 
 - 2026-11-21: PRD written; Vercel project, Blob store and API key created.
 - 2026-11-22: Phase 0 built and running on Vercel.
+- 2026-11-23: Phases 1–2 merged; Phase 3 (edge-tts voice, MP3 assembly, private player) built.

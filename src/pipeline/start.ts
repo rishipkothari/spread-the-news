@@ -5,7 +5,7 @@ import { newRunId } from "@/lib/hash";
 import { CATEGORIES } from "@/lib/types";
 import { pipelineWorkflow } from "@/workflows/pipeline";
 import { copyStages, stagesBefore } from "./run";
-import { ANALYSIS_STAGES, SCRIPT_STAGES, STAGES, stageRange, type StageId } from "./stages";
+import { ANALYSIS_STAGES, AUDIO_STAGES, SCRIPT_STAGES, STAGES, stageRange, type StageId } from "./stages";
 import { type RunStatus, clearUsage, readStatus, updateStatus, writeStatus } from "./status";
 
 const stageEnum = z.enum(STAGES);
@@ -87,6 +87,13 @@ export async function startScript(runId: string, profile: z.infer<typeof Profile
     st.params = { ...vanillaParams(), ...ProfileBody.parse(profile) };
   });
   return rerunStages(runId, SCRIPT_STAGES);
+}
+
+/** Run Phase 3 (voice → assemble) in place on a run with a finished script. Segments already voiced come from the audio cache. */
+export async function startAudio(runId: string): Promise<RunStatus> {
+  const s = await readStatus(runId);
+  if (s?.stages.script?.state !== "done") throw new Error(`run ${runId} has no finished script; write the script first`);
+  return rerunStages(runId, AUDIO_STAGES);
 }
 
 export async function rerunStages(runId: string, stages: StageId[]): Promise<RunStatus> {

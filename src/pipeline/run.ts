@@ -4,6 +4,7 @@ import type { Article, EpisodePlan, Source, SourceHealth, Story, StoryBundle, Us
 import { impls, type Methods } from "@/stages/registry";
 import type { TimeWindow } from "@/stages/types";
 import { readHistory, updateHistory } from "./history";
+import { assembleEpisode } from "./phase3";
 import type { AnalysisPlan, SynthesizeOut } from "./phase1";
 import { STAGES, type FanoutStage, type StageId } from "./stages";
 import { appendUsage, readStatus, updateStatus } from "./status";
@@ -110,6 +111,12 @@ const runners: Record<Exclude<StageId, FanoutStage>, StageFn> = {
       summary: { stories: plan.stories.length, skipped: plan.skipped.length, order: plan.orderStrategy, plannedMin: +(plan.plannedWords / plan.wordsPerMinute).toFixed(1) },
       usage: [],
     };
+  },
+
+  /** Phase 3: join the voiced segments into the episode MP3 and manifest (src/pipeline/phase3.ts). */
+  async assemble(runId, m) {
+    const { summary } = await assembleEpisode(runId, m);
+    return { summary, usage: [] };
   },
 };
 

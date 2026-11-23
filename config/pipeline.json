@@ -9,7 +9,9 @@
     "synthesize": "sonnet-synthesis-v1",
     "plan": "word-budget-v1",
     "script": "neutral-v1",
-    "check": "quote-trace-v1"
+    "check": "quote-trace-v1",
+    "tts": "edge-tts",
+    "assemble": "mp3-concat"
   },
   "models": {
     "cluster": "claude-sonnet-5-5",
@@ -137,5 +139,15 @@
     "maxAttempts": 3,
     "maxHeadlines": 12,
     "rundownTop": 3
+  },
+  "audio": {
+    "_note": "Phase 3. Every segment is voiced with the same voice and format so they join by concatenation. Audio is cached by hash(text + voice + provider + format).",
+    "voice": "en-US-AndrewNeural",
+    "pauseSec": 0.6,
+    "maxChunkChars": 2500,
+    "retries": 2,
+    "concurrency": 3,
+    "maxStoryFailShare": 0.5,
+    "rangeChunkBytes": 2000000
   }
 }

@@ -9,6 +9,8 @@ import { extractors } from "./extract";
 import { synthesizers } from "./synthesize";
 import { planners } from "./plan";
 import { checkers, writers } from "./script";
+import { ttsProviders } from "./tts";
+import { assemblers } from "./assemble";
 import type { ArticleFetcher, SourceRegistry, StoryClusterer, StoryRanker } from "./types";
 
 const registries: Record<string, SourceRegistry> = { [staticJsonRegistry.id]: staticJsonRegistry, [blobJsonRegistry.id]: blobJsonRegistry };
@@ -35,4 +37,6 @@ export const impls = {
   plan: (m: Methods) => pick(planners, m.plan, "plan"),
   script: (m: Methods) => pick(writers, m.script, "script"),
   check: (m: Methods) => pick(checkers, m.check, "check"),
+  tts: (m: Methods) => pick(ttsProviders, m.tts, "tts"),
+  assemble: (m: Methods) => pick(assemblers, m.assemble, "assemble"),
 };

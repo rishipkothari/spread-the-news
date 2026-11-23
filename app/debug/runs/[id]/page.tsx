@@ -5,8 +5,9 @@ import { config } from "@/lib/config";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus, stageWallMs } from "@/pipeline/status";
-import { ANALYSIS_STAGES, SCRIPT_STAGES, isFanout } from "@/pipeline/stages";
-import { analysisAction, replayAction, rerankAction, scriptAction } from "../../actions";
+import { ANALYSIS_STAGES, AUDIO_STAGES, SCRIPT_STAGES, isFanout } from "@/pipeline/stages";
+import { analysisAction, audioAction, replayAction, rerankAction, scriptAction } from "../../actions";
+import type { AssembleOut } from "@/pipeline/phase3";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ const STAGE_INFO: Record<StageId, string> = {
   synthesize: "per-story comparison (Sonnet)",
   plan: "pick and order stories, word budgets",
   script: "write + fact-check each story (Sonnet)",
+  voice: "read each segment aloud (text-to-speech)",
+  assemble: "join segments into the episode MP3",
 };
 
 const GROUP_COLOR: Record<LeanGroup, string> = { left: "var(--left)", center: "var(--center)", right: "var(--right)" };
@@ -122,6 +125,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
     getJson<{ articles: Article[]; sourceHealth: SourceHealth; window: { start: string; end: string } }>(paths.stage(id, "fetch")),
     getJson<{ warnings: string[] }>(paths.stage(id, "cluster")),
   ]);
+  const assembled = status.stages.assemble?.state === "done" ? await getJson<AssembleOut>(paths.stage(id, "assemble")) : null;
   const sourcesOut = bundle ? { sources: bundle.sources } : await getJson<{ sources: Source[] }>(paths.stage(id, "sources"));
   const sources = sourcesOut?.sources ?? [];
   const health = bundle?.sourceHealth ?? fetched?.sourceHealth;
@@ -134,7 +138,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   // Total time = sum of each stage's elapsed time. Phases are started separately, so idle time between button clicks isn't counted.
   const fmt = (ms: number) => (ms >= 60_000 ? `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s` : `${(ms / 1000).toFixed(1)}s`);
   const phaseMs = (stages: StageId[]) => stages.reduce((a, s) => a + (stageWallMs(status.stages[s]) ?? 0), 0);
-  const phases = ([["discovery", ["sources", "fetch", "cluster", "rank"]], ["analysis", ANALYSIS_STAGES], ["script", SCRIPT_STAGES]] as [string, StageId[]][])
+  const phases = ([["discovery", ["sources", "fetch", "cluster", "rank"]], ["analysis", ANALYSIS_STAGES], ["script", SCRIPT_STAGES], ["audio", AUDIO_STAGES]] as [string, StageId[]][])
     .map(([name, stages]) => [name, phaseMs(stages)] as const)
     .filter(([, ms]) => ms > 0);
   const totalMs = phases.reduce((a, [, ms]) => a + ms, 0);
@@ -214,7 +218,18 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                 );
               }
               if (stage === "script" && (st?.state ?? "skipped") !== "skipped") view = <Link href={`/debug/runs/${id}/script`}>Script →</Link>;
-              const groupHeader = stage === "sources" ? "Discovery" : stage === "extract" ? "Phase 1: analysis (top stories)" : stage === "plan" ? "Phase 2: script" : null;
+              if (stage === "voice" && status.stages.script?.state === "done") {
+                action = (
+                  <form action={audioAction}>
+                    <input type="hidden" name="runId" value={id} />
+                    <button type="submit" title="Read the script aloud and join it into an episode (free voice; segments already voiced are reused)">
+                      {done(status.stages.assemble) ? "Re-make audio" : "Make audio"}
+                    </button>
+                  </form>
+                );
+              }
+              if (stage === "assemble" && assembled) view = <Link href={`/player/${assembled.episodeId}`}>Play →</Link>;
+              const groupHeader = stage === "sources" ? "Discovery" : stage === "extract" ? "Phase 1: analysis (top stories)" : stage === "plan" ? "Phase 2: script" : stage === "voice" ? "Phase 3: audio" : null;
               return (
                 <Fragment key={stage}>
                   {groupHeader && <tr><td colSpan={7} style={{ fontWeight: 600, background: "var(--bg)" }}>{groupHeader}</td></tr>}
@@ -238,6 +253,12 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           </tbody>
         </table>
       </div>
+      {assembled && (
+        <p className="ok">
+          Episode ready: {(assembled.durationSec / 60).toFixed(1)} min. <Link href={`/player/${assembled.episodeId}`}>Play it →</Link>
+          {assembled.missing.length > 0 && <span className="bad"> ({assembled.missing.length} segment{assembled.missing.length === 1 ? "" : "s"} couldn&apos;t be voiced and {assembled.missing.length === 1 ? "is" : "are"} left out)</span>}
+        </p>
+      )}
       {status.errors.length > 0 && <ul className="bad">{status.errors.map((e) => <li key={e}>{e}</li>)}</ul>}
       {Number(status.stages.script?.summary?.dropped ?? 0) > 0 && (
         <p className="bad">

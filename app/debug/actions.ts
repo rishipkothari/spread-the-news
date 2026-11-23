@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { isStage } from "@/pipeline/stages";
-import { rerunStage, startAnalysis, startRun, startScript } from "@/pipeline/start";
+import { rerunStage, startAnalysis, startAudio, startRun, startScript } from "@/pipeline/start";
 
 // These run behind the password gate in proxy.ts (the debug pages' Basic auth).
 
@@ -35,5 +35,11 @@ export async function analysisAction(formData: FormData) {
 export async function scriptAction(formData: FormData) {
   const runId = String(formData.get("runId"));
   await startScript(runId);
+  redirect(`/debug/runs/${runId}`);
+}
+
+export async function audioAction(formData: FormData) {
+  const runId = String(formData.get("runId"));
+  await startAudio(runId);
   redirect(`/debug/runs/${runId}`);
 }
