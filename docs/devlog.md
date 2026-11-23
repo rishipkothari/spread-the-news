@@ -2,6 +2,10 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23: todo.md repaired
+
+The Phase 3 commit (`e809ce6`) had corrupted `docs/todo.md`: the Phase 3 section repeated ~12,000 times (168k lines) and the rest of the backlog was gone. Rebuilt it from the last good version (`81621cd`) plus one copy of the Phase 3 section (including the "Keep every version" item) and a "Next: Phase 4" placeholder. No other docs were affected.
+
 ## 2026-11-23: versions note
 
 User asked whether remakes keep old versions. They don't (script and same-day episode are overwritten; see todo). Added "Keep every version" to the Phase 3 backlog; not built.
