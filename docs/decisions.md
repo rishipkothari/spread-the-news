@@ -4,6 +4,7 @@ The PRD's decision log (`docs/PRD.md` → "Decision log") is the baseline. This 
 
 | Date | Topic | Decision | Why | PRD change? |
 | :- | :- | :- | :- | :- |
+| 2026-11-23 | Stage time and cost on re-run | Time = elapsed (status timestamps); fan-out summed step time shown as secondary. Re-running a stage replaces its usage entries | Summed parallel step time read as elapsed; re-runs double-counted time and cost | No |
 | 2026-11-23 | Outlet names in material | Phase 1 framing/dispute text names outlets; the script material replaces every name with its side ("a left-leaning outlet") before the writer sees it, using the same aliases as the code check | First fixture run showed names leaking into the writer's input | Implementation |
 | 2026-11-23 | Profile timing | The episode profile is chosen when the script is started, not when news is fetched; "Write script" uses the generic profile and records it as the run's params | Profiles are about the episode, not discovery; old runs carried the earlier top-then-category default | Implementation |
 | 2026-11-23 | Checker verdict | Code decides pass: every claim "supported" with a real material id, and no must-fix issue (checker or code). Length is only ever a minor note | The model can't wave through its own uncited claims; short or long segments never drop a story | Implementation |

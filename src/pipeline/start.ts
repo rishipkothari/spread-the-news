@@ -6,7 +6,7 @@ import { CATEGORIES } from "@/lib/types";
 import { pipelineWorkflow } from "@/workflows/pipeline";
 import { copyStages, stagesBefore } from "./run";
 import { ANALYSIS_STAGES, SCRIPT_STAGES, STAGES, stageRange, type StageId } from "./stages";
-import { type RunStatus, readStatus, updateStatus, writeStatus } from "./status";
+import { type RunStatus, clearUsage, readStatus, updateStatus, writeStatus } from "./status";
 
 const stageEnum = z.enum(STAGES);
 
@@ -92,6 +92,7 @@ export async function startScript(runId: string, profile: z.infer<typeof Profile
 export async function rerunStages(runId: string, stages: StageId[]): Promise<RunStatus> {
   const s = await readStatus(runId);
   if (!s) throw new Error(`run ${runId} not found`);
+  await clearUsage(runId, stages);
   const updated = await updateStatus(runId, (st) => {
     st.state = "queued";
     st.methods = { ...config.methods };

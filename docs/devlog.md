@@ -2,6 +2,12 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23: step-time fix
+
+User saw steps reported as taking ~2 minutes that finished sooner. Two bugs:
+- Fan-out stages (extract, analyze, synthesize, script) showed the *sum* of their parallel per-story step times (15 stories × 10s = "150s"). The Time column now shows elapsed time from the stage's start/finish timestamps, with summed step time underneath in small text.
+- Re-running a stage appended its usage to the old entries, so time and cost grew with every re-run. Re-runs now replace that stage's usage. Old runs that were already re-run keep their inflated cost totals; their time column is correct because it now reads timestamps.
+
 ## 2026-11-23: Phase 2 planning
 
 **Agreed with the user** (details in `docs/decisions.md`; tone rules in the new `docs/tone-guide.md`)

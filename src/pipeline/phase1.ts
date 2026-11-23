@@ -216,7 +216,9 @@ export async function runUnit(runId: string, stage: Phase1Stage, storyId: string
 // ---------- merge ----------
 
 export function stageUsage(stage: string, units: { usage?: LlmUsageEntry[]; ms: number }[]): UsageEntry[] {
-  const ms = units.reduce((a, u) => a + u.ms, 0); // summed step time (steps run in parallel, so wall time is lower)
+  // Summed step time across parallel per-story steps: a measure of work, not elapsed time.
+  // The run page shows elapsed time from the stage's startedAt/finishedAt and this sum only as "step time".
+  const ms = units.reduce((a, u) => a + u.ms, 0);
   const llm = units.flatMap((u) => u.usage ?? []);
   if (!llm.length) return [{ stage, ms }];
   return llm.map((u, i) => ({ ...u, stage, ms: i === 0 ? ms : 0 }));

@@ -4,7 +4,8 @@ import { STAGES, type StageId } from "@/pipeline/stages";
 import { config } from "@/lib/config";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
-import { readStatus } from "@/pipeline/status";
+import { readStatus, stageWallMs } from "@/pipeline/status";
+import { isFanout } from "@/pipeline/stages";
 import { analysisAction, replayAction, rerankAction, scriptAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -152,7 +153,9 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
             {STAGES.map((stage) => {
               const st = status.stages[stage];
               const u = (usage ?? []).filter((x) => x.stage === stage);
-              const ms = u.reduce((a, x) => a + x.ms, 0);
+              const stepMs = u.reduce((a, x) => a + x.ms, 0); // summed per-story step time for fan-out stages
+              const wallMs = stageWallMs(st);
+              const ms = wallMs ?? stepMs;
               const tin = u.reduce((a, x) => a + (x.inputTokens ?? 0), 0);
               const tout = u.reduce((a, x) => a + (x.outputTokens ?? 0), 0);
               const c = u.reduce((a, x) => a + (x.costUsd ?? 0), 0);
@@ -206,7 +209,12 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                   <tr>
                     <td>{stage}<div className="muted" style={{ fontSize: 12 }}>{STAGE_INFO[stage]}</div></td>
                     <td className={st?.state === "failed" ? "bad" : st?.state === "done" ? "ok" : "muted"}>{st?.state ?? "–"}</td>
-                    <td>{ms ? `${(ms / 1000).toFixed(1)}s` : ""}</td>
+                    <td title={isFanout(stage) && stepMs ? "Elapsed time. Steps run in parallel, one per story; their summed time is shown underneath." : "Elapsed time"}>
+                      {ms ? `${(ms / 1000).toFixed(1)}s` : ""}
+                      {isFanout(stage) && stepMs > 0 && wallMs != null && (
+                        <div className="muted" style={{ fontSize: 11 }}>{(stepMs / 1000).toFixed(0)}s step time</div>
+                      )}
+                    </td>
                     <td className="mono" style={{ fontSize: 12 }}>{st?.error ? <span className="bad">{st.error}</span> : st?.summary ? Object.entries(st.summary).map(([k, v]) => `${k}: ${v}`).join(" · ") : ""}</td>
                     <td className="mono" style={{ fontSize: 12 }}>{tin ? `${tin} in / ${tout} out · $${c.toFixed(4)}` : ""}</td>
                     <td>{action}</td>
