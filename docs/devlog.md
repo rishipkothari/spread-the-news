@@ -2,6 +2,10 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23: versions note
+
+User asked whether remakes keep old versions. They don't (script and same-day episode are overwritten; see todo). Added "Keep every version" to the Phase 3 backlog; not built.
+
 ## 2026-11-23 (overnight): Phase 3 built
 
 **Built** (plan: `docs/phase3-plan.md`): `TTSProvider` with `edge-tts` (via the `msedge-tts` package) and a silent `stub`; long segments voiced in sentence chunks with retries. `voice` stage fans out one step per segment, three at a time, cached at `audio/{audioKey}.mp3` so re-makes only voice changed text. `assemble` joins segments frame by frame (`src/audio/mp3.ts`) with 0.6 s silent-frame pauses, writes `episodes/{date}-{paramsHash}.mp3` and a manifest with chapter times. Run page: Phase 3 rows, "Make audio", "Play →". `/debug/voices` voice test (uses the same cache). Player `/player` (episode list) and `/player/[id]` (big controls, chapters, speed, resume, lock-screen controls). `/audio/...` streams private Blob with Range, ≤2 MB per response.
