@@ -2,7 +2,7 @@
 
 A personal daily news podcast: 12 RSS sources balanced left to right, grouped into stories, ranked by how universally they're covered, then summarized and voiced. See the PRD for the full design.
 
-**Status: Phase 0 (story discovery).** Stages: `sources → fetch → cluster → rank`, run as a Vercel Workflow, with every stage's output saved to Blob.
+**Status: Phase 3 (audio and delivery) built, being verified.** Stages: `sources → fetch → cluster → rank` (discovery), `extract → analyze → synthesize` (analysis), `plan → script` (script), `voice → assemble` (audio), run as a Vercel Workflow, with every stage's output saved to Blob. Episodes play at `/player`.
 
 ## Layout
 

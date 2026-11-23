@@ -1,6 +1,6 @@
 # Phase 3 plan: audio and delivery
 
-Status: planned 2026-11-23, not built. Scope: Phase 3 only (no backlog items). Exit (PRD): a vanilla episode can be triggered and played on a phone end to end.
+Status: built 2026-11-23 (overnight), waiting on the live check on Vercel. Differences from this plan: none of substance; pause length is `audio.pauseSec` (0.6 s). Scope: Phase 3 only (no backlog items). Exit (PRD): a vanilla episode can be triggered and played on a phone end to end.
 
 ## What gets built
 

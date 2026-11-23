@@ -9,8 +9,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <nav className="nav">
           <Link href="/">Spread the News</Link>
+          <Link href="/player">Player</Link>
           <Link href="/debug/runs">Runs</Link>
           <Link href="/debug/feeds">Feeds</Link>
+          <Link href="/debug/voices">Voices</Link>
         </nav>
         {children}
       </body>

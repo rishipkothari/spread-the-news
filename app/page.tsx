@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatClock, formatDate, listEpisodes } from "@/audio/episodes";
 import { listPaths } from "@/lib/storage";
 import { readStatus } from "@/pipeline/status";
 
@@ -15,11 +16,16 @@ export default async function Home() {
       break;
     }
   }
+  const [latest] = await listEpisodes(1);
   return (
     <main>
       <h1>Spread the News</h1>
-      <p className="muted">Phase 0: story discovery. The player arrives in Phase 3.</p>
+      <p className="muted">Daily news read across the spectrum.</p>
       <div style={{ marginTop: 20 }}>
+        {latest ? (
+          <Link href={`/player/${latest.id}`} className="big">▶ Play {formatDate(latest.date)} ({formatClock(latest.durationSec)}) →</Link>
+        ) : null}
+        <Link href="/player" className="big">All episodes →</Link>
         <Link href="/debug/runs" className="big">Runs: start a run, see results →</Link>
         {latestReviewable && <Link href={`/debug/runs/${latestReviewable}/review`} className="big">Review latest run →</Link>}
       </div>

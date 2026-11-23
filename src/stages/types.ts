@@ -142,3 +142,37 @@ export interface ScriptChecker {
 }
 
 export type { Category };
+
+// ---------- Phase 3: audio ----------
+
+export interface TtsVoice {
+  id: string; // provider's voice name, e.g. "en-US-AndrewNeural"
+  label: string; // friendly name for the voice test page
+  locale: string;
+  gender?: string;
+}
+
+/** Turns text into MP3 audio. Every call must return the same output format for the same provider, so segments can be joined. */
+export interface TTSProvider {
+  id: string;
+  /** Short format id, part of the audio cache key (e.g. "mp3-24k-48k-mono"). */
+  format: string;
+  synthesize(text: string, voice: string): Promise<Uint8Array>;
+  voices(): Promise<TtsVoice[]>;
+}
+
+export interface AssembleInput {
+  parts: { segmentId: string; mp3: Uint8Array }[];
+  pauseSec: number;
+}
+
+/** Joins voiced segments into one episode file. Pure: no I/O. */
+export interface EpisodeAssembler {
+  id: string;
+  assemble(input: AssembleInput): {
+    mp3: Uint8Array;
+    durationSec: number;
+    parts: { segmentId: string; startSec: number; durationSec: number }[];
+    format: { sampleRate: number; bitrate: number; mono: boolean };
+  };
+}

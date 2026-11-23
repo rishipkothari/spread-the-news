@@ -244,3 +244,34 @@ export interface EpisodeScript {
   policy: { ok: boolean; reasons: string[] };
   errors: string[];
 }
+
+// ---------- Phase 3: audio and episodes ----------
+
+/** One chapter of an episode: a segment's place in the joined audio. */
+export interface EpisodeChapter {
+  segmentId: string;
+  kind: Segment["kind"];
+  storyId?: string;
+  title: string;
+  startSec: number;
+  durationSec: number;
+}
+
+/** PRD Episode. Stored at episodes/{id}.json with the audio at episodes/{id}.mp3. id = {date}-{paramsHash}. */
+export interface Episode {
+  id: string;
+  date: string;
+  runId: string;
+  params: RunParams;
+  createdAt: string;
+  segmentIds: string[];
+  chapters: EpisodeChapter[];
+  audioPath: string;
+  bytes: number;
+  durationSec: number;
+  voice: string;
+  provider: string;
+  format: { sampleRate: number; bitrate: number; mono: boolean };
+  /** Story segments left out because they couldn't be voiced. */
+  missing: { segmentId: string; title: string; reason: string }[];
+}

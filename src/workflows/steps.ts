@@ -3,6 +3,7 @@ import { FatalError } from "workflow";
 import { LlmOutputError } from "@/lib/llm";
 import { mergeStage, planUnits, runUnit } from "@/pipeline/phase1";
 import { mergeScript, planScriptUnits, runScriptUnit } from "@/pipeline/phase2";
+import { AudioPolicyError, mergeVoice, planVoiceUnits, runVoiceUnit } from "@/pipeline/phase3";
 import { finishRun, markStageFailed, runStage } from "@/pipeline/run";
 import type { FanoutStage, StageId } from "@/pipeline/stages";
 
@@ -10,6 +11,8 @@ import type { FanoutStage, StageId } from "@/pipeline/stages";
 function fatalize(e: unknown): never {
   // Invalid LLM output was already retried once inside the call; don't pay for 3 more.
   if (e instanceof LlmOutputError) throw new FatalError(e.message);
+  // Not enough audio for an episode, or nothing to voice: retrying gives the same answer.
+  if (e instanceof AudioPolicyError) throw new FatalError(e.message);
   // Malformed request, bad key, no permission, unknown model.
   if (
     e instanceof Anthropic.BadRequestError ||
@@ -33,13 +36,20 @@ export async function runStageStep(runId: string, stage: Exclude<StageId, Fanout
 
 export async function planUnitsStep(runId: string, stage: FanoutStage): Promise<string[]> {
   "use step";
-  return stage === "script" ? planScriptUnits(runId) : planUnits(runId, stage);
+  try {
+    if (stage === "script") return await planScriptUnits(runId);
+    if (stage === "voice") return await planVoiceUnits(runId);
+    return await planUnits(runId, stage);
+  } catch (e) {
+    fatalize(e);
+  }
 }
 
 export async function runUnitStep(runId: string, stage: FanoutStage, storyId: string): Promise<void> {
   "use step";
   try {
     if (stage === "script") await runScriptUnit(runId, storyId);
+    else if (stage === "voice") await runVoiceUnit(runId, storyId);
     else await runUnit(runId, stage, storyId);
   } catch (e) {
     fatalize(e);
@@ -48,8 +58,13 @@ export async function runUnitStep(runId: string, stage: FanoutStage, storyId: st
 
 export async function mergeStageStep(runId: string, stage: FanoutStage): Promise<void> {
   "use step";
-  if (stage === "script") await mergeScript(runId);
-  else await mergeStage(runId, stage);
+  try {
+    if (stage === "script") await mergeScript(runId);
+    else if (stage === "voice") await mergeVoice(runId);
+    else await mergeStage(runId, stage);
+  } catch (e) {
+    fatalize(e);
+  }
 }
 
 export async function markFailedStep(runId: string, stage: StageId, error: string): Promise<void> {

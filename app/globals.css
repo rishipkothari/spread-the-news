@@ -47,3 +47,23 @@ input, select, textarea { font: inherit; padding: 5px 8px; border: 1px solid var
 .field textarea { width: 100%; }
 .big { display: inline-block; padding: 14px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); text-decoration: none; font-weight: 600; margin: 0 10px 10px 0; }
 .big:hover { border-color: var(--muted); }
+
+/* Player (phone first) */
+.player-main { max-width: 640px; }
+.ep-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.ep-card { display: block; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); text-decoration: none; }
+.ep-card:hover { border-color: var(--muted); }
+.ep-date { font-weight: 700; font-size: 16px; }
+.ep-titles { font-size: 13px; margin-top: 4px; }
+.player { margin-top: 12px; }
+.player .now { font-weight: 600; font-size: 17px; min-height: 2.6em; margin-bottom: 8px; }
+.player .scrub { width: 100%; padding: 0; border: none; background: none; accent-color: var(--fg); height: 28px; }
+.player .times { display: flex; justify-content: space-between; color: var(--muted); }
+.player .controls { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 14px 0 6px; }
+.player .controls button { min-width: 56px; min-height: 48px; border-radius: 999px; font-size: 16px; font-weight: 600; }
+.player .controls .play { min-width: 76px; min-height: 76px; font-size: 26px; background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.player .chapters { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--line); }
+.player .chapters li button { display: flex; width: 100%; justify-content: space-between; gap: 12px; text-align: left; padding: 12px 4px; border: none; border-bottom: 1px solid var(--line); border-radius: 0; background: none; }
+.player .chapters li.on button { font-weight: 700; }
+.player .chapters li.on .ch-title::before { content: "▶ "; font-size: 11px; }
+.player .ch-title { flex: 1; }

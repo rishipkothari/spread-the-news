@@ -2,6 +2,14 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23 (overnight): Phase 3 built
+
+**Built** (plan: `docs/phase3-plan.md`): `TTSProvider` with `edge-tts` (via the `msedge-tts` package) and a silent `stub`; long segments voiced in sentence chunks with retries. `voice` stage fans out one step per segment, three at a time, cached at `audio/{audioKey}.mp3` so re-makes only voice changed text. `assemble` joins segments frame by frame (`src/audio/mp3.ts`) with 0.6 s silent-frame pauses, writes `episodes/{date}-{paramsHash}.mp3` and a manifest with chapter times. Run page: Phase 3 rows, "Make audio", "Play →". `/debug/voices` voice test (uses the same cache). Player `/player` (episode list) and `/player/[id]` (big controls, chapters, speed, resume, lock-screen controls). `/audio/...` streams private Blob with Range, ≤2 MB per response.
+
+**Checked here**: typecheck, 105 tests, `next build`; the MP3 joiner against real ffmpeg-encoded 24 kHz mono files (decodes cleanly, exact length, silent pauses). Not checked: edge-tts itself (this sandbox can't reach Microsoft), Blob Range behaviour, and the phone's audio player with Basic auth: all three are in the user's morning steps.
+
+**Next**: user's live check (todo, Phase 3 section); pick a voice; intro/outro wording.
+
 ## 2026-11-23: Phase 3 planned
 
 Planned Phase 3 (audio and delivery) in `docs/phase3-plan.md`; nothing built. User chose Phase 3 only (no backlog items) and Google Chirp 3 HD as the fallback voice instead of Kokoro (Kokoro is too heavy for Vercel functions); Chirp waits in the backlog for the user's API key. Main risk is whether edge-tts works from Vercel; the voice test page checks it first.
