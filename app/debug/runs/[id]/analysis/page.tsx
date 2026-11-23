@@ -138,6 +138,7 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
                     <ul style={{ margin: 0, paddingLeft: 18 }}>
                       {s.disputed.map((d, j) => (
                         <li key={j}>
+                          <span className="pill" title={d.significance === "minor" ? "Small mismatch: left out of the script" : "Changes the story: the script presents each side"}>{d.significance ?? "material"}</span>{" "}
                           {d.claim}
                           <ul style={{ fontSize: 13 }}>
                             {d.positions.map((p, k) => (

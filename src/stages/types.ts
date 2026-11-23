@@ -1,4 +1,4 @@
-import type { Article, Category, ExtractedText, Fact, HistoryStory, Source, SourceHealth, Story, StorySynthesis, UsageEntry } from "@/lib/types";
+import type { Article, Category, CheckResult, EpisodePlan, ExtractedText, Fact, HistoryStory, LeanGroup, RunParams, Source, SourceHealth, Story, StorySynthesis, UsageEntry } from "@/lib/types";
 
 export interface TimeWindow {
   start: string;
@@ -91,6 +91,54 @@ export interface SynthesizeInput {
 export interface StorySynthesizer {
   id: string;
   synthesize(input: SynthesizeInput): Promise<{ synthesis: StorySynthesis; usage: LlmUsageEntry[] }>;
+}
+
+// ---------- Phase 2 ----------
+
+export interface PlanInput {
+  stories: Story[]; // the run's stories in rank order (ranked and unranked)
+  syntheses: StorySynthesis[];
+  params: RunParams;
+  /** What Phase 1 did, so a story without a synthesis gets a precise reason. */
+  analysis?: { analyzedIds: string[]; headlinesOnly: string[]; errors: Record<string, string> };
+}
+
+/** Picks and orders the episode's stories and gives each a word budget. Pure: no LLM, no I/O. */
+export interface EpisodePlanner {
+  id: string;
+  plan(input: PlanInput): Omit<EpisodePlan, "planner">;
+}
+
+/** Everything the writer and checker know about one story. Outlets appear only by side. */
+export interface ScriptInput {
+  story: { id: string; title: string; category: Category };
+  synthesis: StorySynthesis;
+  sideOf: Record<string, LeanGroup>; // sourceId → side, for every outlet that covered the story
+  outlets: { name: string; side: LeanGroup }[]; // every source in the run, so names in Phase 1 text can be replaced by sides
+  headlines: { text: string; side: LeanGroup }[]; // covering outlets' own headlines (citable for identities and basic context)
+  whoIsWho: string[]; // role phrases for people in this story, found in other stories' material today ("Transportation Secretary Sean Duffy")
+  coverage: Record<LeanGroup, number>; // covering outlets per side
+  wordBudget: number;
+  lead: boolean;
+  includeRecently: boolean;
+}
+
+export interface Revision {
+  text: string; // the draft that failed
+  issues: CheckResult["issues"];
+  claims: CheckResult["claims"];
+}
+
+/** Writes one story segment for the ear, following docs/tone-guide.md. */
+export interface ScriptWriter {
+  id: string;
+  write(input: ScriptInput, revision?: Revision): Promise<{ text: string; usage: LlmUsageEntry[] }>;
+}
+
+/** Traces every claim in a segment to the story material and checks tone. Code-level checks are added by the runner. */
+export interface ScriptChecker {
+  id: string;
+  check(input: ScriptInput, text: string): Promise<{ result: CheckResult; usage: LlmUsageEntry[] }>;
 }
 
 export type { Category };

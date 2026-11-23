@@ -2,6 +2,56 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-23: second script, polish, merge to main
+
+**Second live script** (same run after re-analysis): 10/10 kept, 0 dropped, $0.41, 16 min (over the 13 min target). Top stories back; disagreements read as reporting; Jackson false contrast gone. Remaining: length, long rundown, quote rule fighting accuracy, unidentified people, coverage line on one-sided stories, and a stale fact (Foxx recount vs concession) from grouping. → `docs/reviews/2026-11-23-0146-script-2.md`
+
+**Built**: rundown top three + "and more"; tone guide allows short attributed phrases when paraphrase would distort; one-sided coverage stated plainly, varied coverage lines; per-run who's who (`src/stages/script/whoswho.ts`, W… material). Length and the grouping/stale-fact fix went to the backlog with detail. Merged `phase2-v1` to `main`.
+
+## 2026-11-23: first live script and fixes
+
+**First live script** (run `2026-11-23T0146-25e3fa`, report in `docs/reviews/2026-11-23-0146-script.md`): 7 of 10 kept, $0.40, 10.3 min. Three of the top four (COP31, DNI Clayton, House majority) were dropped for single fixable claims: a misattributed clause, a title that was only in headlines, a softened quote the rewrite didn't fix. The Jackson segment staged trivial details as a left/right contrast.
+
+**Agreed with the user**: presentation is always all sides; lean will only change story selection. Disagreements that matter are part of the reporting. No patching or cutting (it can remove one side), no backfill for now, web search on the wish list, grouping fixes logged under Phase 0.
+
+**Built**
+- Phase 1: synthesis marks disputes `material` / `minor`; "different details aren't a disagreement" rule; shown on the analysis page.
+- Phase 2: headlines (H1…) in material; only material disputes; side labels only where the side matters; rewrites show the exact material for flagged claims (`related` ids from the checker); 3 full attempts; new checker kinds `false_contrast`, `missing_side`; tone guide "Where accounts differ".
+- Visibility: red drop banner on the script page, notice on the run page, dropped stories first in the report with all drafts; precise "Not planned" reasons (outside the analyzed top N / headlines only / analysis failed).
+- Also: total time on the run page; intro split into `welcome` / `rundown` / `outro`, each switchable.
+
+## 2026-11-23: step-time fix
+
+User saw steps reported as taking ~2 minutes that finished sooner. Two bugs:
+- Fan-out stages (extract, analyze, synthesize, script) showed the *sum* of their parallel per-story step times (15 stories × 10s = "150s"). The Time column now shows elapsed time from the stage's start/finish timestamps, with summed step time underneath in small text.
+- Re-running a stage appended its usage to the old entries, so time and cost grew with every re-run. Re-runs now replace that stage's usage. Old runs that were already re-run keep their inflated cost totals; their time column is correct because it now reads timestamps.
+
+## 2026-11-23: Phase 2 planning
+
+**Agreed with the user** (details in `docs/decisions.md`; tone rules in the new `docs/tone-guide.md`)
+- Style: straight news plus one tasteful coverage line; light and relatable (Gen Alpha enjoys, millennials take seriously).
+- No outlet names on air (sides only); every story told fresh; no direct quotes; nameless narrator; fixed intro/outro.
+- Episode profile generalizes `RunParams`; generic = defaults; straight rank order.
+- Writer and checker per story in one step, rewrite once then drop; checker also enforces tone.
+- Failure policy: function exists, returns true for now.
+- Opt-in button now; completion-based automation later.
+- Branch `phase2-v1` from `main` (= `phase1-v1`).
+
+**Built** (same session)
+- `plan` stage: `word-budget-v1` (profile categories "all" / list / % mix; `rank` or `top-then-category`; lead 300 words, others 170, scaled to target, never padded).
+- `script` stage, one step per story: `neutral-v1` writes from numbered material (facts, disputes by side, framing by side), `quote-trace-v1` maps claims to material ids and lists tone issues; code checks for outlet names, read-aloud problems and length; code decides pass; one rewrite with the checker's notes, then drop.
+- Fixed intro/outro from config; `meetsFailurePolicy()` always ok (notes what would fail); kept segments saved to `segments/`.
+- "Write script" button; `/debug/runs/<id>/script` page with checker details, first drafts, dropped stories, 👍/👎 + notes, copyable report.
+- `tests/script.test.ts` (20 tests) incl. tone-guide sync; harness `script-prompts` / `check-script`.
+
+**Learned**
+- Phase 1 framing and dispute text names outlets ("Mother Jones frames…"), which would leak into scripts. Material now replaces names with sides; the code check is the backstop.
+- A sample segment written offline from the fixture prompt (`tests/fixtures/script/sample-segment.txt`, 266 words) passes the code checks. Not verified: real Sonnet writing/checking, cost, timing.
+
+**Next**
+- User: fresh run → "Run analysis" → "Write script", review on the script page, paste the report.
+- Then: tune prompts and the tone guide from real scripts.
+
 ## 2026-11-22 (afternoon): first live Phase 1 run, fixes, UI tidy
 
 **First live analysis** (run `2026-11-22T1313-32021b`, review saved): $0.24 for 15 stories. Extraction full for most outlets; The Hill 0/11 and NewsNation 3/7 blocked (HTTP 403). Syntheses strong with 2+ outlets: caught real discrepancies (cartel affiliation, death toll, player position). Problems: 3 × 429 concurrency errors; one-outlet facts labelled "agreed"; a headlines-only story got a "no facts" summary.

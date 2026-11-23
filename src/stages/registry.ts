@@ -7,6 +7,8 @@ import { staticJsonRegistry } from "./sources/static-json";
 import { analyzers } from "./analyze";
 import { extractors } from "./extract";
 import { synthesizers } from "./synthesize";
+import { planners } from "./plan";
+import { checkers, writers } from "./script";
 import type { ArticleFetcher, SourceRegistry, StoryClusterer, StoryRanker } from "./types";
 
 const registries: Record<string, SourceRegistry> = { [staticJsonRegistry.id]: staticJsonRegistry, [blobJsonRegistry.id]: blobJsonRegistry };
@@ -30,4 +32,7 @@ export const impls = {
   extract: (m: Methods) => pick(extractors, m.extract, "extract"),
   analyze: (m: Methods) => pick(analyzers, m.analyze, "analyze"),
   synthesize: (m: Methods) => pick(synthesizers, m.synthesize, "synthesize"),
+  plan: (m: Methods) => pick(planners, m.plan, "plan"),
+  script: (m: Methods) => pick(writers, m.script, "script"),
+  check: (m: Methods) => pick(checkers, m.check, "check"),
 };

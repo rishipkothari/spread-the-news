@@ -6,7 +6,10 @@
     "rank": "headline-index-v1",
     "extract": "chain-v2",
     "analyze": "haiku-facts-v1",
-    "synthesize": "sonnet-synthesis-v1"
+    "synthesize": "sonnet-synthesis-v1",
+    "plan": "word-budget-v1",
+    "script": "neutral-v1",
+    "check": "quote-trace-v1"
   },
   "models": {
     "cluster": "claude-sonnet-5-5",
@@ -82,7 +85,7 @@
       "min": 8,
       "max": 10
     },
-    "orderStrategy": "top-then-category",
+    "orderStrategy": "rank",
     "scriptStyle": "neutral-v1"
   },
   "analysis": {
@@ -110,5 +113,29 @@
     ],
     "analyzeConcurrency": 2,
     "llmMaxRetries": 8
+  },
+  "script": {
+    "_note": "Phase 2. Word budgets at ~150 spoken words a minute; the lead story gets more. Short episodes are fine: budgets are capped, never padded.",
+    "wordsPerMinute": 150,
+    "leadWords": 300,
+    "storyWords": 170,
+    "minStoryWords": 90,
+    "introOutroWords": 60,
+    "includeRecently": false,
+    "writeEffort": "medium",
+    "checkEffort": "medium",
+    "maxTokens": 16000,
+    "_templates": "Fixed (non-LLM) segments around the stories, in this order: welcome, rundown, [stories], outro. Remove a kind from 'templates' to drop it; {stories} in the rundown becomes the top 'rundownTop' story titles, plus 'and more' when there are others.",
+    "templates": [
+      "welcome",
+      "rundown",
+      "outro"
+    ],
+    "welcome": "This is Spread the News, where we read across the spectrum so you don't have to.",
+    "rundown": "Here's what's up today: {stories}.",
+    "outro": "That's the news for today. This has been Spread the News. Catch you tomorrow.",
+    "maxAttempts": 3,
+    "maxHeadlines": 12,
+    "rundownTop": 3
   }
 }

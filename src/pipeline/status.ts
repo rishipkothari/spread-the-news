@@ -47,3 +47,18 @@ export async function appendUsage(runId: string, entries: UsageEntry[]): Promise
   const existing = (await getJson<UsageEntry[]>(paths.usage(runId))) ?? [];
   await putJson(paths.usage(runId), [...existing, ...entries]);
 }
+
+/** Drop a stage's usage before it re-runs, so time and cost describe the current output instead of piling up across re-runs. */
+export async function clearUsage(runId: string, stages: StageId[]): Promise<void> {
+  const existing = await getJson<UsageEntry[]>(paths.usage(runId));
+  if (!existing?.length) return;
+  const kept = existing.filter((u) => !stages.includes(u.stage as StageId));
+  if (kept.length !== existing.length) await putJson(paths.usage(runId), kept);
+}
+
+/** Wall-clock time of a stage from its status timestamps (fan-out steps run in parallel, so this is less than summed step time). */
+export function stageWallMs(st: StageStatus | undefined): number | null {
+  if (!st?.startedAt || !st.finishedAt) return null;
+  const ms = Date.parse(st.finishedAt) - Date.parse(st.startedAt);
+  return Number.isFinite(ms) && ms >= 0 ? ms : null;
+}

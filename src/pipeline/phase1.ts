@@ -6,7 +6,7 @@ import type { Article, ArticleFacts, ExtractedText, Source, Story, StoryBundle, 
 import { impls, type Methods } from "@/stages/registry";
 import type { LlmUsageEntry } from "@/stages/types";
 import { addHistorySummaries, historyChain, readHistory } from "./history";
-import type { FanoutStage } from "./stages";
+import type { Phase1Stage } from "./stages";
 import { appendUsage, readStatus, updateStatus } from "./status";
 
 /**
@@ -96,7 +96,7 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R
 
 // ---------- plan ----------
 
-export async function planUnits(runId: string, stage: FanoutStage): Promise<string[]> {
+export async function planUnits(runId: string, stage: Phase1Stage): Promise<string[]> {
   let storyIds: string[];
   if (stage === "extract") {
     const bundle = await needBundle(runId);
@@ -120,7 +120,7 @@ export async function planUnits(runId: string, stage: FanoutStage): Promise<stri
 
 // ---------- units ----------
 
-export async function runUnit(runId: string, stage: FanoutStage, storyId: string): Promise<void> {
+export async function runUnit(runId: string, stage: Phase1Stage, storyId: string): Promise<void> {
   const t0 = Date.now();
   const [bundle, plan, m] = await Promise.all([needBundle(runId), needPlan(runId), methodsOf(runId)]);
   const story = bundle.stories.find((s) => s.id === storyId);
@@ -215,14 +215,16 @@ export async function runUnit(runId: string, stage: FanoutStage, storyId: string
 
 // ---------- merge ----------
 
-function stageUsage(stage: string, units: { usage?: LlmUsageEntry[]; ms: number }[]): UsageEntry[] {
-  const ms = units.reduce((a, u) => a + u.ms, 0); // summed step time (steps run in parallel, so wall time is lower)
+export function stageUsage(stage: string, units: { usage?: LlmUsageEntry[]; ms: number }[]): UsageEntry[] {
+  // Summed step time across parallel per-story steps: a measure of work, not elapsed time.
+  // The run page shows elapsed time from the stage's startedAt/finishedAt and this sum only as "step time".
+  const ms = units.reduce((a, u) => a + u.ms, 0);
   const llm = units.flatMap((u) => u.usage ?? []);
   if (!llm.length) return [{ stage, ms }];
   return llm.map((u, i) => ({ ...u, stage, ms: i === 0 ? ms : 0 }));
 }
 
-export async function mergeStage(runId: string, stage: FanoutStage): Promise<void> {
+export async function mergeStage(runId: string, stage: Phase1Stage): Promise<void> {
   const plan = await needPlan(runId);
   const load = <T,>(id: string) => getJson<T>(paths.unit(runId, stage, id));
   let summary: Record<string, unknown>;

@@ -1,9 +1,10 @@
 import { config } from "@/lib/config";
 import { getJson, paths, putJson } from "@/lib/storage";
-import type { Article, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
+import type { Article, EpisodePlan, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { impls, type Methods } from "@/stages/registry";
 import type { TimeWindow } from "@/stages/types";
 import { readHistory, updateHistory } from "./history";
+import type { AnalysisPlan, SynthesizeOut } from "./phase1";
 import { STAGES, type FanoutStage, type StageId } from "./stages";
 import { appendUsage, readStatus, updateStatus } from "./status";
 
@@ -82,6 +83,34 @@ const runners: Record<Exclude<StageId, FanoutStage>, StageFn> = {
     return { summary: { ranked: stories.filter((s) => s.ranked).length, top: stories[0]?.title }, usage: [] };
     // (Phase 1 stages run through src/pipeline/phase1.ts, one step per story.)
   },
+
+  /** Phase 2: pick and order the episode's stories from the synthesized ones, with word budgets. */
+  async plan(runId, m) {
+    const [bundle, synth, status, analysisPlan] = await Promise.all([
+      getJson<StoryBundle>(paths.bundle(runId)),
+      getJson<SynthesizeOut>(paths.stage(runId, "synthesize")),
+      readStatus(runId),
+      getJson<AnalysisPlan>(paths.analysisPlan(runId)),
+    ]);
+    if (!bundle) throw new Error(`run ${runId} has no ranked bundle`);
+    if (!synth) throw new Error(`run ${runId} has no synthesis; run analysis first`);
+    const planner = impls.plan(m);
+    const plan: EpisodePlan = { planner: planner.id, ...planner.plan({
+      stories: bundle.stories,
+      syntheses: synth.syntheses,
+      params: status!.params,
+      analysis: {
+        analyzedIds: analysisPlan?.storyIds ?? [],
+        headlinesOnly: synth.skipped ?? [],
+        errors: Object.fromEntries(synth.errors.map((e) => [e.slice(0, e.indexOf(": ")), e.slice(e.indexOf(": ") + 2)])),
+      },
+    }) };
+    await putJson(paths.stage(runId, "plan"), plan);
+    return {
+      summary: { stories: plan.stories.length, skipped: plan.skipped.length, order: plan.orderStrategy, plannedMin: +(plan.plannedWords / plan.wordsPerMinute).toFixed(1) },
+      usage: [],
+    };
+  },
 };
 
 /** Execute one stage against a run's saved inputs, recording status and usage. */
@@ -111,10 +140,7 @@ export async function markStageFailed(runId: string, stage: StageId, error: stri
 export async function finishRun(runId: string): Promise<void> {
   await updateStatus(runId, (s) => {
     if (s.state !== "failed") s.state = "done";
-    const fetchSummary = s.stages.fetch?.summary as { okSources?: number } | undefined;
-    if (fetchSummary?.okSources != null && fetchSummary.okSources < config.failurePolicy.minSourcesOk) {
-      s.errors.push(`only ${fetchSummary.okSources} sources returned data (policy minimum ${config.failurePolicy.minSourcesOk}); an episode would not be published`);
-    }
+    // The failure policy is applied when a script is assembled (src/pipeline/policy.ts), not here.
   });
 }
 

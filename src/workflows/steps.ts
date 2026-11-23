@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { FatalError } from "workflow";
 import { LlmOutputError } from "@/lib/llm";
 import { mergeStage, planUnits, runUnit } from "@/pipeline/phase1";
+import { mergeScript, planScriptUnits, runScriptUnit } from "@/pipeline/phase2";
 import { finishRun, markStageFailed, runStage } from "@/pipeline/run";
 import type { FanoutStage, StageId } from "@/pipeline/stages";
 
@@ -32,13 +33,14 @@ export async function runStageStep(runId: string, stage: Exclude<StageId, Fanout
 
 export async function planUnitsStep(runId: string, stage: FanoutStage): Promise<string[]> {
   "use step";
-  return planUnits(runId, stage);
+  return stage === "script" ? planScriptUnits(runId) : planUnits(runId, stage);
 }
 
 export async function runUnitStep(runId: string, stage: FanoutStage, storyId: string): Promise<void> {
   "use step";
   try {
-    await runUnit(runId, stage, storyId);
+    if (stage === "script") await runScriptUnit(runId, storyId);
+    else await runUnit(runId, stage, storyId);
   } catch (e) {
     fatalize(e);
   }
@@ -46,7 +48,8 @@ export async function runUnitStep(runId: string, stage: FanoutStage, storyId: st
 
 export async function mergeStageStep(runId: string, stage: FanoutStage): Promise<void> {
   "use step";
-  await mergeStage(runId, stage);
+  if (stage === "script") await mergeScript(runId);
+  else await mergeStage(runId, stage);
 }
 
 export async function markFailedStep(runId: string, stage: StageId, error: string): Promise<void> {

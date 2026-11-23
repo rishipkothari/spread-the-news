@@ -5,6 +5,9 @@
  *   npx tsx scripts/prompt-harness.ts analyze-prompts <outDir>
  *   npx tsx scripts/prompt-harness.ts check-analyze <outDir>      (reads <outDir>/analyze-<articleId>.response.json)
  *   npx tsx scripts/prompt-harness.ts check-synth <outDir>        (reads <outDir>/synth.response.json)
+ *   Phase 2, on the recorded synthesis in tests/fixtures/analysis/responses/:
+ *   npx tsx scripts/prompt-harness.ts script-prompts <outDir>     (writes write.prompt.txt)
+ *   npx tsx scripts/prompt-harness.ts check-script <outDir>       (reads <outDir>/segment.txt [+ check.response.json]; writes check.prompt.txt)
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -13,6 +16,11 @@ import type { Article, ExtractedText, Fact, HistoryStory, Story } from "../src/l
 import { ANALYZE_SYSTEM, AnalyzeOutput, buildAnalyzeUser, verifyFacts } from "../src/stages/analyze/haiku-facts-v1";
 import { SYNTHESIZE_SYSTEM, SynthesizeOutput, buildSynthesizeUser, resolveSynthesis } from "../src/stages/synthesize/sonnet-synthesis-v1";
 import type { SynthesizeInput } from "../src/stages/types";
+import { buildScriptInput } from "../src/pipeline/phase2";
+import { codeChecks, lengthIssue, verdict, wordCount } from "../src/stages/script/checks";
+import { WRITE_SYSTEM, WriteOutput, buildWriteUser } from "../src/stages/script/neutral-v1";
+import { CHECK_SYSTEM, CheckOutput, buildCheckUser, toCheckResult } from "../src/stages/script/quote-trace-v1";
+import type { Source } from "../src/lib/types";
 
 interface FixtureArticle { article: Article; sourceName: string; lean: string; leanValue: number; text: string }
 const fixture = JSON.parse(readFileSync(new URL("../tests/fixtures/analysis/story-stopgap.json", import.meta.url), "utf8")) as {
@@ -68,6 +76,29 @@ if (cmd === "analyze-prompts") {
   const { synthesis, warnings } = resolveSynthesis(parsed.data, input);
   console.log(JSON.stringify(synthesis, null, 2));
   console.log(`warnings (${warnings.length}):`, warnings);
+} else if (cmd === "script-prompts" || cmd === "check-script") {
+  const dir = new URL("../tests/fixtures/analysis/responses/", import.meta.url);
+  const si = JSON.parse(readFileSync(new URL("synth-input.json", dir), "utf8")) as SynthesizeInput;
+  const { synthesis } = resolveSynthesis(SynthesizeOutput.parse(JSON.parse(readFileSync(new URL("synth.json", dir), "utf8"))), si);
+  const sources = si.articles.map((a) => ({ id: a.article.sourceId, name: a.sourceName, leanValue: a.leanValue }) as Source);
+  const input = buildScriptInput(si.story, synthesis, { articles: si.articles.map((a) => a.article), sources }, { storyId: si.story.id, title: synthesis.title, category: si.story.category, rank: 1, lead: true, wordBudget: 300 });
+  if (cmd === "script-prompts") {
+    writeFileSync(join(outDir, "write.prompt.txt"), prompt(WRITE_SYSTEM, buildWriteUser(input), jsonSchemaFor(WriteOutput)));
+    console.log(`wrote ${join(outDir, "write.prompt.txt")}`);
+  } else {
+    const text = readFileSync(join(outDir, "segment.txt"), "utf8").trim();
+    writeFileSync(join(outDir, "check.prompt.txt"), prompt(CHECK_SYSTEM, buildCheckUser(input, text), jsonSchemaFor(CheckOutput)));
+    const code = [...codeChecks(text, sources), ...[lengthIssue(text, input.wordBudget)].filter((x) => !!x)];
+    console.log(`segment: ${wordCount(text)} words; code issues: ${code.length ? code.map((i) => `${i.kind}: ${i.problem}`).join("; ") : "none"}`);
+    const resp = join(outDir, "check.response.json");
+    if (existsSync(resp)) {
+      const parsed = CheckOutput.safeParse(JSON.parse(readFileSync(resp, "utf8")));
+      if (!parsed.success) { console.log(`SCHEMA FAIL ${parsed.error.message.slice(0, 500)}`); process.exit(1); }
+      const r = toCheckResult(parsed.data, input, "harness");
+      const issues = [...r.issues, ...code];
+      console.log(JSON.stringify({ ...r, issues, pass: verdict(r.claims, issues) }, null, 2));
+    }
+  }
 } else {
-  console.log("usage: analyze-prompts | check-analyze | check-synth <outDir>");
+  console.log("usage: analyze-prompts | check-analyze | check-synth | script-prompts | check-script <outDir>");
 }
