@@ -4,7 +4,9 @@ import type { Article, LeanGroup, Source, StoryBundle, UsageEntry } from "@/lib/
 import type { AnalysisPlan, AnalyzeOut, ExtractOut, SynthesizeOut } from "@/pipeline/phase1";
 import { readStatus } from "@/pipeline/status";
 import { buildAnalysisReport } from "@/review/analysis-report";
+import { readVersions, versionedPath } from "@/pipeline/versions";
 import CopyButton from "../../../CopyButton";
+import VersionBar from "../VersionBar";
 
 export const dynamic = "force-dynamic";
 
@@ -12,20 +14,27 @@ const SIDE_COLOR: Record<LeanGroup, string> = { left: "var(--left)", center: "va
 const leanColor = (v: number) => (v < 0 ? SIDE_COLOR.left : v > 0 ? SIDE_COLOR.right : SIDE_COLOR.center);
 const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "–");
 
-export default async function AnalysisPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AnalysisPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ v?: string }> }) {
   const { id } = await params;
-  const [status, bundle, plan, extract, analyze, synth, usage] = await Promise.all([
+  const versions = await readVersions(id);
+  const asked = Number((await searchParams).v) || null;
+  // ?v=n views a saved version; the current version (or none given) reads the working files.
+  const v = asked && versions.analysis.some((x) => x.n === asked) && asked !== versions.active.analysis ? asked : null;
+  const at = (rel: string) => versionedPath(id, rel, "analysis", v, versions);
+  const [status, bundle, plan, extract, analyze, synth, allUsage] = await Promise.all([
     readStatus(id),
     getJson<StoryBundle>(paths.bundle(id)),
-    getJson<AnalysisPlan>(paths.analysisPlan(id)),
-    getJson<ExtractOut>(paths.stage(id, "extract")),
-    getJson<AnalyzeOut>(paths.stage(id, "analyze")),
-    getJson<SynthesizeOut>(paths.stage(id, "synthesize")),
+    getJson<AnalysisPlan>(at("analysis-plan.json")),
+    getJson<ExtractOut>(at("extract.json")),
+    getJson<AnalyzeOut>(at("analyze.json")),
+    getJson<SynthesizeOut>(at("synthesize.json")),
     getJson<UsageEntry[]>(paths.usage(id)),
   ]);
   if (!status || !bundle) return <main><h1>Run {id} has no ranked bundle</h1></main>;
+  // Usage is kept for the latest run of each stage only, so costs are shown for the current version.
+  const usage = v ? [] : allUsage;
 
-  const running = ["extract", "analyze", "synthesize"].some((s) => ["pending", "running"].includes(status.stages[s as "extract"]?.state ?? ""));
+  const running = !v && ["extract", "analyze", "synthesize"].some((s) => ["pending", "running"].includes(status.stages[s as "extract"]?.state ?? ""));
   const sources = new Map<string, Source>(bundle.sources.map((s) => [s.id, s]));
   const articles = new Map<string, Article>(bundle.articles.map((a) => [a.id, a]));
   const factsBy = new Map((analyze?.facts ?? []).map((f) => [f.articleId, f]));
@@ -40,12 +49,13 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
           <Link href={`/debug/runs/${id}`} className="muted">← run</Link>
           <b className="mono">Analysis {id}</b>
           <span className="muted">
-            {(["extract", "analyze", "synthesize"] as const).map((s) => `${s}: ${status.stages[s]?.state ?? "–"}`).join(" · ")}
+            {v ? `version ${v}` : (["extract", "analyze", "synthesize"] as const).map((s) => `${s}: ${status.stages[s]?.state ?? "–"}`).join(" · ")}
             {running ? " · refreshing every 5s" : ""}
           </span>
           <span style={{ flex: 1 }} />
           <CopyButton text={report} />
         </div>
+        <VersionBar runId={id} phase="analysis" versions={versions} viewing={v} hrefFor={(n) => `/debug/runs/${id}/analysis?v=${n}`} />
       </div>
 
       <p className="muted">

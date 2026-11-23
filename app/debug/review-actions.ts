@@ -1,6 +1,7 @@
 "use server";
 
 import { paths, putJson } from "@/lib/storage";
+import { readVersions, versionedPath } from "@/pipeline/versions";
 import { RunReview } from "@/review/types";
 import { ScriptReview } from "@/review/script-types";
 
@@ -12,10 +13,13 @@ export async function saveReview(review: RunReview): Promise<{ ok: true; savedAt
   return { ok: true, savedAt };
 }
 
-export async function saveScriptReview(review: ScriptReview): Promise<{ ok: true; savedAt: string } | { ok: false; error: string }> {
+/** Saves to the current script's review, or with a saved script version when `version` is given. */
+export async function saveScriptReview(review: ScriptReview, version?: number): Promise<{ ok: true; savedAt: string } | { ok: false; error: string }> {
   const parsed = ScriptReview.safeParse(review);
   if (!parsed.success) return { ok: false, error: parsed.error.message.slice(0, 300) };
   const savedAt = new Date().toISOString();
-  await putJson(paths.scriptReview(parsed.data.runId), { ...parsed.data, savedAt });
+  const runId = parsed.data.runId;
+  const path = version ? versionedPath(runId, "script-review.json", "script", version, await readVersions(runId)) : paths.scriptReview(runId);
+  await putJson(path, { ...parsed.data, savedAt });
   return { ok: true, savedAt };
 }

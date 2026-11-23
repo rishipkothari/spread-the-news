@@ -1,8 +1,9 @@
 import { readDiscovery, type FeedProbe } from "@/admin/discover";
 import { CATEGORIES, type Feed, type Prominence, type Source } from "@/lib/types";
-import { loadSources, readChangelog } from "@/sources/store";
+import { loadSources, missingFromRepo, readChangelog } from "@/sources/store";
 import {
   addFeedAction,
+  addMissingSourcesAction,
   discoverAction,
   removeFeedAction,
   resetSourcesAction,
@@ -12,7 +13,7 @@ import {
 } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // discovering all sources probes ~100 URLs
+export const maxDuration = 300; // discovering all sources probes ~250 URLs
 
 const PROMINENCES: Prominence[] = ["top", "latest", "section"];
 const leanColor = (v: number) => (v < 0 ? "var(--left)" : v > 0 ? "var(--right)" : "var(--center)");
@@ -152,6 +153,7 @@ async function SourceCard({ source }: { source: Source }) {
 
 export default async function FeedsPage() {
   const [{ sources, origin, updatedAt }, log] = await Promise.all([loadSources(), readChangelog()]);
+  const missing = origin === "blob" ? missingFromRepo(sources) : [];
   return (
     <main>
       <h1>Feeds</h1>
@@ -163,7 +165,7 @@ export default async function FeedsPage() {
       <div className="row" style={{ margin: "12px 0" }}>
         <form action={discoverAction}>
           <input type="hidden" name="sourceId" value="all" />
-          <button type="submit" className="primary">Discover feeds for all sources (~1 min)</button>
+          <button type="submit" className="primary">Discover feeds for all sources (~2 min)</button>
         </form>
         <a href="/debug/feeds/sources.json" className="big" style={{ margin: 0, padding: "6px 12px" }}>Download sources.json</a>
         <span className="muted">
@@ -175,6 +177,14 @@ export default async function FeedsPage() {
           </form>
         )}
       </div>
+      {missing.length > 0 && (
+        <div className="story" style={{ borderColor: "var(--warn, #c90)" }}>
+          <b>{missing.length} new sources in the repo aren&apos;t in your live list yet:</b> {missing.map((s) => s.name).join(", ")}.
+          <form action={addMissingSourcesAction} style={{ marginTop: 8 }}>
+            <button type="submit" className="primary">Add them (keeps your edits)</button>
+          </form>
+        </div>
+      )}
       {sources.map((s) => <SourceCard key={s.id} source={s} />)}
       {log.length > 0 && (
         <>

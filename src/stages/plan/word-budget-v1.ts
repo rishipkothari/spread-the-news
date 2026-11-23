@@ -65,11 +65,11 @@ export function selectStories(cands: Candidate[], categories: RunParams["categor
   return { picked, excluded };
 }
 
-/** Lead gets leadWords, others storyWords; scaled down (not below minStoryWords) if that overflows the target. Never padded. */
-export function wordBudgets(count: number, targetWords: number): number[] {
+/** Budgets by position (config script.storyWords; past its end, the last value); scaled down (not below minStoryWords) if that overflows the target. Never padded. */
+export function wordBudgets(count: number, targetWords: number, byPosition: number[] = config.script.storyWords): number[] {
   const s = config.script;
   if (count === 0) return [];
-  const want = [s.leadWords, ...Array(count - 1).fill(s.storyWords)] as number[];
+  const want = Array.from({ length: count }, (_, i) => byPosition[Math.min(i, byPosition.length - 1)]);
   const room = targetWords - s.introOutroWords;
   const sum = want.reduce((a, b) => a + b, 0);
   const scale = sum > room ? room / sum : 1;

@@ -9,7 +9,7 @@ import type { ArticleTextExtractor } from "../types";
 
 /**
  * Extractor chain: the feed's own full text → (one page fetch, unless the outlet blocks bots) → schema.org
- * JSON-LD articleBody → Readability → Defuddle → RSS summary (headline_only). Every candidate passes a
+ * JSON-LD articleBody → Trafilatura (Python function, api/trafilatura.py) → Readability → Defuddle → RSS summary (headline_only). Every candidate passes a
  * quality check (length, paywall phrases); the first "full" wins, otherwise the best "partial".
  */
 
@@ -111,14 +111,40 @@ async function fetchPage(url: string): Promise<string> {
   return res.text();
 }
 
-const PAGE_EXTRACTORS: [string, (html: string, url: string) => string | undefined][] = [
+/** Where the Trafilatura function lives: TRAFILATURA_URL, else this project's production domain. Undefined = skip it. */
+export function trafilaturaEndpoint(env: Record<string, string | undefined> = process.env): string | undefined {
+  if (env.TRAFILATURA_URL) return env.TRAFILATURA_URL;
+  // The production domain, not VERCEL_URL: per-deployment URLs sit behind Vercel's deployment protection.
+  return env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}/api/trafilatura` : undefined;
+}
+
+/** Trafilatura (Python) over the already-fetched page. Throws on transport errors so the chain records them and moves on. */
+export async function trafilaturaText(html: string, url: string): Promise<string | undefined> {
+  const endpoint = trafilaturaEndpoint();
+  if (!endpoint) throw new Error("no endpoint (set TRAFILATURA_URL or deploy on Vercel)");
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${process.env.RUN_SECRET ?? ""}` },
+    body: JSON.stringify({ html, url }),
+    signal: AbortSignal.timeout(config.analysis.trafilaturaTimeoutMs),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const out = (await res.json()) as { text?: string | null; error?: string };
+  if (out.error) throw new Error(out.error);
+  return out.text ? cleanText(out.text) : undefined;
+}
+
+type PageExtractor = (html: string, url: string) => string | undefined | Promise<string | undefined>;
+
+const PAGE_EXTRACTORS: [string, PageExtractor][] = [
   ["json-ld", (html) => jsonLdText(html)],
+  ...(config.analysis.trafilatura ? [["trafilatura", trafilaturaText] as [string, PageExtractor]] : []),
   ["readability", readabilityText],
   ["defuddle", defuddleText],
 ];
 
 export const chainExtractor: ArticleTextExtractor = {
-  id: "chain-v2",
+  id: "chain-v3",
   async extract(article: Article): Promise<ExtractedText> {
     const base = { articleId: article.id, url: article.url, fetchedAt: new Date().toISOString() };
     const errors: string[] = [];
@@ -157,7 +183,7 @@ export const chainExtractor: ArticleTextExtractor = {
     for (const [name, fn] of PAGE_EXTRACTORS) {
       let text: string | undefined;
       try {
-        text = fn(html, article.url);
+        text = await fn(html, article.url);
       } catch (e) {
         errors.push(`${name}: ${(e as Error).message}`);
         continue;

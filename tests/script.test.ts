@@ -98,7 +98,7 @@ describe("episode planner (word-budget-v1)", () => {
     expect(plan.stories.map((s) => s.storyId)).toEqual(["s1", "s2", "s3", "s4", "s5"]);
     expect(plan.stories.map((s) => s.rank)).toEqual([1, 2, 3, 4, 5]);
     expect(plan.stories[0].lead).toBe(true);
-    expect(plan.stories[0].wordBudget).toBeGreaterThan(plan.stories[1].wordBudget);
+    expect(plan.stories[0].wordBudget).toBeGreaterThan(plan.stories[4].wordBudget); // first stories run longer
   });
 
   it("skips stories without a synthesis or without facts, and plans whatever is left (even one)", () => {
@@ -123,8 +123,11 @@ describe("episode planner (word-budget-v1)", () => {
     expect(mix.skipped.find((s) => s.storyId === "s4")?.reason).toMatch(/quota/);
   });
 
-  it("budgets: lead bigger, scaled to fit a short target, never below the minimum", () => {
-    expect(wordBudgets(3, 2000)).toEqual([config.script.leadWords, config.script.storyWords, config.script.storyWords]);
+  it("budgets: by position, the last value repeats, scaled to fit a short target, never below the minimum", () => {
+    expect(wordBudgets(3, 5000, [540, 540, 390])).toEqual([540, 540, 390]);
+    expect(wordBudgets(5, 5000, [540, 390])).toEqual([540, 390, 390, 390, 390]);
+    const five = wordBudgets(5, Math.round((config.vanilla.targetDurationSec / 60) * config.script.wordsPerMinute));
+    expect(five).toEqual(config.script.storyWords); // the generic episode fits its own budgets without scaling
     const tight = wordBudgets(10, 600);
     expect(tight.every((w) => w >= config.script.minStoryWords)).toBe(true);
     expect(wordBudgets(0, 2000)).toEqual([]);

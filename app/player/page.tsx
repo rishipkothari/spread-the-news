@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatClock, formatDate, listEpisodes } from "@/audio/episodes";
+import { formatClock, formatDate, listEpisodes, versionNote } from "@/audio/episodes";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,8 @@ export default async function PlayerHome() {
             <div className="ep-date">{formatDate(e.date)}{i === 0 ? <span className="pill" style={{ marginLeft: 8 }}>latest</span> : null}</div>
             <div className="muted">
               {formatClock(e.durationSec)} · {e.chapters.filter((c) => c.kind === "story").length} stories
+              {e.version ? ` · ${versionNote(e)}` : ""}
+              {episodes.some((o) => o !== e && o.runId === e.runId) ? ` · run ${e.runId}` : ""}
             </div>
             <div className="ep-titles">{e.chapters.filter((c) => c.kind === "story").slice(0, 3).map((c) => c.title).join(" · ")}</div>
           </Link>

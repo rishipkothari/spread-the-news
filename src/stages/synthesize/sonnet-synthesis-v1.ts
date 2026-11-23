@@ -5,7 +5,7 @@ import type { LeanGroup, StorySynthesis } from "@/lib/types";
 import { leanGroup } from "../rank/headline-index-v1";
 import type { StorySynthesizer, SynthesizeInput } from "../types";
 
-export const SYNTHESIZE_SYSTEM = `You compare how outlets across the political spectrum covered one news story, for a neutral daily news podcast. You receive the story, the articles (outlet, its lean, article type, headline) and the facts already extracted from each article, each with an id like a2.f3. You may also receive RECENT HISTORY: earlier stories this one continues.
+export const SYNTHESIZE_SYSTEM = `You compare how outlets across the political spectrum covered one news story, for a neutral daily news podcast. You receive the story, the articles (outlet, its lean, article type, publish time, headline) and the facts already extracted from each article, each with an id like a2.f3. You may also receive RECENT HISTORY: earlier stories this one continues.
 
 Return:
 - title: a short neutral headline for the story.
@@ -27,7 +27,8 @@ Return:
 Rules:
 - Use only the material provided. Never add outside knowledge, even if you think it's true.
 - Every agreedFacts entry must cite at least one fact id from the list.
-- Opinion pieces and headline-only articles have no facts; use them only for framing.`;
+- Opinion pieces and headline-only articles have no facts; use them only for framing.
+- Stories develop during the day. When articles disagree only because one was written later (a recount requested, then a concession; a toll of 5, then 12), that is not a dispute: state the latest development as the fact, using the newest article, and mention the earlier state only if it matters ("after first requesting a recount, X conceded"). Never present an earlier, overtaken state as the current one.`;
 
 export function factId(articleIndex: number, factIndex: number): string {
   return `a${articleIndex + 1}.f${factIndex + 1}`;
@@ -45,7 +46,7 @@ export function buildSynthesizeUser(input: SynthesizeInput): string {
     const group = leanGroup(a.leanValue);
     const kind = a.article.articleType ?? "news";
     const note = kind === "opinion" ? " (opinion, no facts extracted)" : a.textStatus === "headline_only" ? " (headline only, no facts extracted)" : "";
-    lines.push(`a${i + 1} | ${a.sourceName} | lean: ${a.lean} (${group}) | ${kind}${note}`);
+    lines.push(`a${i + 1} | ${a.sourceName} | lean: ${a.lean} (${group}) | ${kind}${note} | published ${a.article.publishedAt.slice(0, 16).replace("T", " ")} UTC`);
     lines.push(`   headline: ${a.article.title}`);
     a.facts.forEach((f, j) => {
       const who = f.kind === "statement" && f.speaker ? ` [${f.speaker}]` : "";

@@ -2,7 +2,7 @@ import { config } from "@/lib/config";
 import { getJson, paths, putJson } from "@/lib/storage";
 import type { Article, EpisodePlan, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { impls, type Methods } from "@/stages/registry";
-import type { TimeWindow } from "@/stages/types";
+import type { StoryMerge, TimeWindow } from "@/stages/types";
 import { readHistory, updateHistory } from "./history";
 import { assembleEpisode } from "./phase3";
 import type { AnalysisPlan, SynthesizeOut } from "./phase1";
@@ -12,6 +12,7 @@ import { appendUsage, readStatus, updateStatus } from "./status";
 interface SourcesOut { sources: Source[] }
 interface FetchOut { window: TimeWindow; articles: Article[]; sourceHealth: SourceHealth }
 interface ClusterOut { stories: Story[]; articleTypes: Record<string, Article["articleType"]>; warnings: string[]; historyCount: number }
+export interface MergeOut { stories: Story[]; merges: StoryMerge[]; warnings: string[] }
 interface RankOut { stories: Story[] }
 
 async function need<T>(runId: string, stage: StageId): Promise<T> {
@@ -57,15 +58,28 @@ const runners: Record<Exclude<StageId, FanoutStage>, StageFn> = {
     };
   },
 
+  /** Join stories the clusterer split: the same event, or a direct follow-up of another (one cheap call). */
+  async merge(runId, m) {
+    const [{ sources }, fetched, clustered] = await Promise.all([need<SourcesOut>(runId, "sources"), need<FetchOut>(runId, "fetch"), need<ClusterOut>(runId, "cluster")]);
+    const result = await impls.merge(m).merge({ stories: clustered.stories, articles: fetched.articles, sources });
+    await putJson(paths.stage(runId, "merge"), { stories: result.stories, merges: result.merges, warnings: result.warnings } satisfies MergeOut);
+    return {
+      summary: { merges: result.merges.length, storiesBefore: clustered.stories.length, storiesAfter: result.stories.length, warnings: result.warnings.length },
+      usage: result.usage,
+    };
+  },
+
   async rank(runId, m) {
-    const [{ sources }, fetched, clustered, status] = await Promise.all([
+    const [{ sources }, fetched, clustered, merged, status] = await Promise.all([
       need<SourcesOut>(runId, "sources"),
       need<FetchOut>(runId, "fetch"),
       need<ClusterOut>(runId, "cluster"),
+      getJson<MergeOut>(paths.stage(runId, "merge")),
       readStatus(runId),
     ]);
     const articles = fetched.articles.map((a) => ({ ...a, articleType: clustered.articleTypes[a.id] ?? a.articleType }));
-    const stories = impls.rank(m).rank({ stories: clustered.stories, articles, sources, sourceHealth: fetched.sourceHealth, windowEnd: fetched.window.end });
+    // Runs from before the merge check (or with it skipped) rank the clustered stories directly.
+    const stories = impls.rank(m).rank({ stories: merged?.stories ?? clustered.stories, articles, sources, sourceHealth: fetched.sourceHealth, windowEnd: fetched.window.end });
     await putJson(paths.stage(runId, "rank"), { stories } satisfies RankOut);
 
     const bundle: StoryBundle = {

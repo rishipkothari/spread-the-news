@@ -3,8 +3,9 @@
     "sources": "blob-json",
     "fetch": "rss",
     "cluster": "llm-single-pass",
+    "merge": "llm-merge-v1",
     "rank": "headline-index-v1",
-    "extract": "chain-v2",
+    "extract": "chain-v3",
     "analyze": "haiku-facts-v1",
     "synthesize": "sonnet-synthesis-v1",
     "plan": "word-budget-v1",
@@ -15,6 +16,7 @@
   },
   "models": {
     "cluster": "claude-sonnet-5-5",
+    "merge": "claude-sonnet-5-5",
     "analyze": "claude-haiku-5-5",
     "synthesize": "claude-sonnet-5-5",
     "script": "claude-sonnet-5-5",
@@ -74,6 +76,11 @@
     "maxTokens": 48000,
     "effort": "medium"
   },
+  "merge": {
+    "_note": "After clustering: one call over story titles, newest headlines and publish times that joins stories that are the same event or a direct follow-up. methods.merge = \"none\" switches it off.",
+    "maxTokens": 8000,
+    "effort": "low"
+  },
   "historyDays": 14,
   "failurePolicy": {
     "minSourcesOk": 8,
@@ -82,21 +89,24 @@
   "vanilla": {
     "lean": 0,
     "categories": "all",
-    "targetDurationSec": 780,
+    "targetDurationSec": 930,
     "storyCount": {
-      "min": 8,
-      "max": 10
+      "min": 5,
+      "max": 5
     },
     "orderStrategy": "rank",
     "scriptStyle": "neutral-v1"
   },
   "analysis": {
-    "_note": "Phase 1. Stories selected = top N ranked; articles per story capped, picked round-robin across outlets.",
-    "topStories": 15,
-    "maxArticlesPerStory": 8,
+    "_note": "Phase 1. Stories selected = top N ranked (a few more than the episode's story count, so stories without readable text or a failed synthesis can be replaced); articles per story capped, picked round-robin across outlets.",
+    "topStories": 8,
+    "maxArticlesPerStory": 10,
     "minTextChars": 800,
     "maxCharsForLlm": 15000,
     "extractConcurrency": 4,
+    "_trafilatura": "Trafilatura runs as a Python function (api/trafilatura.py) after JSON-LD and before Readability; off = skip it. If it fails or is unreachable the chain moves on.",
+    "trafilatura": true,
+    "trafilaturaTimeoutMs": 10000,
     "paywallPhrases": [
       "subscribe to continue",
       "subscribers only",
@@ -117,10 +127,10 @@
     "llmMaxRetries": 8
   },
   "script": {
-    "_note": "Phase 2. Word budgets at ~150 spoken words a minute; the lead story gets more. Short episodes are fine: budgets are capped, never padded.",
+    "_note": "Phase 2. Word budgets at ~150 spoken words a minute, by position in the episode (storyWords[0] = lead); stories past the end of the list get its last value. 5 stories ≈ 3 min each: the first two longer (~3.6 min), the next three shorter (~2.6 min). The writer aims for the budget and stays under budget × maxOverBudget. Short episodes are fine: budgets are capped, never padded.",
     "wordsPerMinute": 150,
-    "leadWords": 300,
-    "storyWords": 170,
+    "storyWords": [540, 540, 390, 390, 390],
+    "maxOverBudget": 1.15,
     "minStoryWords": 90,
     "introOutroWords": 60,
     "includeRecently": false,
@@ -142,7 +152,7 @@
   },
   "audio": {
     "_note": "Phase 3. Every segment is voiced with the same voice and format so they join by concatenation. Audio is cached by hash(text + voice + provider + format).",
-    "voice": "en-US-AndrewNeural",
+    "voice": "en-US-AriaNeural",
     "pauseSec": 0.6,
     "maxChunkChars": 2500,
     "retries": 2,

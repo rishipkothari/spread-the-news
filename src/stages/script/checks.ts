@@ -53,7 +53,7 @@ export function wordCount(text: string): number {
 /** Length is advisory: a minor note when a segment is far over budget, never a reason to drop a story. */
 export function lengthIssue(text: string, budget: number): CheckIssue | null {
   const n = wordCount(text);
-  return n > budget * 1.5 ? { kind: "length", severity: "minor", excerpt: `${n} words`, problem: `about ${budget} words were budgeted`, source: "code" } : null;
+  return n > budget * 1.3 ? { kind: "length", severity: "minor", excerpt: `${n} words`, problem: `about ${budget} words were budgeted`, source: "code" } : null;
 }
 
 /** Pass/fail is decided in code: every claim supported and no must_fix issue (from the checker or from code). */

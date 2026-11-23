@@ -61,6 +61,9 @@ function Feedback({ value, onChange }: { value: SegmentFeedback | undefined; onC
 
 export default function ScriptClient(props: {
   runId: string;
+  /** Set when viewing a saved version that isn't the current one; its review is saved with that version. */
+  version?: number;
+  versionBar?: React.ReactNode;
   plan: EpisodePlan;
   script: EpisodeScript | null;
   units: ScriptUnit[];
@@ -79,7 +82,7 @@ export default function ScriptClient(props: {
     if (!dirty.current) return;
     setSaveState("unsaved changes…");
     const t = setTimeout(async () => {
-      const res = await saveScriptReview(review);
+      const res = await saveScriptReview(review, props.version);
       setSaveState(res.ok ? `saved ${new Date(res.savedAt).toLocaleTimeString()}` : `save failed: ${res.error}`);
     }, 1500);
     return () => clearTimeout(t);
@@ -137,6 +140,7 @@ export default function ScriptClient(props: {
           {fullText && <CopyButton text={fullText} label="Copy script text" />}
           <CopyButton text={report} />
         </div>
+        {props.versionBar}
       </div>
 
       <p className="muted">

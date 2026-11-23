@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { discoverSource, probeManual, readDiscovery } from "@/admin/discover";
 import { CATEGORIES, type Category, type Prominence, type Source } from "@/lib/types";
-import { loadSources, resetToRepo, saveSources } from "@/sources/store";
+import { addMissingFromRepo, loadSources, resetToRepo, saveSources } from "@/sources/store";
 
 // Behind the password gate in proxy.ts (same as the other /debug pages).
 
@@ -95,5 +95,10 @@ export async function toggleSourceAction(fd: FormData) {
 
 export async function resetSourcesAction() {
   await resetToRepo();
+  revalidatePath("/debug/feeds");
+}
+
+export async function addMissingSourcesAction() {
+  await addMissingFromRepo();
   revalidatePath("/debug/feeds");
 }

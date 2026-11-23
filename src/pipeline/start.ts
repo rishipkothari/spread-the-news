@@ -7,6 +7,7 @@ import { pipelineWorkflow } from "@/workflows/pipeline";
 import { copyStages, stagesBefore } from "./run";
 import { ANALYSIS_STAGES, AUDIO_STAGES, SCRIPT_STAGES, STAGES, stageRange, type StageId } from "./stages";
 import { type RunStatus, clearUsage, readStatus, updateStatus, writeStatus } from "./status";
+import { prepareRerun } from "./versions";
 
 const stageEnum = z.enum(STAGES);
 
@@ -73,6 +74,7 @@ export async function rerunStage(runId: string, stage: StageId): Promise<RunStat
 export async function startAnalysis(runId: string): Promise<RunStatus> {
   const s = await readStatus(runId);
   if (s?.stages.rank?.state !== "done" && s?.stages.rank?.state !== "copied") throw new Error(`run ${runId} hasn't finished ranking`);
+  await prepareRerun(runId, "analysis");
   return rerunStages(runId, ANALYSIS_STAGES);
 }
 
@@ -83,6 +85,7 @@ export async function startAnalysis(runId: string): Promise<RunStatus> {
 export async function startScript(runId: string, profile: z.infer<typeof ProfileBody> = {}): Promise<RunStatus> {
   const s = await readStatus(runId);
   if (s?.stages.synthesize?.state !== "done") throw new Error(`run ${runId} has no finished analysis; run analysis first`);
+  await prepareRerun(runId, "script");
   await updateStatus(runId, (st) => {
     st.params = { ...vanillaParams(), ...ProfileBody.parse(profile) };
   });
@@ -93,6 +96,7 @@ export async function startScript(runId: string, profile: z.infer<typeof Profile
 export async function startAudio(runId: string): Promise<RunStatus> {
   const s = await readStatus(runId);
   if (s?.stages.script?.state !== "done") throw new Error(`run ${runId} has no finished script; write the script first`);
+  await prepareRerun(runId, "audio");
   return rerunStages(runId, AUDIO_STAGES);
 }
 

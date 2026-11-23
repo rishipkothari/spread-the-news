@@ -262,6 +262,8 @@ export interface Episode {
   id: string;
   date: string;
   runId: string;
+  /** Which of the run's analysis, script and audio versions made it (absent on episodes made before versions existed). */
+  version?: { audio: number; script?: number; analysis?: number };
   params: RunParams;
   createdAt: string;
   segmentIds: string[];

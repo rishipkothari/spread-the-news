@@ -110,3 +110,39 @@ describe("extractor chain", () => {
     expect(t.error).toContain("page fetch: HTTP 403");
   });
 });
+
+describe("trafilatura link", () => {
+  it("endpoint: explicit URL wins, else the production domain, else none", async () => {
+    const { trafilaturaEndpoint } = await import("@/stages/extract/chain");
+    expect(trafilaturaEndpoint({ TRAFILATURA_URL: "http://x/api/t", VERCEL_PROJECT_PRODUCTION_URL: "p.app" })).toBe("http://x/api/t");
+    expect(trafilaturaEndpoint({ VERCEL_PROJECT_PRODUCTION_URL: "p.app" })).toBe("https://p.app/api/trafilatura");
+    expect(trafilaturaEndpoint({})).toBeUndefined();
+  });
+
+  it("uses Trafilatura's text when it's full, before Readability", async () => {
+    vi.stubEnv("TRAFILATURA_URL", "https://fn.test/api/trafilatura");
+    const long = "Trafilatura found this paragraph. ".repeat(40);
+    mockFetch({
+      "robots.txt": { body: "", type: "text/plain" },
+      "fn.test/api/trafilatura": { body: JSON.stringify({ text: long, version: "2.4.0" }), type: "application/json" },
+      "example.com/politics": { body: page("article.html") },
+    });
+    const t = await chainExtractor.extract(art(), source);
+    expect(t.extractor).toBe("trafilatura");
+    expect(t.textStatus).toBe("full");
+    vi.unstubAllEnvs();
+  });
+
+  it("falls through to Readability when the function is down", async () => {
+    vi.stubEnv("TRAFILATURA_URL", "https://fn.test/api/trafilatura");
+    mockFetch({
+      "robots.txt": { body: "", type: "text/plain" },
+      "fn.test/api/trafilatura": { status: 500, body: "boom" },
+      "example.com/politics": { body: page("article.html") },
+    });
+    const t = await chainExtractor.extract(art(), source);
+    expect(t.extractor).not.toBe("trafilatura");
+    expect(t.text).toContain("The Senate voted 60 to 38");
+    vi.unstubAllEnvs();
+  });
+});

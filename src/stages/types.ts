@@ -38,6 +38,34 @@ export interface StoryClusterer {
   cluster(input: ClusterInput): Promise<ClusterResult>;
 }
 
+export interface MergeInput {
+  stories: Story[];
+  articles: Article[];
+  sources: Source[];
+}
+
+/** One merge the merger made: `into` (the kept story's new id) absorbed `from` (the clustered story ids, larger first). */
+export interface StoryMerge {
+  into: string;
+  from: string[];
+  titles: string[];
+  title: string;
+  reason: string;
+}
+
+export interface MergeResult {
+  stories: Story[];
+  merges: StoryMerge[];
+  warnings: string[];
+  usage: Omit<UsageEntry, "stage" | "ms">[];
+}
+
+/** Runs after clustering: joins stories that are the same event or a direct follow-up of another. */
+export interface StoryMerger {
+  id: string;
+  merge(input: MergeInput): Promise<MergeResult>;
+}
+
 export interface RankInput {
   stories: Story[];
   articles: Article[];

@@ -15,7 +15,7 @@ Personal daily news podcast for one user: cross-spectrum RSS → LLM story group
 | :- | :- | :- |
 | Application shape | Batch pipeline + small private web UI | One run per day, results viewed in a browser |
 | Runtime model | Serverless functions + durable workflow steps | Long multi-step runs without a server |
-| Language | TypeScript everywhere | One language; Readability and SDKs available |
+| Language | TypeScript, plus one small Python function (`api/trafilatura.py`) | One language for the app; Trafilatura (article text extraction) only exists in Python |
 | All-in-one vs. best-of-breed | All-in-one on Vercel | Hosting, workflows and storage in one place |
 | Users and accounts | One user, password gate; models allow more later | Personal use (PRD) |
 | Data shape | JSON documents per run in Blob; Postgres in Phase 4 | Runs are write-once snapshots |
@@ -53,6 +53,7 @@ Personal daily news podcast for one user: cross-spectrum RSS → LLM story group
 | `RUN_SECRET` | Bearer token for `/api/runs` | Yes | Made up | – | ✓ | ✓ |
 | `PLAYER_PASSWORD` | Password for pages | Yes | Made up | – | ✓ | ✓ |
 | `BLOB_ACCESS` | `private` (default) or `public` | No | Optional | – | – | – |
+| `TRAFILATURA_URL` | Override the Trafilatura function's URL (default: `https://$VERCEL_PROJECT_PRODUCTION_URL/api/trafilatura`, set by Vercel) | No | Optional | – | – | – |
 
 ## Costs
 
@@ -72,3 +73,4 @@ Personal daily news podcast for one user: cross-spectrum RSS → LLM story group
 - 2026-11-21: PRD written; Vercel project, Blob store and API key created.
 - 2026-11-22: Phase 0 built and running on Vercel.
 - 2026-11-23: Phases 1–2 merged; Phase 3 (edge-tts voice, MP3 assembly, private player) built.
+- 2026-11-23: `backlog-01`: Trafilatura added to the extractor chain as a Vercel Python function (`api/trafilatura.py`, `requirements.txt` pins `trafilatura==2.4.0`); 27 sources.
