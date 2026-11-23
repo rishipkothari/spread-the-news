@@ -5,7 +5,7 @@ import { config } from "@/lib/config";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus } from "@/pipeline/status";
-import { analysisAction, replayAction, rerankAction } from "../../actions";
+import { analysisAction, replayAction, rerankAction, scriptAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,8 @@ const STAGE_INFO: Record<StageId, string> = {
   extract: "full article text",
   analyze: "facts + quotes per article (Haiku)",
   synthesize: "per-story comparison (Sonnet)",
+  plan: "pick and order stories, word budgets",
+  script: "write + fact-check each story (Sonnet)",
 };
 
 const GROUP_COLOR: Record<LeanGroup, string> = { left: "var(--left)", center: "var(--center)", right: "var(--right)" };
@@ -186,7 +188,18 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                 );
               }
               if (stage === "synthesize" && (st?.state ?? "skipped") !== "skipped") view = <Link href={`/debug/runs/${id}/analysis`}>Analysis →</Link>;
-              const groupHeader = stage === "sources" ? "Discovery" : stage === "extract" ? "Phase 1: analysis (top stories)" : null;
+              if (stage === "plan" && status.stages.synthesize?.state === "done") {
+                action = (
+                  <form action={scriptAction}>
+                    <input type="hidden" name="runId" value={id} />
+                    <button type="submit" title="Plan the episode and write a fact-checked script from the analysis (uses Claude)">
+                      {done(status.stages.script) ? "Re-write script" : "Write script"}
+                    </button>
+                  </form>
+                );
+              }
+              if (stage === "script" && (st?.state ?? "skipped") !== "skipped") view = <Link href={`/debug/runs/${id}/script`}>Script →</Link>;
+              const groupHeader = stage === "sources" ? "Discovery" : stage === "extract" ? "Phase 1: analysis (top stories)" : stage === "plan" ? "Phase 2: script" : null;
               return (
                 <Fragment key={stage}>
                   {groupHeader && <tr><td colSpan={7} style={{ fontWeight: 600, background: "var(--bg)" }}>{groupHeader}</td></tr>}

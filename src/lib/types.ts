@@ -72,9 +72,16 @@ export interface Story {
   ranked?: boolean; // false when below minOutlets
 }
 
+/** Category share of an episode in percent, e.g. { us: 40, world: 30, science: 30 }. Missing categories get none. */
+export type CategoryMix = Partial<Record<Category, number>>;
+
+/**
+ * The episode profile. The generic episode is every default (config `vanilla`); nothing special-cases it.
+ * categories: "all" (rank decides), a list (only these), or a percentage mix.
+ */
 export interface RunParams {
   lean: number;
-  categories: Category[] | "all";
+  categories: Category[] | CategoryMix | "all";
   targetDurationSec: number;
   storyCount?: { min: number; max: number };
   orderStrategy: string;
@@ -168,4 +175,67 @@ export interface UsageEntry {
   costUsd?: number;
   ms: number;
   note?: string;
+}
+
+// ---------- Phase 2: episode plan and script ----------
+
+export interface PlannedStory {
+  storyId: string;
+  title: string; // synthesis title
+  category: Category;
+  rank: number; // 1-based position in the run's ranked list
+  lead: boolean; // first story of the episode
+  wordBudget: number;
+}
+
+export interface EpisodePlan {
+  planner: string;
+  params: RunParams;
+  orderStrategy: string;
+  wordsPerMinute: number;
+  targetWords: number;
+  plannedWords: number;
+  stories: PlannedStory[];
+  skipped: { storyId: string; title: string; reason: string }[];
+}
+
+export type CheckIssueKind = "unsupported" | "distorted" | "outlet_named" | "attribution" | "one_sided_dispute" | "coverage_line" | "tone" | "ear" | "length" | "other";
+
+export interface CheckIssue {
+  kind: CheckIssueKind;
+  severity: "must_fix" | "minor";
+  excerpt: string; // the words in the segment the issue is about
+  problem: string;
+  fix?: string;
+  source: "checker" | "code"; // LLM checker or deterministic code check
+}
+
+export interface CheckResult {
+  pass: boolean;
+  claims: { claim: string; support: string[]; status: "supported" | "unsupported" | "distorted" }[]; // support = material ids (F1, D1a, FR-left…)
+  issues: CheckIssue[];
+  checker: string;
+}
+
+/** PRD Segment: one piece of an episode. scriptHash = hash of text, the key in the story bank. */
+export interface Segment {
+  id: string;
+  storyId?: string;
+  kind: "intro" | "story" | "outro";
+  text: string;
+  checkerResult: CheckResult | { pass: true; template: true };
+  scriptHash: string;
+  words: number;
+}
+
+export interface EpisodeScript {
+  runId: string;
+  date: string;
+  params: RunParams;
+  segments: Segment[];
+  dropped: { storyId: string; title: string; reason: string }[];
+  words: number;
+  estMinutes: number;
+  policy: { ok: boolean; reasons: string[] };
+  errors: string[];
 }

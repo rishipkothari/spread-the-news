@@ -6,14 +6,12 @@ Phases follow `docs/PRD.md`. Check items off as they're done; add new items wher
 
 Plan agreed 2026-11-23 (see `docs/decisions.md`, `docs/tone-guide.md`). Exit (PRD): scripts read well and pass the checker without manual edits for several consecutive runs.
 
-- [ ] Episode profile (`RunParams`: categories "all" or % mix, rank / top-then-category order); `EpisodePlanner` picks from synthesized stories by word budget (~150 wpm).
-- [ ] `ScriptWriter` + `ScriptChecker` per story in one step (write → check → rewrite once → drop); tone rules from `docs/tone-guide.md`; "recently" input switchable (off).
-- [ ] Fixed intro/outro templates.
-- [ ] `meetsFailurePolicy()` stub returning true.
-- [ ] Storage: `runs/{id}/plan.json`, `runs/{id}/script.json`, `segments/{scriptHash}.json`.
-- [ ] Opt-in "Write script (Phase 2)" button; `/debug/runs/<id>/script` page with full read-through, word counts, minutes, checker verdicts, per-segment 👍/👎 + notes, copyable report.
-- [ ] Offline prompt tests with Claude stand-ins on fixtures; recorded responses as regression fixtures.
-- [ ] User: fresh run → "Run analysis" → "Write script"; paste report into `docs/reviews/`.
+- [ ] **User: first live script.** Fresh run → "Run analysis" → "Write script" → read on `/debug/runs/<id>/script`, mark 👍/👎, copy the report to Claude; save it in `docs/reviews/`.
+- [ ] Tune `WRITE_SYSTEM` / `CHECK_SYSTEM` and `docs/tone-guide.md` from live scripts (watch: checker too strict → many drops; too lenient → misses; coverage line quality).
+- [ ] Measure cost and time per script step (estimate $0.30–0.50 per episode; ~300s function limit).
+- [ ] Live-run the checker's own prompt through the harness (`check-script`) once an API run exists; record write/check responses as regression fixtures.
+- [ ] Exit (PRD): scripts read well and pass the checker without manual edits for several consecutive runs.
+- [x] Built 2026-11-23: episode profile (`RunParams` categories "all" / list / % mix; `rank` default, `top-then-category`); `word-budget-v1` planner; `neutral-v1` writer + `quote-trace-v1` checker per story (rewrite once, then drop) with code checks; outlet names scrubbed from material; fixed intro/outro; `meetsFailurePolicy()` (always ok, notes only); story bank `segments/`; "Write script" button and `/debug/runs/<id>/script` page with 👍/👎 + notes and copyable report; harness `script-prompts` / `check-script`.
 
 ## Now: Phase 0 exit (story discovery)
 

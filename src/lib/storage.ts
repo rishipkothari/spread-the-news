@@ -47,4 +47,6 @@ export const paths = {
   unit: (runId: string, stage: string, unitId: string) => `runs/${runId}/${stage}/${unitId}.json`,
   analysisPlan: (runId: string) => `runs/${runId}/analysis-plan.json`,
   textCache: (urlHash: string) => `cache/text/${urlHash}.json`,
+  segment: (scriptHash: string) => `segments/${scriptHash}.json`,
+  scriptReview: (runId: string) => `runs/${runId}/script-review.json`,
 };

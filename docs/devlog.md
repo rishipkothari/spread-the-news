@@ -13,9 +13,20 @@ One entry per work session, newest first: what changed, what we learned, what's 
 - Opt-in button now; completion-based automation later.
 - Branch `phase2-v1` from `main` (= `phase1-v1`).
 
+**Built** (same session)
+- `plan` stage: `word-budget-v1` (profile categories "all" / list / % mix; `rank` or `top-then-category`; lead 300 words, others 170, scaled to target, never padded).
+- `script` stage, one step per story: `neutral-v1` writes from numbered material (facts, disputes by side, framing by side), `quote-trace-v1` maps claims to material ids and lists tone issues; code checks for outlet names, read-aloud problems and length; code decides pass; one rewrite with the checker's notes, then drop.
+- Fixed intro/outro from config; `meetsFailurePolicy()` always ok (notes what would fail); kept segments saved to `segments/`.
+- "Write script" button; `/debug/runs/<id>/script` page with checker details, first drafts, dropped stories, 👍/👎 + notes, copyable report.
+- `tests/script.test.ts` (20 tests) incl. tone-guide sync; harness `script-prompts` / `check-script`.
+
+**Learned**
+- Phase 1 framing and dispute text names outlets ("Mother Jones frames…"), which would leak into scripts. Material now replaces names with sides; the code check is the backstop.
+- A sample segment written offline from the fixture prompt (`tests/fixtures/script/sample-segment.txt`, 266 words) passes the code checks. Not verified: real Sonnet writing/checking, cost, timing.
+
 **Next**
-- Build planner, writer/checker, script page; offline prompt tests.
-- User: fresh run + analysis so there's real input for scripts.
+- User: fresh run → "Run analysis" → "Write script", review on the script page, paste the report.
+- Then: tune prompts and the tone guide from real scripts.
 
 ## 2026-11-22 (afternoon): first live Phase 1 run, fixes, UI tidy
 
