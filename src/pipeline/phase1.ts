@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { config } from "@/lib/config";
 import { sha } from "@/lib/hash";
 import { getJson, paths, putJson } from "@/lib/storage";
-import type { Article, ArticleFacts, ExtractedText, Source, Story, StoryBundle, StorySynthesis, UsageEntry } from "@/lib/types";
+import { PROMINENCE_ORDER, type Article, type ArticleFacts, type ExtractedText, type Source, type Story, type StoryBundle, type StorySynthesis, type UsageEntry } from "@/lib/types";
 import { impls, type Methods } from "@/stages/registry";
 import type { LlmUsageEntry } from "@/stages/types";
 import { addHistorySummaries, historyChain, readHistory } from "./history";
@@ -62,21 +62,31 @@ export function isSystemic(e: unknown): boolean {
   );
 }
 
-/** Up to `max` articles, round-robin across outlets so one prolific outlet can't crowd out the rest; news before analysis before opinion. */
-export function pickArticles(story: Story, articles: Map<string, Article>, max: number): string[] {
-  const typeOrder = { news: 0, analysis: 1, opinion: 2, undefined: 3 } as Record<string, number>;
-  const byOutlet = new Map<string, Article[]>();
+/**
+ * One article per outlet that covered the story, so every outlet is heard: each outlet's best piece
+ * (news before analysis before opinion, then the more prominent feed, then the newest).
+ * Only above `max` (a safety cap for the step's time limit) are outlets dropped, taking turns across left, center and right
+ * so no side is cut first.
+ */
+export function pickArticles(story: Story, articles: Map<string, Article>, max: number, leanOf: (sourceId: string) => number = () => 0): string[] {
+  const typeOrder: Record<string, number> = { news: 0, analysis: 1, opinion: 2 };
+  const better = (x: Article, y: Article) =>
+    (typeOrder[x.articleType ?? "news"] ?? 3) - (typeOrder[y.articleType ?? "news"] ?? 3) ||
+    PROMINENCE_ORDER[y.prominence] - PROMINENCE_ORDER[x.prominence] ||
+    (x.publishedAt < y.publishedAt ? 1 : x.publishedAt > y.publishedAt ? -1 : 0);
+  const best = new Map<string, Article>();
   for (const id of story.articleIds) {
     const a = articles.get(id);
     if (!a) continue;
-    byOutlet.set(a.sourceId, [...(byOutlet.get(a.sourceId) ?? []), a]);
+    const prev = best.get(a.sourceId);
+    if (!prev || better(a, prev) < 0) best.set(a.sourceId, a);
   }
-  for (const list of byOutlet.values()) list.sort((x, y) => typeOrder[String(x.articleType)] - typeOrder[String(y.articleType)] || (x.publishedAt < y.publishedAt ? 1 : -1));
-  const queues = [...byOutlet.values()];
+  const picks = [...best.values()].sort(better);
+  if (picks.length <= max) return picks.map((a) => a.id);
+  const side = (a: Article) => Math.sign(leanOf(a.sourceId));
+  const queues = [-1, 0, 1].map((g) => picks.filter((a) => side(a) === g));
   const out: string[] = [];
-  for (let round = 0; out.length < max && queues.some((q) => q.length > round); round++) {
-    for (const q of queues) if (q[round] && out.length < max) out.push(q[round].id);
-  }
+  for (let i = 0; out.length < max; i++) for (const q of queues) if (q[i] && out.length < max) out.push(q[i].id);
   return out;
 }
 
@@ -101,10 +111,11 @@ export async function planUnits(runId: string, stage: Phase1Stage): Promise<stri
   if (stage === "extract") {
     const bundle = await needBundle(runId);
     const articles = new Map(bundle.articles.map((a) => [a.id, a]));
+    const leans = new Map(bundle.sources.map((s) => [s.id, s.leanValue]));
     const chosen = bundle.stories.filter((s) => s.ranked).slice(0, config.analysis.topStories);
     const plan: AnalysisPlan = {
       storyIds: chosen.map((s) => s.id),
-      articleIds: Object.fromEntries(chosen.map((s) => [s.id, pickArticles(s, articles, config.analysis.maxArticlesPerStory)])),
+      articleIds: Object.fromEntries(chosen.map((s) => [s.id, pickArticles(s, articles, config.analysis.maxArticlesPerStory, (id) => leans.get(id) ?? 0)])),
     };
     await putJson(paths.analysisPlan(runId), plan);
     storyIds = plan.storyIds;

@@ -58,6 +58,19 @@ describe("normalize", () => {
     expect(res.sourceHealth.fox).toMatchObject({ ok: true, inWindow: 3, items: 4 });
     expect(res.sourceHealth.bbc.ok).toBe(true);
     expect(res.sourceHealth.bbc.feeds?.[0]).toMatchObject({ ok: false, error: "HTTP 403" });
-    expect(res.articles.find((a) => a.sourceId === "bbc")?.section).toBe("world");
+    expect(res.articles.find((a) => a.sourceId === "bbc")?.sections).toEqual(["world"]);
+  });
+
+  it("an article in two section feeds of one outlet keeps both sections", async () => {
+    const { dedupe } = await import("@/stages/fetch/normalize");
+    const base = { id: "x", sourceId: "nypost", url: "https://nypost.com/a", title: "US imposes tariffs on China", feedCategories: ["Trade"], publishedAt: "2026-11-23T10:00:00.000Z" };
+    const [a] = dedupe([
+      { ...base, prominence: "section", sections: ["us"], guid: "g1" },
+      { ...base, prominence: "section", sections: ["world"], feedCategories: ["China"], guid: "g1" },
+      { ...base, prominence: "latest", guid: "g1" },
+    ]);
+    expect(a.sections).toEqual(["us", "world"]);
+    expect(a.prominence).toBe("latest");
+    expect(a.feedCategories).toEqual(["Trade", "China"]);
   });
 });

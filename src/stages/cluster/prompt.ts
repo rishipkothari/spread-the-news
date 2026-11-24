@@ -1,4 +1,4 @@
-import type { Article, HistoryStory, Source } from "@/lib/types";
+import { sectionsOf, type Article, type HistoryStory, type Source } from "@/lib/types";
 
 export const CLUSTER_SYSTEM = `You group news articles from many outlets into stories for a neutral daily news digest.
 
@@ -28,7 +28,8 @@ Rules:
 export function buildClusterUser(articles: Article[], sources: Source[], history: HistoryStory[], maxSummary = 220): string {
   const name = new Map(sources.map((s) => [s.id, s.name]));
   const lines = articles.map((a, i) => {
-    const meta = [a.section ? `section:${a.section}` : "", a.feedCategories.length ? `tags:${a.feedCategories.slice(0, 5).join(", ")}` : ""]
+    const sections = sectionsOf(a);
+    const meta = [sections.length ? `section:${sections.join(", ")}` : "", a.feedCategories.length ? `tags:${a.feedCategories.slice(0, 5).join(", ")}` : ""]
       .filter(Boolean)
       .join(" | ");
     const summary = a.summary ? ` — ${a.summary.slice(0, maxSummary)}` : "";

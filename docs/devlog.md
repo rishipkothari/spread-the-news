@@ -2,6 +2,16 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-24: backlog-01, second batch (sections, every outlet, feeds page, time report)
+
+**Discussed** (no code): wire copy (outlets running AP/Reuters text word for word inflates "agreed" facts and misattributes framing): two-step plan in the backlog. Fast yes/no classifiers (Jev): not useful here (the 300 s limit is per step, our calls aren't yes/no); dropped. Trafilatura check left for the user after merging; the function's open GET reply moved to a new Security section to discuss.
+
+**Built**: every section label kept (`sections`); analysis picks one article per covering outlet, cap 25, balanced across sides when capped; `/debug/feeds` redesign with batch add (per source and all sources; `src/admin/feed-plan.ts` decides what's "active"); visible button style site-wide; "Copy time and cost for Claude" on the run page (`src/review/timing-report.ts`).
+
+**Checked here**: typecheck, 123 tests, `next build`; the feeds page rendered with sample data and screenshotted (desktop light/dark, phone).
+
+**Next**: user's first 27-source run with the time and cost report.
+
 ## 2026-11-23: backlog-01 (merge check, 27 sources, versions, 5-story episodes, Trafilatura, Aria)
 
 Branch `backlog-01` (first of a numbered series of backlog passes).

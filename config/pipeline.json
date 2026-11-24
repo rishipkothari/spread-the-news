@@ -98,12 +98,12 @@
     "scriptStyle": "neutral-v1"
   },
   "analysis": {
-    "_note": "Phase 1. Stories selected = top N ranked (a few more than the episode's story count, so stories without readable text or a failed synthesis can be replaced); articles per story capped, picked round-robin across outlets.",
+    "_note": "Phase 1. Stories selected = top N ranked (a few more than the episode's story count, so stories without readable text or a failed synthesis can be replaced). Articles: one per covering outlet (its best piece), every outlet included; maxArticlesPerStory is only a safety cap for the per-story step's time limit, applied by taking turns across left, center and right.",
     "topStories": 8,
-    "maxArticlesPerStory": 10,
+    "maxArticlesPerStory": 25,
     "minTextChars": 800,
     "maxCharsForLlm": 15000,
-    "extractConcurrency": 4,
+    "extractConcurrency": 6,
     "_trafilatura": "Trafilatura runs as a Python function (api/trafilatura.py) after JSON-LD and before Readability; off = skip it. If it fails or is unreachable the chain moves on.",
     "trafilatura": true,
     "trafilaturaTimeoutMs": 10000,
@@ -123,7 +123,7 @@
     "skipPageFetch": [
       "thehill"
     ],
-    "analyzeConcurrency": 2,
+    "analyzeConcurrency": 3,
     "llmMaxRetries": 8
   },
   "script": {

@@ -38,3 +38,12 @@ describe("cluster validation", () => {
     expect(user).toContain("h1 | 2026-11-21 | us | Earlier story");
   });
 });
+
+describe("cluster prompt sections", () => {
+  it("lists every section label, and reads older single-section articles", () => {
+    const a = (over: Partial<Article>): Article => ({ id: "x", sourceId: "nypost", url: "u", title: "US imposes tariffs on China", feedCategories: [], prominence: "section", publishedAt: "2026-11-23T10:00:00Z", ...over });
+    const user = buildClusterUser([a({ sections: ["us", "world"] }), a({ section: "business" })], staticSources, []);
+    expect(user).toContain("section:us, world");
+    expect(user).toContain("section:business");
+  });
+});

@@ -2,12 +2,13 @@
 
 Phases follow `docs/PRD.md`. Check items off as they're done; add new items where they belong. Newest discoveries go at the top of their section.
 
-## Queued for the current backlog pass (agreed, waiting for the user's go)
+## Done in `backlog-01` (second batch, 2026-11-24): user checks
 
-- [ ] **Keep every section label:** an article in several of one outlet's feeds (US and world) keeps all their sections as `sections: ["us", "world"]` instead of only the first feed's; the clusterer sees all of them.
-- [ ] **Every covering outlet in analysis:** pick one article per covering outlet (its best news piece) instead of the 10-article cap, with a safety cap (~25) for the 300 s step limit. With 27 outlets the cap leaves some outlets, possibly one side, unheard.
-- [ ] **Redesign `/debug/feeds`:** user: "a visual mess": no alignment, buttons white on white, cluttered, reads poorly. Make it clean and scannable (aligned columns, visible buttons, less clutter).
-- [ ] Measure time and cost per step on the first 27-source run (cluster especially).
+- [x] Every section label kept (`sections: ["us", "world"]`); the clusterer sees all of them.
+- [x] Analysis takes one article per covering outlet (its best piece), every outlet; safety cap 25, applied taking turns across left/center/right. Extract 6 and analyze 3 at a time.
+- [x] `/debug/feeds` redesigned: overview table (left to right), one collapsible card per source (opens when something needs attention), aligned feed tables, visible buttons. Batch add: "Add all active found feeds" per source and across all sources (working, not yet added, articles in the last 24 h, not comments/author/podcast feeds; type guessed from the URL, editable after).
+- [x] "Copy time and cost for Claude" button on the run page (every step: elapsed, tokens, cost, result).
+- [ ] **User: first 27-source run.** Start a run → Run analysis → Write script → Make audio; on the run page press "Copy time and cost for Claude" and paste it to Claude (records cluster cost/time with ~2× articles and analysis time with up to 25 articles per story against the 300 s step limit).
 
 ## Phase 2 (script and checker): merged; follow-ups
 

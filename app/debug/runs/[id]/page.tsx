@@ -11,6 +11,8 @@ import type { MergeOut } from "@/pipeline/run";
 import { PHASES, readVersions, type Phase } from "@/pipeline/versions";
 import { UseVersionButton, versionLabel } from "./VersionBar";
 import type { AssembleOut } from "@/pipeline/phase3";
+import { buildTimingReport } from "@/review/timing-report";
+import CopyButton from "../../CopyButton";
 
 export const dynamic = "force-dynamic";
 
@@ -169,7 +171,19 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         <span className="mono">{Object.entries(status.methods).map(([k, v]) => `${k}=${v}`).join(" ")}</span>
       </div>
 
-      <h2>Pipeline</h2>
+      <div className="row" style={{ marginTop: 32, alignItems: "center" }}>
+        <h2 style={{ margin: 0 }}>Pipeline</h2>
+        <span style={{ flex: 1 }} />
+        <CopyButton
+          label="Copy time and cost for Claude"
+          text={buildTimingReport(status, usage ?? [], {
+            sources: health ? Object.keys(health).length : undefined,
+            okSources: health ? Object.values(health).filter((h) => h.ok).length : undefined,
+            articles: (bundle?.articles ?? fetched?.articles)?.length,
+            stories: bundle?.stories.length,
+          })}
+        />
+      </div>
       <div className="scroll">
         <table>
           <thead><tr><th>Step</th><th>State</th><th>Time</th><th>Result</th><th>Tokens / cost</th><th>Action</th><th>View</th></tr></thead>

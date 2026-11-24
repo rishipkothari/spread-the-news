@@ -118,3 +118,37 @@ describe("headlines-only stories", () => {
     expect(syn.skipped.length).toBeGreaterThan(0);
   });
 });
+
+describe("article picking", () => {
+  const mk = (id: string, sourceId: string, over: Partial<Article> = {}): Article => ({
+    id, sourceId, url: id, title: id, feedCategories: [], prominence: "latest", publishedAt: "2026-11-23T10:00:00Z", articleType: "news", ...over,
+  });
+
+  it("one article per outlet, every outlet, best piece first", () => {
+    const arts = [
+      mk("fox-op", "fox", { articleType: "opinion" }),
+      mk("fox-news", "fox", { publishedAt: "2026-11-23T08:00:00Z" }),
+      mk("fox-news-newer", "fox"),
+      mk("bbc-sec", "bbc", { prominence: "section" }),
+      mk("bbc-top", "bbc", { prominence: "top", publishedAt: "2026-11-23T07:00:00Z" }),
+      mk("nation-op", "thenation", { articleType: "opinion" }),
+    ];
+    const story = { id: "s", title: "s", category: "us" as const, articleIds: arts.map((a) => a.id), headlineIndex: 0 };
+    const picked = pickArticles(story, new Map(arts.map((a) => [a.id, a])), 25);
+    expect(picked.sort()).toEqual(["bbc-top", "fox-news-newer", "nation-op"]);
+  });
+
+  it("above the cap, outlets are dropped taking turns across sides", () => {
+    const leans: Record<string, number> = {};
+    const arts: Article[] = [];
+    for (let i = 0; i < 6; i++) { arts.push(mk(`l${i}`, `left${i}`)); leans[`left${i}`] = -2; }
+    for (let i = 0; i < 2; i++) { arts.push(mk(`c${i}`, `center${i}`)); leans[`center${i}`] = 0; }
+    for (let i = 0; i < 2; i++) { arts.push(mk(`r${i}`, `right${i}`)); leans[`right${i}`] = 2; }
+    const story = { id: "s", title: "s", category: "us" as const, articleIds: arts.map((a) => a.id), headlineIndex: 0 };
+    const picked = pickArticles(story, new Map(arts.map((a) => [a.id, a])), 6, (id) => leans[id]);
+    expect(picked).toHaveLength(6);
+    expect(picked.filter((id) => id.startsWith("r"))).toHaveLength(2);
+    expect(picked.filter((id) => id.startsWith("c"))).toHaveLength(2);
+    expect(picked.filter((id) => id.startsWith("l"))).toHaveLength(2);
+  });
+});

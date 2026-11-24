@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { discoverSource, probeManual, readDiscovery } from "@/admin/discover";
+import { foundFeeds, guessType } from "@/admin/feed-plan";
 import { CATEGORIES, type Category, type Prominence, type Source } from "@/lib/types";
 import { addMissingFromRepo, loadSources, resetToRepo, saveSources } from "@/sources/store";
 
@@ -100,5 +101,23 @@ export async function resetSourcesAction() {
 
 export async function addMissingSourcesAction() {
   await addMissingFromRepo();
+  revalidatePath("/debug/feeds");
+}
+
+/** Add every active discovered feed (see foundFeeds) for one source, or for all sources, with guessed types. */
+export async function addAllFoundAction(fd: FormData) {
+  const sourceId = field(fd, "sourceId");
+  const { sources } = await loadSources();
+  const targets = sourceId === "all" ? sources : sources.filter((s) => s.id === sourceId);
+  const added: string[] = [];
+  for (const src of targets) {
+    const { active } = foundFeeds(src, await readDiscovery(src.id));
+    for (const p of active) {
+      const g = guessType(p.url);
+      src.feeds.push({ url: p.url, prominence: g.prominence, ...(g.section ? { section: g.section } : {}), verified: true });
+      added.push(`${src.id} ${p.url}`);
+    }
+  }
+  if (added.length) await saveSources(sources, `added ${added.length} discovered feeds: ${added.join(", ")}`);
   revalidatePath("/debug/feeds");
 }

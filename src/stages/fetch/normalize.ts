@@ -127,7 +127,7 @@ export function toArticle(item: ParsedItem, sourceId: string, feed: Feed, fallba
     summary: item.summary,
     feedText: item.feedText && item.feedText.length > 600 ? item.feedText : undefined,
     feedCategories: item.categories,
-    section: feed.section,
+    ...(feed.section ? { sections: [feed.section] } : {}),
     prominence: feed.prominence,
     publishedAt: item.publishedAt ?? fallbackDate,
   };
@@ -135,7 +135,7 @@ export function toArticle(item: ParsedItem, sourceId: string, feed: Feed, fallba
 
 /**
  * Merge duplicate articles (same canonical URL or GUID) within a source.
- * An article seen in several feeds keeps the strongest feed type (top > latest > section) and the section label.
+ * An article seen in several feeds keeps the strongest feed type (top > latest > section) and every feed's section label.
  */
 export function dedupe(articles: (Article & { guid?: string })[]): Article[] {
   const byKey = new Map<string, Article>();
@@ -154,7 +154,7 @@ export function dedupe(articles: (Article & { guid?: string })[]): Article[] {
     byKey.set(existingKey, {
       ...prev,
       prominence: PROMINENCE_ORDER[a.prominence] > PROMINENCE_ORDER[prev.prominence] ? a.prominence : prev.prominence,
-      section: prev.section ?? a.section,
+      ...(prev.sections || a.sections ? { sections: [...new Set([...(prev.sections ?? []), ...(a.sections ?? [])])] } : {}),
       summary: prev.summary ?? a.summary,
       feedText: prev.feedText ?? a.feedText,
       feedCategories: [...new Set([...prev.feedCategories, ...a.feedCategories])],
