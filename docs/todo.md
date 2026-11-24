@@ -2,6 +2,13 @@
 
 Phases follow `docs/PRD.md`. Check items off as they're done; add new items where they belong. Newest discoveries go at the top of their section.
 
+## Queued for the current backlog pass (agreed, waiting for the user's go)
+
+- [ ] **Keep every section label:** an article in several of one outlet's feeds (US and world) keeps all their sections as `sections: ["us", "world"]` instead of only the first feed's; the clusterer sees all of them.
+- [ ] **Every covering outlet in analysis:** pick one article per covering outlet (its best news piece) instead of the 10-article cap, with a safety cap (~25) for the 300 s step limit. With 27 outlets the cap leaves some outlets, possibly one side, unheard.
+- [ ] **Redesign `/debug/feeds`:** user: "a visual mess": no alignment, buttons white on white, cluttered, reads poorly. Make it clean and scannable (aligned columns, visible buttons, less clutter).
+- [ ] Measure time and cost per step on the first 27-source run (cluster especially).
+
 ## Phase 2 (script and checker): merged; follow-ups
 
 Plan agreed 2026-11-23 (see `docs/decisions.md`, `docs/tone-guide.md`). Exit (PRD): scripts read well and pass the checker without manual edits for several consecutive runs.
