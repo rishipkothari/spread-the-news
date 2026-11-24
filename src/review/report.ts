@@ -53,7 +53,7 @@ export function buildReport(bundle: StoryBundle, usage: UsageEntry[], review: Ru
     `articles ${bundle.articles.length} (clustered types: ${Object.entries(typeCounts).map(([k, v]) => `${k} ${v}`).join(", ")}) | ` +
       `stories ${bundle.stories.length}, ranked ${ranked.length} | cluster warnings ${warnings.length}`,
   );
-  lines.push(`stages: ${["fetch", "cluster", "rank"].map(stage).join(" | ")} | total $${usage.reduce((a, x) => a + (x.costUsd ?? 0), 0).toFixed(3)}`);
+  lines.push(`stages: ${["fetch", "cluster", "merge", "rank"].map(stage).join(" | ")} | total $${usage.reduce((a, x) => a + (x.costUsd ?? 0), 0).toFixed(3)}`);
   lines.push("");
   lines.push(`## My verdict`);
   lines.push(`overall match to today's real headlines: ${review.overall ? `${review.overall}/5` : "not rated"}`);

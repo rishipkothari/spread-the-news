@@ -1,4 +1,5 @@
 import { audioFrames, durationSec } from "@/audio/mp3";
+import { nextVersion, readVersions } from "./versions";
 import { config } from "@/lib/config";
 import { sha } from "@/lib/hash";
 import { getBytes, getJson, paths, putBytes, putJson, sizeOf } from "@/lib/storage";
@@ -59,8 +60,9 @@ export function audioKey(text: string, voice: string, provider: string, format: 
   return sha(`${provider}|${format}|${voice}|${text}`, 24);
 }
 
-export function episodeIdFor(date: string, params: unknown): string {
-  return `${date}-${sha(JSON.stringify(params), 8)}`;
+/** One episode per audio version of a run, so re-making audio (or a second run on the same day) never overwrites an earlier episode. */
+export function episodeIdFor(runId: string, audioVersion: number): string {
+  return `${runId}-a${audioVersion}`;
 }
 
 const TEMPLATE_TITLES: Record<string, string> = { welcome: "Welcome", rundown: "Today's rundown", outro: "Sign-off" };
@@ -205,7 +207,10 @@ export async function assembleEpisode(runId: string, m: Methods): Promise<{ summ
   );
   const joined = impls.assemble(methods).assemble({ parts, pauseSec: config.audio.pauseSec });
 
-  const id = episodeIdFor(script.date, script.params);
+  // This audio becomes the run's next audio version once the stage finishes (src/pipeline/versions.ts).
+  const versions = await readVersions(runId);
+  const audioVersion = nextVersion(versions, "audio");
+  const id = episodeIdFor(runId, audioVersion);
   const chapters: EpisodeChapter[] = joined.parts.map((p) => {
     const seg = usable.find((s) => s.id === p.segmentId)!;
     return {
@@ -221,6 +226,7 @@ export async function assembleEpisode(runId: string, m: Methods): Promise<{ summ
     id,
     date: script.date,
     runId,
+    version: { audio: audioVersion, ...(versions.active.script ? { script: versions.active.script } : {}), ...(versions.active.analysis ? { analysis: versions.active.analysis } : {}) },
     params: script.params,
     createdAt: new Date().toISOString(),
     segmentIds: usable.map((s) => s.id),

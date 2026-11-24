@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CheckResult, EpisodePlan, EpisodeScript, Segment, UsageEntry } from "@/lib/types";
 import type { ScriptUnit } from "@/pipeline/phase2";
@@ -61,6 +60,10 @@ function Feedback({ value, onChange }: { value: SegmentFeedback | undefined; onC
 
 export default function ScriptClient(props: {
   runId: string;
+  /** Set when viewing a saved version that isn't the current one; its review is saved with that version. */
+  version?: number;
+  versionBar?: React.ReactNode;
+  nav?: React.ReactNode;
   plan: EpisodePlan;
   script: EpisodeScript | null;
   units: ScriptUnit[];
@@ -79,7 +82,7 @@ export default function ScriptClient(props: {
     if (!dirty.current) return;
     setSaveState("unsaved changes…");
     const t = setTimeout(async () => {
-      const res = await saveScriptReview(review);
+      const res = await saveScriptReview(review, props.version);
       setSaveState(res.ok ? `saved ${new Date(res.savedAt).toLocaleTimeString()}` : `save failed: ${res.error}`);
     }, 1500);
     return () => clearTimeout(t);
@@ -129,14 +132,15 @@ export default function ScriptClient(props: {
     <main>
       {running && <meta httpEquiv="refresh" content="5" />}
       <div className="sticky">
+        {props.nav}
         <div className="row">
-          <Link href={`/debug/runs/${runId}`} className="muted">← run</Link>
-          <b className="mono">Script {runId}</b>
+          <b>Script</b>
           <span className="muted">{props.stageStates}{running ? " · refreshing every 5s" : ""}{saveState ? ` · ${saveState}` : ""}</span>
           <span style={{ flex: 1 }} />
           {fullText && <CopyButton text={fullText} label="Copy script text" />}
           <CopyButton text={report} />
         </div>
+        {props.versionBar}
       </div>
 
       <p className="muted">

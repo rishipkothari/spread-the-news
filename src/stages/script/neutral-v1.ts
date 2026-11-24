@@ -44,12 +44,17 @@ function revisionNote(r: Revision, entries: Record<string, string>): string {
   ].join("\n");
 }
 
+/** The ceiling the writer is told to stay under. */
+export function maxWords(budget: number): number {
+  return Math.round((budget * config.script.maxOverBudget) / 10) * 10;
+}
+
 export function buildWriteUser(input: ScriptInput, revision?: Revision): string {
   const parts = [
     "STORY MATERIAL:",
     buildMaterial(input),
     "",
-    `LENGTH: about ${input.wordBudget} words${input.lead ? " (this is the episode's top story)" : ""}. Shorter is fine if the material is thin; never pad.`,
+    `LENGTH: about ${input.wordBudget} words, at most ${maxWords(input.wordBudget)}${input.lead ? " (this is the episode's top story)" : ""}. Shorter is fine if the material is thin; never pad.`,
   ];
   if (revision) parts.push("", revisionNote(revision, materialEntries(input)));
   return parts.join("\n");

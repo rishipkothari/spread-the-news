@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { getJson, paths } from "@/lib/storage";
 import type { StoryBundle, UsageEntry } from "@/lib/types";
 import { emptyReview, type RunReview } from "@/review/types";
 import ReviewClient from "./ReviewClient";
+import RunNav from "../RunNav";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   if (!bundle) {
     return (
       <main>
-        <p className="muted"><Link href={`/debug/runs/${id}`}>← run</Link></p>
+        <RunNav runId={id} current="review" />
         <h1>Nothing to review yet</h1>
         <p className="muted">This run has no ranked bundle. Reviews need a run that finished the rank stage.</p>
       </main>
@@ -28,5 +28,5 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
     ...bundle,
     articles: bundle.articles.map(({ feedText: _f, text: _t, summary: _s, ...a }) => a),
   };
-  return <ReviewClient bundle={slim} usage={usage ?? []} warnings={clustered?.warnings ?? []} initial={saved ?? emptyReview(id)} />;
+  return <ReviewClient bundle={slim} usage={usage ?? []} warnings={clustered?.warnings ?? []} initial={saved ?? emptyReview(id)} nav={<RunNav runId={id} current="review" />} />;
 }

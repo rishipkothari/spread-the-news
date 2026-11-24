@@ -5,9 +5,15 @@ import { config } from "@/lib/config";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus, stageWallMs } from "@/pipeline/status";
-import { ANALYSIS_STAGES, AUDIO_STAGES, SCRIPT_STAGES, isFanout } from "@/pipeline/stages";
-import { analysisAction, audioAction, replayAction, rerankAction, scriptAction } from "../../actions";
+import { ANALYSIS_STAGES, AUDIO_STAGES, DISCOVERY_STAGES, SCRIPT_STAGES, isFanout } from "@/pipeline/stages";
+import { analysisAction, audioAction, mergeAction, replayAction, rerankAction, scriptAction } from "../../actions";
+import type { MergeOut } from "@/pipeline/run";
+import { PHASES, readVersions, type Phase } from "@/pipeline/versions";
+import { UseVersionButton, versionLabel } from "./VersionBar";
 import type { AssembleOut } from "@/pipeline/phase3";
+import { buildTimingReport } from "@/review/timing-report";
+import CopyButton from "../../CopyButton";
+import RunNav from "./RunNav";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +21,7 @@ const STAGE_INFO: Record<StageId, string> = {
   sources: "which outlets and feeds",
   fetch: "read every feed + homepage",
   cluster: "Claude groups articles into stories",
+  merge: "join split stories and follow-ups (Sonnet)",
   rank: "score stories (headline index)",
   extract: "full article text",
   analyze: "facts + quotes per article (Haiku)",
@@ -119,12 +126,16 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   const status = await readStatus(id);
   if (!status) return <main><h1>Run {id} not found</h1></main>;
 
-  const [bundle, usage, fetched, clustered] = await Promise.all([
+  const [bundle, usage, fetched, clustered, merged, versions] = await Promise.all([
     getJson<StoryBundle>(paths.bundle(id)),
     getJson<UsageEntry[]>(paths.usage(id)),
     getJson<{ articles: Article[]; sourceHealth: SourceHealth; window: { start: string; end: string } }>(paths.stage(id, "fetch")),
     getJson<{ warnings: string[] }>(paths.stage(id, "cluster")),
+    getJson<MergeOut>(paths.stage(id, "merge")),
+    readVersions(id),
   ]);
+  const versionView = (phase: Phase, n: number, episodeId?: string) =>
+    phase === "audio" ? (episodeId ? `/player/${episodeId}` : null) : `/debug/runs/${id}/${phase}${n === versions.active[phase] ? "" : `?v=${n}`}`;
   const assembled = status.stages.assemble?.state === "done" ? await getJson<AssembleOut>(paths.stage(id, "assemble")) : null;
   const sourcesOut = bundle ? { sources: bundle.sources } : await getJson<{ sources: Source[] }>(paths.stage(id, "sources"));
   const sources = sourcesOut?.sources ?? [];
@@ -138,7 +149,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   // Total time = sum of each stage's elapsed time. Phases are started separately, so idle time between button clicks isn't counted.
   const fmt = (ms: number) => (ms >= 60_000 ? `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s` : `${(ms / 1000).toFixed(1)}s`);
   const phaseMs = (stages: StageId[]) => stages.reduce((a, s) => a + (stageWallMs(status.stages[s]) ?? 0), 0);
-  const phases = ([["discovery", ["sources", "fetch", "cluster", "rank"]], ["analysis", ANALYSIS_STAGES], ["script", SCRIPT_STAGES], ["audio", AUDIO_STAGES]] as [string, StageId[]][])
+  const phases = ([["discovery", DISCOVERY_STAGES], ["analysis", ANALYSIS_STAGES], ["script", SCRIPT_STAGES], ["audio", AUDIO_STAGES]] as [string, StageId[]][])
     .map(([name, stages]) => [name, phaseMs(stages)] as const)
     .filter(([, ms]) => ms > 0);
   const totalMs = phases.reduce((a, [, ms]) => a + ms, 0);
@@ -146,7 +157,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   return (
     <main>
       {(status.state === "queued" || status.state === "running") && <meta httpEquiv="refresh" content="5" />}
-      <p className="muted"><Link href="/debug/runs">← runs</Link>{status.state === "queued" || status.state === "running" ? " · refreshing every 5s" : ""}</p>
+      <RunNav runId={id} current="run" />
+      {(status.state === "queued" || status.state === "running") && <p className="muted">Refreshing every 5s</p>}
       <h1 className="mono" style={{ fontSize: 18 }}>{id}</h1>
       <div className="row muted">
         <span className={status.state === "failed" ? "bad" : status.state === "done" ? "ok" : "warn"}>{status.state}</span>
@@ -161,7 +173,19 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         <span className="mono">{Object.entries(status.methods).map(([k, v]) => `${k}=${v}`).join(" ")}</span>
       </div>
 
-      <h2>Pipeline</h2>
+      <div className="row" style={{ marginTop: 32, alignItems: "center" }}>
+        <h2 style={{ margin: 0 }}>Pipeline</h2>
+        <span style={{ flex: 1 }} />
+        <CopyButton
+          label="Copy time and cost for Claude"
+          text={buildTimingReport(status, usage ?? [], {
+            sources: health ? Object.keys(health).length : undefined,
+            okSources: health ? Object.values(health).filter((h) => h.ok).length : undefined,
+            articles: (bundle?.articles ?? fetched?.articles)?.length,
+            stories: bundle?.stories.length,
+          })}
+        />
+      </div>
       <div className="scroll">
         <table>
           <thead><tr><th>Step</th><th>State</th><th>Time</th><th>Result</th><th>Tokens / cost</th><th>Action</th><th>View</th></tr></thead>
@@ -186,6 +210,17 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                     <button type="submit" title="Re-group these same articles in a new run (uses Claude)">Re-cluster (new run)</button>
                   </form>
                 );
+              }
+              if (stage === "merge" && done(status.stages.cluster)) {
+                action = (
+                  <form action={mergeAction}>
+                    <input type="hidden" name="runId" value={id} />
+                    <button type="submit" title="Check for split stories and follow-ups, then re-rank (one small Claude call)">
+                      {done(status.stages.merge) ? "Re-run merge check" : "Run merge check"}
+                    </button>
+                  </form>
+                );
+                if (merged?.merges.length) view = <a href="#merges">Merges ↓</a>;
               }
               if (stage === "rank" && done(status.stages.cluster)) {
                 action = (
@@ -253,6 +288,36 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           </tbody>
         </table>
       </div>
+      {PHASES.some((p) => versions[p].length > 0) && (
+        <>
+          <h2>Versions</h2>
+          <p className="muted" style={{ fontSize: 13 }}>
+            Every analysis, script and audio run is kept. The current version is what the pages show and what the next phase builds on: to write a new
+            script from an earlier analysis, make that analysis current, then press &quot;Re-write script&quot;.
+          </p>
+          <div className="scroll">
+            <table>
+              <tbody>
+                {PHASES.filter((p) => versions[p].length > 0).map((phase) =>
+                  [...versions[phase]].reverse().map((v, i) => {
+                    const href = versionView(phase, v.n, v.episodeId);
+                    const current = versions.active[phase] === v.n;
+                    return (
+                      <tr key={`${phase}-${v.n}`}>
+                        <td>{i === 0 ? <b>{phase}</b> : ""}</td>
+                        <td className="mono">v{v.n}{current ? <span className="ok"> current</span> : ""}</td>
+                        <td style={{ fontSize: 13 }}>{versionLabel(phase, v)}</td>
+                        <td>{href && <Link href={href}>{phase === "audio" ? "Play →" : "View →"}</Link>}</td>
+                        <td>{!current && <UseVersionButton runId={id} phase={phase} n={v.n} back={`/debug/runs/${id}`} />}</td>
+                      </tr>
+                    );
+                  }),
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
       {assembled && (
         <p className="ok">
           Episode ready: {(assembled.durationSec / 60).toFixed(1)} min. <Link href={`/player/${assembled.episodeId}`}>Play it →</Link>
@@ -288,6 +353,20 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           {ranked.map((s, i) => <StoryCard key={s.id} story={s} rank={i + 1} articles={articles} sources={sourceMap} />)}
           <h2>Below the {config.ranking.minOutlets}-outlet minimum ({unranked.length})</h2>
           {unranked.map((s) => <StoryCard key={s.id} story={s} articles={articles} sources={sourceMap} />)}
+        </>
+      )}
+      {merged && (
+        <>
+          <h2 id="merges">Merge check ({merged.merges.length} merge{merged.merges.length === 1 ? "" : "s"})</h2>
+          {merged.merges.length === 0 && <p className="muted">No stories needed joining.</p>}
+          {merged.merges.map((mg) => (
+            <div className="story" key={mg.into} style={{ fontSize: 13 }}>
+              <b>{mg.title}</b>
+              <ul style={{ margin: "4px 0" }}>{mg.titles.map((t, i) => <li key={i}>{t}</li>)}</ul>
+              <span className="muted">{mg.reason}</span>
+            </div>
+          ))}
+          {merged.warnings.length > 0 && <ul className="mono muted">{merged.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>}
         </>
       )}
       {clustered?.warnings?.length ? (

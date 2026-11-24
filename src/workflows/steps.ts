@@ -6,6 +6,7 @@ import { mergeScript, planScriptUnits, runScriptUnit } from "@/pipeline/phase2";
 import { AudioPolicyError, mergeVoice, planVoiceUnits, runVoiceUnit } from "@/pipeline/phase3";
 import { finishRun, markStageFailed, runStage } from "@/pipeline/run";
 import type { FanoutStage, StageId } from "@/pipeline/stages";
+import { finishPhaseIfLast } from "@/pipeline/versions";
 
 /** Errors that retrying can't fix become FatalError so the step fails once instead of three more times. */
 function fatalize(e: unknown): never {
@@ -29,6 +30,7 @@ export async function runStageStep(runId: string, stage: Exclude<StageId, Fanout
   "use step";
   try {
     await runStage(runId, stage);
+    await finishPhaseIfLast(runId, stage);
   } catch (e) {
     fatalize(e);
   }
@@ -62,6 +64,7 @@ export async function mergeStageStep(runId: string, stage: FanoutStage): Promise
     if (stage === "script") await mergeScript(runId);
     else if (stage === "voice") await mergeVoice(runId);
     else await mergeStage(runId, stage);
+    await finishPhaseIfLast(runId, stage);
   } catch (e) {
     fatalize(e);
   }

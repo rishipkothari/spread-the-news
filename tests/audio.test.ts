@@ -227,7 +227,7 @@ describe("voice and assemble stages", () => {
     await runStage(RUN, "assemble");
     const a = store.get(paths.stage(RUN, "assemble")) as import("@/pipeline/phase3").AssembleOut;
     const ep = store.get(paths.episode(a.episodeId)) as import("@/lib/types").Episode;
-    expect(a.episodeId).toMatch(/^2026-11-23-[0-9a-f]{8}$/);
+    expect(a.episodeId).toMatch(/^2026-11-23T0900-abc123-a1$/); // runId + audio version: re-making audio never overwrites an episode
     expect(ep.chapters.map((c) => c.title)).toEqual(["Welcome", "Storm hits the coast", "Budget vote", "Sign-off"]);
     expect(ep.chapters[0].startSec).toBe(0);
     for (let i = 1; i < ep.chapters.length; i++) {

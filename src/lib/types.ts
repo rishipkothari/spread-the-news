@@ -6,6 +6,11 @@ export type ArticleType = "news" | "analysis" | "opinion";
 export type Prominence = "top" | "latest" | "section";
 export const PROMINENCE_ORDER: Record<Prominence, number> = { top: 3, latest: 2, section: 1 };
 
+/** All section labels of an article (handles runs saved before `sections` existed). */
+export function sectionsOf(a: Pick<Article, "sections" | "section">): string[] {
+  return a.sections ?? (a.section ? [a.section] : []);
+}
+
 export const CATEGORIES: Category[] = ["us", "world", "business", "science", "sports", "other"];
 export const ARTICLE_TYPES: ArticleType[] = ["news", "analysis", "opinion"];
 
@@ -37,6 +42,9 @@ export interface Article {
   summary?: string;
   feedText?: string;
   feedCategories: string[];
+  /** Section labels of every feed of this outlet the article appeared in (e.g. ["us", "world"]); a category hint for the clusterer. */
+  sections?: string[];
+  /** Older runs: the first feed's section only. Read with sectionsOf(). */
   section?: string;
   prominence: Prominence;
   publishedAt: string;
@@ -262,6 +270,8 @@ export interface Episode {
   id: string;
   date: string;
   runId: string;
+  /** Which of the run's analysis, script and audio versions made it (absent on episodes made before versions existed). */
+  version?: { audio: number; script?: number; analysis?: number };
   params: RunParams;
   createdAt: string;
   segmentIds: string[];

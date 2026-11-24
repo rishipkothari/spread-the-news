@@ -5,5 +5,7 @@ import { feedOnlyExtractor } from "./feed-only";
 export const extractors: Record<string, ArticleTextExtractor> = {
   [feedOnlyExtractor.id]: feedOnlyExtractor,
   [chainExtractor.id]: chainExtractor,
-  "chain-v1": chainExtractor, // older runs recorded this id
+  // Older runs recorded these ids (v2 = before Trafilatura joined the chain).
+  "chain-v1": chainExtractor,
+  "chain-v2": chainExtractor,
 };

@@ -1,5 +1,5 @@
 {
-  "_note": "Lean labels are AllSides ratings. Only fox and newsnation were confirmed against live AllSides pages (2026-11-21); the rest are best-known ratings chosen to start and should be re-checked (verified: false). Feeds marked unverified were added 2026-11-22 to raise volume and have not been fetched yet; check per-feed health on the debug page and remove any that fail.",
+  "_note": "Lean labels are AllSides ratings (5 points: left −2, lean_left −1, center 0, lean_right +1, right +2). The first 12 were best-known ratings to start (verified: false unless confirmed). The 15 added 2026-11-23 (3 per lean bucket) were checked against AllSides pages that day; their feed URLs come from feed directories and have not been fetched yet (verified: false): run Discover on /debug/feeds and remove any that fail.",
   "sources": [
     {
       "id": "motherjones",
@@ -335,6 +335,439 @@
       },
       "paywall": "none",
       "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "guardian",
+      "name": "The Guardian (US)",
+      "homepage": "https://www.theguardian.com/us",
+      "feeds": [
+        {
+          "url": "https://www.theguardian.com/us/rss",
+          "prominence": "top",
+          "verified": false
+        },
+        {
+          "url": "https://www.theguardian.com/us-news/rss",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        },
+        {
+          "url": "https://www.theguardian.com/world/rss",
+          "prominence": "section",
+          "section": "world",
+          "verified": false
+        }
+      ],
+      "lean": "left",
+      "leanValue": -2,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "vox",
+      "name": "Vox",
+      "homepage": "https://www.vox.com",
+      "feeds": [
+        {
+          "url": "https://www.vox.com/rss/index.xml",
+          "prominence": "latest",
+          "verified": false
+        }
+      ],
+      "lean": "left",
+      "leanValue": -2,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": true,
+      "enabled": true
+    },
+    {
+      "id": "slate",
+      "name": "Slate",
+      "homepage": "https://slate.com",
+      "feeds": [
+        {
+          "url": "https://slate.com/feeds/all.rss",
+          "prominence": "latest",
+          "verified": false
+        },
+        {
+          "url": "https://slate.com/feeds/news-and-politics.rss",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        }
+      ],
+      "lean": "left",
+      "leanValue": -2,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "metered",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "npr",
+      "name": "NPR",
+      "homepage": "https://www.npr.org",
+      "feeds": [
+        {
+          "url": "https://feeds.npr.org/1002/rss.xml",
+          "prominence": "top",
+          "verified": false
+        },
+        {
+          "url": "https://feeds.npr.org/1001/rss.xml",
+          "prominence": "latest",
+          "verified": false
+        },
+        {
+          "url": "https://feeds.npr.org/1014/rss.xml",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        },
+        {
+          "url": "https://feeds.npr.org/1004/rss.xml",
+          "prominence": "section",
+          "section": "world",
+          "verified": false
+        }
+      ],
+      "lean": "lean_left",
+      "leanValue": -1,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "cbsnews",
+      "name": "CBS News",
+      "homepage": "https://www.cbsnews.com",
+      "feeds": [
+        {
+          "url": "https://www.cbsnews.com/latest/rss/main",
+          "prominence": "top",
+          "verified": false
+        },
+        {
+          "url": "https://www.cbsnews.com/latest/rss/us",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        },
+        {
+          "url": "https://www.cbsnews.com/latest/rss/politics",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        },
+        {
+          "url": "https://www.cbsnews.com/latest/rss/world",
+          "prominence": "section",
+          "section": "world",
+          "verified": false
+        }
+      ],
+      "lean": "lean_left",
+      "leanValue": -1,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "nbcnews",
+      "name": "NBC News",
+      "homepage": "https://www.nbcnews.com",
+      "feeds": [
+        {
+          "url": "https://feeds.nbcnews.com/nbcnews/public/news",
+          "prominence": "top",
+          "verified": false
+        }
+      ],
+      "lean": "lean_left",
+      "leanValue": -1,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "wsj",
+      "name": "The Wall Street Journal (News)",
+      "homepage": "https://www.wsj.com",
+      "feeds": [
+        {
+          "url": "https://feeds.content.dowjones.io/public/rss/RSSUSnews",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        },
+        {
+          "url": "https://feeds.content.dowjones.io/public/rss/RSSWorldNews",
+          "prominence": "section",
+          "section": "world",
+          "verified": false
+        },
+        {
+          "url": "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain",
+          "prominence": "section",
+          "section": "business",
+          "verified": false
+        }
+      ],
+      "lean": "center",
+      "leanValue": 0,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "hard",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "newsweek",
+      "name": "Newsweek",
+      "homepage": "https://www.newsweek.com",
+      "feeds": [
+        {
+          "url": "https://www.newsweek.com/rss",
+          "prominence": "latest",
+          "verified": false
+        }
+      ],
+      "lean": "center",
+      "leanValue": 0,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "forbes",
+      "name": "Forbes",
+      "homepage": "https://www.forbes.com",
+      "feeds": [
+        {
+          "url": "https://www.forbes.com/business/feed/",
+          "prominence": "section",
+          "section": "business",
+          "verified": false
+        }
+      ],
+      "lean": "center",
+      "leanValue": 0,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "metered",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "washexaminer",
+      "name": "Washington Examiner",
+      "homepage": "https://www.washingtonexaminer.com",
+      "feeds": [
+        {
+          "url": "https://www.washingtonexaminer.com/feed/",
+          "prominence": "latest",
+          "verified": false
+        },
+        {
+          "url": "https://www.washingtonexaminer.com/tag/politics/feed/",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        }
+      ],
+      "lean": "lean_right",
+      "leanValue": 1,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "washtimes",
+      "name": "The Washington Times",
+      "homepage": "https://www.washingtontimes.com",
+      "feeds": [
+        {
+          "url": "https://www.washingtontimes.com/rss/headlines/news/",
+          "prominence": "latest",
+          "verified": false
+        },
+        {
+          "url": "https://www.washingtontimes.com/rss/headlines/news/politics/",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        },
+        {
+          "url": "https://www.washingtontimes.com/rss/headlines/news/world/",
+          "prominence": "section",
+          "section": "world",
+          "verified": false
+        }
+      ],
+      "lean": "lean_right",
+      "leanValue": 1,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "justthenews",
+      "name": "Just the News",
+      "homepage": "https://justthenews.com",
+      "feeds": [
+        {
+          "url": "https://justthenews.com/latest.xml",
+          "prominence": "latest",
+          "verified": false
+        }
+      ],
+      "lean": "lean_right",
+      "leanValue": 1,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "nypost",
+      "name": "New York Post",
+      "homepage": "https://nypost.com",
+      "feeds": [
+        {
+          "url": "https://nypost.com/feed/",
+          "prominence": "latest",
+          "verified": false
+        },
+        {
+          "url": "https://nypost.com/news/feed/",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        },
+        {
+          "url": "https://nypost.com/politics/feed/",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        }
+      ],
+      "lean": "right",
+      "leanValue": 2,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "newsmax",
+      "name": "Newsmax",
+      "homepage": "https://www.newsmax.com",
+      "feeds": [
+        {
+          "url": "https://www.newsmax.com/rss/Newsfront/16/",
+          "prominence": "latest",
+          "verified": false
+        },
+        {
+          "url": "https://www.newsmax.com/rss/Politics/1/",
+          "prominence": "section",
+          "section": "us",
+          "verified": false
+        }
+      ],
+      "lean": "right",
+      "leanValue": 2,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": false,
+      "enabled": true
+    },
+    {
+      "id": "freebeacon",
+      "name": "Washington Free Beacon",
+      "homepage": "https://freebeacon.com",
+      "feeds": [
+        {
+          "url": "https://freebeacon.com/feed/",
+          "prominence": "latest",
+          "verified": false
+        }
+      ],
+      "lean": "right",
+      "leanValue": 2,
+      "leanProvenance": {
+        "source": "allsides",
+        "checkedOn": "2026-11-23",
+        "verified": true
+      },
+      "paywall": "none",
+      "fullTextInFeed": true,
       "enabled": true
     }
   ]

@@ -11,6 +11,7 @@ import { planners } from "./plan";
 import { checkers, writers } from "./script";
 import { ttsProviders } from "./tts";
 import { assemblers } from "./assemble";
+import { mergers } from "./merge";
 import type { ArticleFetcher, SourceRegistry, StoryClusterer, StoryRanker } from "./types";
 
 const registries: Record<string, SourceRegistry> = { [staticJsonRegistry.id]: staticJsonRegistry, [blobJsonRegistry.id]: blobJsonRegistry };
@@ -30,6 +31,8 @@ export const impls = {
   sources: (m: Methods) => pick(registries, m.sources, "sources"),
   fetch: (m: Methods) => pick(fetchers, m.fetch, "fetch"),
   cluster: (m: Methods) => pick(clusterers, m.cluster, "cluster"),
+  // Runs from before the merge stage have no methods.merge; they get the config default.
+  merge: (m: Methods) => pick(mergers, m.merge ?? config.methods.merge, "merge"),
   rank: (m: Methods) => pick(rankers, m.rank, "rank"),
   extract: (m: Methods) => pick(extractors, m.extract, "extract"),
   analyze: (m: Methods) => pick(analyzers, m.analyze, "analyze"),

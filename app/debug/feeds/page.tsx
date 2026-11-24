@@ -1,8 +1,11 @@
-import { readDiscovery, type FeedProbe } from "@/admin/discover";
+import { readDiscovery, type FeedProbe, type SourceDiscovery } from "@/admin/discover";
+import { feedKey, foundFeeds, guessType } from "@/admin/feed-plan";
 import { CATEGORIES, type Feed, type Prominence, type Source } from "@/lib/types";
-import { loadSources, readChangelog } from "@/sources/store";
+import { loadSources, missingFromRepo, readChangelog } from "@/sources/store";
 import {
+  addAllFoundAction,
   addFeedAction,
+  addMissingSourcesAction,
   discoverAction,
   removeFeedAction,
   resetSourcesAction,
@@ -12,18 +15,51 @@ import {
 } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // discovering all sources probes ~100 URLs
+export const maxDuration = 300; // discovering all sources probes ~250 URLs
 
 const PROMINENCES: Prominence[] = ["top", "latest", "section"];
+const LEAN_LABEL: Record<string, string> = { left: "Left", lean_left: "Lean left", center: "Center", lean_right: "Lean right", right: "Right" };
+/** Lean outlets get a lighter dot than the outer ones. */
 const leanColor = (v: number) => (v < 0 ? "var(--left)" : v > 0 ? "var(--right)" : "var(--center)");
+const leanOpacity = (v: number) => (Math.abs(v) === 1 ? 0.45 : 1);
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+const when = (iso: string) => new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
-function FeedTypeFields({ prominence, section }: { prominence: Prominence; section?: string }) {
+interface SourceView {
+  source: Source;
+  disc: SourceDiscovery | null;
+  probeFor: Map<string, FeedProbe>;
+  found: ReturnType<typeof foundFeeds>;
+  failing: number;
+  working: number;
+  last24h: number;
+}
+
+function view(source: Source, disc: SourceDiscovery | null): SourceView {
+  const probeFor = new Map((disc?.probes ?? []).map((p) => [feedKey(p.url), p]));
+  const probes = source.feeds.map((f) => probeFor.get(feedKey(f.url)));
+  return {
+    source,
+    disc,
+    probeFor,
+    found: foundFeeds(source, disc),
+    failing: probes.filter((p) => p && !p.ok).length,
+    working: probes.filter((p) => p?.ok).length,
+    last24h: probes.reduce((a, p) => a + (p?.ok ? p.inWindow : 0), 0),
+  };
+}
+
+function Hidden({ fields }: { fields: Record<string, string> }) {
+  return <>{Object.entries(fields).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}</>;
+}
+
+function TypeFields({ prominence, section }: { prominence: Prominence; section?: string }) {
   return (
     <>
-      <select name="prominence" defaultValue={prominence} title="feed type">
+      <select name="prominence" defaultValue={prominence} aria-label="feed type">
         {PROMINENCES.map((p) => <option key={p} value={p}>{p}</option>)}
       </select>
-      <select name="section" defaultValue={section ?? ""} title="category hint">
+      <select name="section" defaultValue={section ?? ""} aria-label="section">
         <option value="">no section</option>
         {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
       </select>
@@ -31,156 +67,238 @@ function FeedTypeFields({ prominence, section }: { prominence: Prominence; secti
   );
 }
 
-function guessType(url: string): { prominence: Prominence; section?: string } {
-  const u = url.toLowerCase();
-  if (/top|front|home|headline/.test(u)) return { prominence: "top" };
-  if (/latest|all|\/feed\/?$|\/rss\/?$|rss\.xml$/.test(u)) return { prominence: "latest" };
-  const section = /world|international/.test(u) ? "world" : /politic|us\b|us\.xml|national|congress/.test(u) ? "us" : /business|econom|money|market/.test(u)
-    ? "business" : /science|health|tech|environment|climate/.test(u) ? "science" : /sport/.test(u) ? "sports" : /entertain|culture|lifestyle|arts/.test(u) ? "other" : undefined;
-  return { prominence: "section", section };
+function Status({ probe, feed }: { probe?: FeedProbe; feed?: Feed }) {
+  if (probe?.ok) return <span className="ok">{probe.inWindow} in 24 h</span>;
+  if (probe) return <span className="bad" title={probe.error}>failing</span>;
+  if (feed?.verified === false) return <span className="warn">untested</span>;
+  return <span className="muted">–</span>;
 }
 
-function ConfiguredFeed({ source, feed, probe }: { source: Source; feed: Feed; probe?: FeedProbe }) {
+function FeedUrl({ url, probe }: { url: string; probe?: FeedProbe }) {
   return (
-    <tr>
-      <td className="mono" style={{ wordBreak: "break-all" }}>
-        {feed.url}
-        {probe && <div className={probe.ok ? "muted" : "bad"}>{probe.ok ? `${probe.inWindow} in last 24h · ${probe.items} items` : probe.error}</div>}
-        {feed.verified === false && !probe && <div className="warn">never tested — run Discover</div>}
-      </td>
-      <td>
-        <form action={updateFeedAction} className="row" style={{ gap: 6 }}>
-          <input type="hidden" name="sourceId" value={source.id} />
-          <input type="hidden" name="url" value={feed.url} />
-          <FeedTypeFields prominence={feed.prominence} section={feed.section} />
-          <button type="submit">Save</button>
-        </form>
-      </td>
-      <td>
-        <form action={removeFeedAction}>
-          <input type="hidden" name="sourceId" value={source.id} />
-          <input type="hidden" name="url" value={feed.url} />
-          <button type="submit">Remove</button>
-        </form>
-      </td>
-    </tr>
+    <>
+      <div className="url">{url}</div>
+      {probe && !probe.ok && probe.error && <div className="sub bad">{probe.error}</div>}
+      {probe?.ok && probe.title && <div className="sub">{probe.title}</div>}
+    </>
   );
 }
 
-async function SourceCard({ source }: { source: Source }) {
-  const disc = await readDiscovery(source.id);
-  const configured = new Set(source.feeds.map((f) => f.url));
-  const probeFor = new Map(disc?.probes.map((p) => [p.url, p]) ?? []);
-  const candidates = disc?.probes.filter((p) => !configured.has(p.url)) ?? [];
-  const working = candidates.filter((p) => p.ok);
-  const broken = candidates.filter((p) => !p.ok);
+function ConfiguredTable({ v }: { v: SourceView }) {
+  const { source } = v;
   return (
-    <div className="story" style={{ opacity: source.enabled ? 1 : 0.6 }}>
-      <div className="row">
-        <span className="dot" style={{ background: leanColor(source.leanValue) }} />
+    <table className="ftable">
+      <colgroup><col /><col className="c-status" /><col className="c-edit" /><col className="c-act" /></colgroup>
+      <thead><tr><th>Configured feed</th><th>Status</th><th>Type and section</th><th /></tr></thead>
+      <tbody>
+        {source.feeds.map((f) => {
+          const probe = v.probeFor.get(feedKey(f.url));
+          return (
+            <tr key={f.url}>
+              <td><FeedUrl url={f.url} probe={probe} /></td>
+              <td><Status probe={probe} feed={f} /></td>
+              <td>
+                <form action={updateFeedAction} className="inline">
+                  <Hidden fields={{ sourceId: source.id, url: f.url }} />
+                  <TypeFields prominence={f.prominence} section={f.section} />
+                  <button type="submit" className="small">Save</button>
+                </form>
+              </td>
+              <td className="right">
+                <form action={removeFeedAction}>
+                  <Hidden fields={{ sourceId: source.id, url: f.url }} />
+                  <button type="submit" className="small danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function FoundTable({ v, probes, title }: { v: SourceView; probes: FeedProbe[]; title: string }) {
+  if (!probes.length) return null;
+  return (
+    <table className="ftable">
+      <colgroup><col /><col className="c-status" /><col className="c-edit" /><col className="c-act" /></colgroup>
+      <thead><tr><th>{title}</th><th>Last 24 h</th><th>Type and section</th><th /></tr></thead>
+      <tbody>
+        {probes.map((p) => {
+          const g = guessType(p.url);
+          const formId = `add-${v.source.id}-${feedKey(p.url)}`;
+          return (
+            <tr key={p.url}>
+              <td>
+                <div className="url">{p.url}</div>
+                <div className="sub">{p.samples.slice(0, 2).join(" · ")}</div>
+              </td>
+              <td>{p.inWindow} of {p.items}</td>
+              <td>
+                <div className="inline">
+                  <form id={formId} action={addFeedAction}><Hidden fields={{ sourceId: v.source.id, url: p.url }} /></form>
+                  <select name="prominence" form={formId} defaultValue={g.prominence} aria-label="feed type">
+                    {PROMINENCES.map((x) => <option key={x} value={x}>{x}</option>)}
+                  </select>
+                  <select name="section" form={formId} defaultValue={g.section ?? ""} aria-label="section">
+                    <option value="">no section</option>
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </td>
+              <td className="right"><button type="submit" form={formId} className="small">Add</button></td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function SourceCard({ v }: { v: SourceView }) {
+  const { source, disc, found } = v;
+  const open = v.failing > 0 || found.active.length > 0 || source.feeds.some((f) => f.verified === false && !v.probeFor.get(feedKey(f.url)));
+  return (
+    <details className="src" id={source.id} open={open}>
+      <summary>
+        <span className="dot" style={{ background: leanColor(source.leanValue), opacity: leanOpacity(source.leanValue) }} />
         <b>{source.name}</b>
-        <span className="muted">{source.lean} · {source.homepage}</span>
-        <span style={{ flex: 1 }} />
-        <form action={discoverAction}>
-          <input type="hidden" name="sourceId" value={source.id} />
-          <button type="submit">Discover feeds</button>
-        </form>
-        <form action={toggleSourceAction}>
-          <input type="hidden" name="sourceId" value={source.id} />
-          <button type="submit">{source.enabled ? "Disable source" : "Enable source"}</button>
-        </form>
-      </div>
-      {disc && (
-        <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-          last discovery {new Date(disc.at).toLocaleString()} · homepage {disc.homepage.ok ? `ok, ${disc.homepage.articleLinks} article links` : `failed: ${disc.homepage.error}`}
+        <span className="muted">{LEAN_LABEL[source.lean] ?? source.lean}</span>
+        <span className="spacer" />
+        {!source.enabled && <span className="pill">disabled</span>}
+        <span className="pill">{plural(source.feeds.length, "feed")}</span>
+        {v.failing > 0 && <span className="pill bad">{v.failing} failing</span>}
+        {found.active.length > 0 && <span className="pill warn">{found.active.length} new found</span>}
+      </summary>
+
+      <div className="src-body">
+        <div className="toolbar">
+          <form action={discoverAction}>
+            <Hidden fields={{ sourceId: source.id }} />
+            <button type="submit">Discover feeds</button>
+          </form>
+          {found.active.length > 0 && (
+            <form action={addAllFoundAction}>
+              <Hidden fields={{ sourceId: source.id }} />
+              <button type="submit" className="primary">{found.active.length === 1 ? "Add the active found feed" : `Add all ${found.active.length} active found feeds`}</button>
+            </form>
+          )}
+          <form action={toggleSourceAction}>
+            <Hidden fields={{ sourceId: source.id }} />
+            <button type="submit">{source.enabled ? "Disable source" : "Enable source"}</button>
+          </form>
+          <span className="spacer" />
+          <span className="muted small">
+            <a href={source.homepage} target="_blank" rel="noreferrer">{source.homepage.replace(/^https?:\/\//, "")}</a>
+            {disc ? ` · discovered ${when(disc.at)} · homepage ${disc.homepage.ok ? `${disc.homepage.articleLinks} links` : "failed"}` : " · never discovered"}
+          </span>
         </div>
-      )}
 
-      <h3 style={{ fontSize: 13, margin: "12px 0 4px" }}>Configured feeds</h3>
-      <div className="scroll">
-        <table>
-          <tbody>{source.feeds.map((f) => <ConfiguredFeed key={f.url} source={source} feed={f} probe={probeFor.get(f.url)} />)}</tbody>
-        </table>
+        <ConfiguredTable v={v} />
+        <FoundTable v={v} probes={found.active} title="Found: active in the last 24 h" />
+        {found.quiet.length > 0 && (
+          <details className="more">
+            <summary>{plural(found.quiet.length, "more found feed")}: quiet in the last 24 h, or likely not news (comments, authors, podcasts)</summary>
+            <FoundTable v={v} probes={found.quiet} title="Found: quiet or likely not news" />
+          </details>
+        )}
+        {found.broken.length > 0 && (
+          <details className="more">
+            <summary>{plural(found.broken.length, "candidate")} that didn&apos;t work</summary>
+            <ul className="url-list">{found.broken.map((p) => <li key={p.url}><span className="url">{p.url}</span> <span className="muted">{p.error}</span></li>)}</ul>
+          </details>
+        )}
+
+        <form action={testUrlAction} className="inline test">
+          <Hidden fields={{ sourceId: source.id }} />
+          <input name="url" placeholder="Test a feed URL by hand (or an RSS index page)" />
+          <button type="submit">Test</button>
+        </form>
       </div>
-
-      {working.length > 0 && (
-        <>
-          <h3 style={{ fontSize: 13, margin: "12px 0 4px" }}>Discovered working feeds ({working.length})</h3>
-          <div className="scroll">
-            <table>
-              <tbody>
-                {working.map((p) => {
-                  const g = guessType(p.url);
-                  return (
-                    <tr key={p.url}>
-                      <td className="mono" style={{ wordBreak: "break-all" }}>
-                        {p.url}
-                        <div className="muted">{p.title ? `${p.title} · ` : ""}{p.inWindow} in last 24h · {p.items} items · via {p.foundVia}</div>
-                        <div className="muted" style={{ fontFamily: "inherit" }}>{p.samples.join(" · ")}</div>
-                      </td>
-                      <td>
-                        <form action={addFeedAction} className="row" style={{ gap: 6 }}>
-                          <input type="hidden" name="sourceId" value={source.id} />
-                          <input type="hidden" name="url" value={p.url} />
-                          <FeedTypeFields prominence={g.prominence} section={g.section} />
-                          <button type="submit">Add</button>
-                        </form>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
-      {broken.length > 0 && (
-        <details style={{ marginTop: 8 }}>
-          <summary className="muted" style={{ cursor: "pointer" }}>{broken.length} candidates that didn&apos;t work</summary>
-          <ul className="mono muted">{broken.map((p) => <li key={p.url}>{p.url} — {p.error} ({p.foundVia})</li>)}</ul>
-        </details>
-      )}
-
-      <form action={testUrlAction} className="row" style={{ marginTop: 10, gap: 6 }}>
-        <input type="hidden" name="sourceId" value={source.id} />
-        <input name="url" placeholder="Test a feed URL (or an RSS index page) by hand" style={{ flex: "1 1 320px" }} />
-        <button type="submit">Test</button>
-      </form>
-    </div>
+    </details>
   );
 }
 
 export default async function FeedsPage() {
   const [{ sources, origin, updatedAt }, log] = await Promise.all([loadSources(), readChangelog()]);
+  const missing = origin === "blob" ? missingFromRepo(sources) : [];
+  // Left to right, then by name, so the list reads like the spectrum.
+  const ordered = [...sources].sort((a, b) => a.leanValue - b.leanValue || a.name.localeCompare(b.name));
+  const views = await Promise.all(ordered.map(async (s) => view(s, await readDiscovery(s.id))));
+  const totalActive = views.reduce((a, v) => a + v.found.active.length, 0);
+  const withActive = views.filter((v) => v.found.active.length > 0).length;
+  const failing = views.reduce((a, v) => a + v.failing, 0);
+
   return (
-    <main>
+    <main className="feeds">
       <h1>Feeds</h1>
-      <p className="muted">
-        Find, test and manage each outlet&apos;s feeds. Changes apply from the next run. Feed types: <b>top</b> = the outlet&apos;s editorial front page,{" "}
-        <b>latest</b> = everything it publishes, <b>section</b> = one topic (the section sets a category hint). &quot;Discover&quot; reads the outlet&apos;s
-        homepage for advertised feeds, follows RSS index pages one level, and tests every candidate.
+      <p className="muted lead">
+        Each outlet&apos;s feeds. Changes apply from the next run. <b>top</b> = the outlet&apos;s front page, <b>latest</b> = everything it publishes,{" "}
+        <b>section</b> = one topic (the section is a category hint).
       </p>
-      <div className="row" style={{ margin: "12px 0" }}>
+
+      <div className="panel toolbar">
         <form action={discoverAction}>
-          <input type="hidden" name="sourceId" value="all" />
-          <button type="submit" className="primary">Discover feeds for all sources (~1 min)</button>
+          <Hidden fields={{ sourceId: "all" }} />
+          <button type="submit" className="primary">Discover feeds for all sources (~2 min)</button>
         </form>
-        <a href="/debug/feeds/sources.json" className="big" style={{ margin: 0, padding: "6px 12px" }}>Download sources.json</a>
-        <span className="muted">
-          Live list: {origin === "blob" ? `edited here (${updatedAt ? new Date(updatedAt).toLocaleString() : ""})` : "repo default (config/sources.json)"}
+        <form action={addAllFoundAction}>
+          <Hidden fields={{ sourceId: "all" }} />
+          <button type="submit" disabled={totalActive === 0} title="Adds every working, not-yet-added feed that had articles in the last 24 hours, with a guessed type">
+            Add all active found feeds ({totalActive} across {plural(withActive, "source")})
+          </button>
+        </form>
+        <a href="/debug/feeds/sources.json" className="btnlink">Download sources.json</a>
+        <span className="spacer" />
+        <span className="muted small">
+          {sources.length} sources · {sources.reduce((a, s) => a + s.feeds.length, 0)} feeds{failing ? <span className="bad"> · {failing} failing</span> : null} · live list:{" "}
+          {origin === "blob" ? `edited here${updatedAt ? ` ${when(updatedAt)}` : ""}` : "repo default"}
         </span>
         {origin === "blob" && (
           <form action={resetSourcesAction}>
-            <button type="submit">Reset to repo version</button>
+            <button type="submit" className="small danger" title="Throws away every edit made on this page">Reset to repo version</button>
           </form>
         )}
       </div>
-      {sources.map((s) => <SourceCard key={s.id} source={s} />)}
+
+      {missing.length > 0 && (
+        <div className="panel notice">
+          <div><b>{missing.length} new sources in the repo aren&apos;t in your live list:</b> {missing.map((s) => s.name).join(", ")}.</div>
+          <form action={addMissingSourcesAction}>
+            <button type="submit" className="primary">Add them (keeps your edits)</button>
+          </form>
+        </div>
+      )}
+
+      <h2>Overview</h2>
+      <div className="scroll">
+        <table className="overview">
+          <thead><tr><th>Source</th><th>Lean</th><th className="num">Feeds</th><th className="num">Working</th><th className="num">Articles, 24 h</th><th className="num">New found</th></tr></thead>
+          <tbody>
+            {views.map((v) => (
+              <tr key={v.source.id} className={v.source.enabled ? "" : "off"}>
+                <td><span className="dot" style={{ background: leanColor(v.source.leanValue), opacity: leanOpacity(v.source.leanValue) }} /><a href={`#${v.source.id}`}>{v.source.name}</a></td>
+                <td className="muted">{LEAN_LABEL[v.source.lean] ?? v.source.lean}</td>
+                <td className="num">{v.source.feeds.length}</td>
+                <td className="num">{v.disc ? <span className={v.failing ? "bad" : "ok"}>{v.working}/{v.source.feeds.length}</span> : <span className="muted">–</span>}</td>
+                <td className="num">{v.disc ? v.last24h : <span className="muted">–</span>}</td>
+                <td className="num">{v.found.active.length ? <span className="warn">{v.found.active.length}</span> : <span className="muted">0</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="muted small">Working and article counts come from the last Discover for each source.</p>
+
+      <h2>Sources</h2>
+      {views.map((v) => <SourceCard key={v.source.id} v={v} />)}
+
       {log.length > 0 && (
-        <>
-          <h2>Change log</h2>
-          <ul className="mono muted">{log.slice(-30).reverse().map((l, i) => <li key={i}>{l.at.slice(0, 16).replace("T", " ")} {l.change}</li>)}</ul>
-        </>
+        <details className="more">
+          <summary>Change log ({log.length})</summary>
+          <ul className="url-list">{log.slice(-50).reverse().map((l, i) => <li key={i}><span className="muted">{when(l.at)}</span> {l.change.length > 300 ? `${l.change.slice(0, 300)}…` : l.change}</li>)}</ul>
+        </details>
       )}
     </main>
   );

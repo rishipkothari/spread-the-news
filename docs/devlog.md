@@ -2,6 +2,34 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-24: backlog-01, second batch (sections, every outlet, feeds page, time report)
+
+**Discussed** (no code): wire copy (outlets running AP/Reuters text word for word inflates "agreed" facts and misattributes framing): two-step plan in the backlog. Fast yes/no classifiers (Jev): not useful here (the 300 s limit is per step, our calls aren't yes/no); dropped. Trafilatura check left for the user after merging; the function's open GET reply moved to a new Security section to discuss.
+
+**Built**: every section label kept (`sections`); analysis picks one article per covering outlet, cap 25, balanced across sides when capped; `/debug/feeds` redesign with batch add (per source and all sources; `src/admin/feed-plan.ts` decides what's "active"); visible button style site-wide; "Copy time and cost for Claude" on the run page (`src/review/timing-report.ts`).
+
+**Checked here**: typecheck, 123 tests, `next build`; the feeds page rendered with sample data and screenshotted (desktop light/dark, phone).
+
+**Run page navigation**: shared `RunNav` on the run, ranking review, analysis and script pages: a prominent "← Run" button and tabs to jump straight between ranking review, analysis, script and the episode (greyed out until that step has run; version counts shown; the version picker stays on the analysis and script pages). Merged `backlog-01` to `main`.
+
+**Next**: user's first 27-source run with the time and cost report.
+
+## 2026-11-23: backlog-01 (merge check, 27 sources, versions, 5-story episodes, Trafilatura, Aria)
+
+Branch `backlog-01` (first of a numbered series of backlog passes).
+
+**Built**
+- Merge check: new `merge` stage between cluster and rank (`src/stages/merge/llm-merge-v1.ts`): one Sonnet call (effort low) over story titles, newest headlines and publish-time spans; joins the same event or a direct follow-up into the larger story, title from the newest development. Merges listed on the run page; "Run merge check" re-runs merge + rank on older runs. Synthesis now gets publish times and states the latest development instead of a dispute.
+- Sources: 15 added (3 per AllSides bucket: left, lean left, center, lean right, right), ratings checked on AllSides by web search; 27 total. Feed URLs come from feed directories (the sandbox can't fetch news sites), all marked untested. `/debug/feeds` shows a box to add repo sources missing from the live (Blob) list without losing edits. Discover now allows 300 s.
+- Versions: every finished analysis/script/audio is kept (`src/pipeline/versions.ts`); run page "Versions" table (View / Use this version); `?v=n` on the analysis and script pages; script reviews belong to their version; episodes `{runId}-a{n}`, player lists all versions with labels.
+- Episode shape: 5 stories, 540/540/390/390/390 words (~15 min); writer told a ceiling (×1.15); analysis top 8 stories, 10 articles each.
+- Voice: Aria. Rundown: already top three in code; the user's 16-min episode was voiced from a script written before that fix.
+- Trafilatura: `api/trafilatura.py` (Vercel Python function, `trafilatura==2.4.0`), called by the chain (`chain-v3`) after JSON-LD with the already-fetched page; failures fall through to Readability/Defuddle.
+
+**Checked here**: typecheck, tests (merge, versions, Trafilatura link, budgets), `next build`; the Python function run locally against the page fixtures and over HTTP (auth rejected without the secret). Not checked: new feed URLs, the merge prompt on real data, and whether Vercel deploys the Python function next to Next.js; all in the user's steps.
+
+**Next**: user adds and checks the new sources, runs a fresh run → analysis → script → audio, checks merges, Trafilatura in the extraction table, versions.
+
 ## 2026-11-23: todo.md repaired
 
 The Phase 3 commit (`e809ce6`) had corrupted `docs/todo.md`: the Phase 3 section repeated ~12,000 times (168k lines) and the rest of the backlog was gone. Rebuilt it from the last good version (`81621cd`) plus one copy of the Phase 3 section (including the "Keep every version" item) and a "Next: Phase 4" placeholder. No other docs were affected.
