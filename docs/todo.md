@@ -81,7 +81,7 @@ Exit criterion: about a week of daily manual runs where the ranked list looks li
 
 First live run 2026-11-22 (`docs/reviews/2026-11-22-1313-analysis.md`): $0.24 for 15 stories; good syntheses where 2+ outlets have text. Opt-in via "Run analysis" on a run's Pipeline table. Goal now: MVP quickly, fine-tune later (every stage is swappable).
 
-- [ ] **User: check Trafilatura** (added 2026-11-23, `backlog-01`): after the deploy, Run analysis on a fresh run; on the Analysis page the extraction table should show "trafilatura" for many articles. If it never appears, tell Claude (the Python function may not have deployed).
+- [ ] **User (later, after `backlog-01` is merged): check Trafilatura.** Run analysis on a fresh run; on the Analysis page the extraction table should show "trafilatura" for many articles. If it never appears, tell Claude (the Python function may not have deployed). On branch previews it shows as failing: the chain calls the production domain, which only has the function after merging.
 - [ ] Re-run analysis on a run after the 2026-11-22 fixes and confirm: no 429 errors, The Hill skipped cleanly, single-source facts labelled, headline-only stories not synthesized.
 - [ ] NewsNation blocks some page fetches (3/7 HTTP 403). Watch; add to `analysis.skipPageFetch` if it gets worse.
 - [ ] One-sided or single-outlet "disputes" still appear (e.g. both positions from one outlet). Decided 2026-11-22 to leave for now; revisit in prompt tuning.
@@ -94,6 +94,10 @@ First live run 2026-11-22 (`docs/reviews/2026-11-22-1313-analysis.md`): $0.24 fo
 - [x] Debug UI: ranking legend; per-stage columns on the runs list; Pipeline table with actions and results per step on the run page.
 - [x] Scaffold, `chain` extractor, `haiku-facts-v1`, `sonnet-synthesis-v1`, story history summaries, analysis page.
 
+## Security (discuss thoroughly before changing)
+
+- [ ] **Trafilatura function's open health reply:** `GET /api/trafilatura` answers `{ok, version}` without the secret (POST requires `Bearer RUN_SECRET`). Reveals only that the function exists and its version. Options: require the secret on GET too, or remove GET. Part of a broader review of what's reachable without auth (`/api/*`, `/.well-known/workflow/*`, audio route), how secrets are used, and rate of refused calls.
+
 ## Later
 
 - Failure policy: real thresholds in `meetsFailurePolicy()` (PRD: ≥8/12 sources, ≥5 checked stories) once sources are adequate. Stub returns true.
@@ -104,7 +108,6 @@ First live run 2026-11-22 (`docs/reviews/2026-11-22-1313-analysis.md`): $0.24 fo
 
 ## Wish list (long term)
 
-- Fast non-generative classifier (e.g. Jev by TypeSafe, early access since 2026-09, vendor-claimed ~$0.0007/example) as a cheap filter before clustering ("is this real news about an event?") to cut Sonnet input, or to check story membership. Only if clustering cost grows uncomfortably after 27-source runs; would add a second AI vendor (needs the user's sign-off, decisions entry).
 
 - Web context lookup as a last resort for missing context (who someone is, what a thing is, official figures when outlets conflict): narrow, reference/official domains only, cited and labelled as background, never for framing; opt-in stage. Revisit only if drops stay high after the 2026-11-23 fixes.
 - A "most contested stories" show format: episodes built from the stories where the sides disagree most, each presented with all sides.
