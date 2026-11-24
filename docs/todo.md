@@ -8,6 +8,7 @@ Phases follow `docs/PRD.md`. Check items off as they're done; add new items wher
 - [x] Analysis takes one article per covering outlet (its best piece), every outlet; safety cap 25, applied taking turns across left/center/right. Extract 6 and analyze 3 at a time.
 - [x] `/debug/feeds` redesigned: overview table (left to right), one collapsible card per source (opens when something needs attention), aligned feed tables, visible buttons. Batch add: "Add all active found feeds" per source and across all sources (working, not yet added, articles in the last 24 h, not comments/author/podcast feeds; type guessed from the URL, editable after).
 - [x] "Copy time and cost for Claude" button on the run page (every step: elapsed, tokens, cost, result).
+- [x] Run pages share a navigation bar: big "← Run" button, tabs for ranking review, analysis, script and play (with version counts).
 - [ ] **User: first 27-source run.** Start a run → Run analysis → Write script → Make audio; on the run page press "Copy time and cost for Claude" and paste it to Claude (records cluster cost/time with ~2× articles and analysis time with up to 25 articles per story against the 300 s step limit).
 
 ## Phase 2 (script and checker): merged; follow-ups

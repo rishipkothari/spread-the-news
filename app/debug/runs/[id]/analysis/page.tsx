@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, StoryBundle, UsageEntry } from "@/lib/types";
 import type { AnalysisPlan, AnalyzeOut, ExtractOut, SynthesizeOut } from "@/pipeline/phase1";
@@ -7,6 +6,7 @@ import { buildAnalysisReport } from "@/review/analysis-report";
 import { readVersions, versionedPath } from "@/pipeline/versions";
 import CopyButton from "../../../CopyButton";
 import VersionBar from "../VersionBar";
+import RunNav from "../RunNav";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,7 @@ export default async function AnalysisPage({ params, searchParams }: { params: P
     getJson<SynthesizeOut>(at("synthesize.json")),
     getJson<UsageEntry[]>(paths.usage(id)),
   ]);
-  if (!status || !bundle) return <main><h1>Run {id} has no ranked bundle</h1></main>;
+  if (!status || !bundle) return <main><RunNav runId={id} current="analysis" /><h1>Run {id} has no ranked bundle</h1></main>;
   // Usage is kept for the latest run of each stage only, so costs are shown for the current version.
   const usage = v ? [] : allUsage;
 
@@ -45,9 +45,9 @@ export default async function AnalysisPage({ params, searchParams }: { params: P
     <main>
       {running && <meta httpEquiv="refresh" content="5" />}
       <div className="sticky">
+        <RunNav runId={id} current="analysis" />
         <div className="row">
-          <Link href={`/debug/runs/${id}`} className="muted">← run</Link>
-          <b className="mono">Analysis {id}</b>
+          <b>Analysis</b>
           <span className="muted">
             {v ? `version ${v}` : (["extract", "analyze", "synthesize"] as const).map((s) => `${s}: ${status.stages[s]?.state ?? "–"}`).join(" · ")}
             {running ? " · refreshing every 5s" : ""}

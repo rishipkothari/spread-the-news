@@ -76,6 +76,16 @@ input, select, textarea { font: inherit; padding: 5px 8px; border: 1px solid var
 .player .chapters li.on .ch-title::before { content: "▶ "; font-size: 11px; }
 .player .ch-title { flex: 1; }
 
+/* Run pages: back button and tabs */
+.runnav { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin: 0 0 10px; }
+.runnav .back { display: inline-block; padding: 8px 14px; border-radius: 8px; background: var(--fg); color: var(--bg); font-weight: 700; font-size: 15px; text-decoration: none; }
+.runnav .back:hover { opacity: 0.85; }
+.runnav .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.runnav .tab { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--btn); text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap; }
+.runnav a.tab:hover { background: var(--btn-hover); border-color: var(--muted); }
+.runnav .tab.on { background: var(--card); border-color: var(--fg); box-shadow: inset 0 -3px 0 var(--fg); }
+.runnav .tab.off { color: var(--muted); background: transparent; border-style: dashed; cursor: default; }
+
 /* Feeds page */
 .feeds .lead { margin: 0 0 16px; max-width: 760px; }
 .feeds .small, .feeds .sub { font-size: 12px; }

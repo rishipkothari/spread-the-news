@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getJson, paths } from "@/lib/storage";
 import type { EpisodePlan, EpisodeScript, UsageEntry } from "@/lib/types";
 import type { ScriptUnit } from "@/pipeline/phase2";
@@ -6,6 +5,7 @@ import { readStatus } from "@/pipeline/status";
 import { emptyScriptReview, type ScriptReview } from "@/review/script-types";
 import { readVersions, versionedPath } from "@/pipeline/versions";
 import VersionBar from "../VersionBar";
+import RunNav from "../RunNav";
 import ScriptClient from "./ScriptClient";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ export default async function ScriptPage({ params, searchParams }: { params: Pro
     return (
       <main>
         {running && <meta httpEquiv="refresh" content="5" />}
-        <p className="muted"><Link href={`/debug/runs/${id}`}>← run</Link></p>
+        <RunNav runId={id} current="script" />
         <h1>No script yet</h1>
         <p className="muted">{running ? "Planning… this page refreshes every 5 seconds." : "Start it with \"Write script\" on the run page (needs a finished analysis)."}</p>
       </main>
@@ -47,6 +47,7 @@ export default async function ScriptPage({ params, searchParams }: { params: Pro
       runId={id}
       version={v ?? undefined}
       versionBar={versionBar}
+      nav={<RunNav runId={id} current="script" />}
       plan={plan}
       script={script}
       units={units}

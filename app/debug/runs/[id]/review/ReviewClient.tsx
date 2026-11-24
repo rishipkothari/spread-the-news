@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, type Article, type LeanGroup, type Source, type Story, type StoryBundle, type UsageEntry } from "@/lib/types";
 import { buildReport } from "@/review/report";
@@ -108,7 +107,7 @@ function StoryRow(props: {
   );
 }
 
-export default function ReviewClient({ bundle, usage, warnings, initial }: { bundle: StoryBundle; usage: UsageEntry[]; warnings: string[]; initial: RunReview }) {
+export default function ReviewClient({ bundle, usage, warnings, initial, nav }: { bundle: StoryBundle; usage: UsageEntry[]; warnings: string[]; initial: RunReview; nav?: React.ReactNode }) {
   const [review, setReview] = useState<RunReview>(initial);
   const [saveState, setSaveState] = useState<string>(initial.savedAt ? `saved ${new Date(initial.savedAt).toLocaleTimeString()}` : "not saved yet");
   const [copied, setCopied] = useState(false);
@@ -161,9 +160,9 @@ export default function ReviewClient({ bundle, usage, warnings, initial }: { bun
   return (
     <main>
       <div className="sticky">
+        {nav}
         <div className="row">
-          <Link href={`/debug/runs/${bundle.runId}`} className="muted">← run</Link>
-          <b className="mono">Review {bundle.runId}</b>
+          <b>Ranking review</b>
           <span className="muted">{reviewedCount}/{ranked.length} stories marked · {saveState}</span>
           <span style={{ flex: 1 }} />
           <button type="button" className="primary" onClick={copy}>{copied ? "Copied ✓ — paste it to Claude" : "Copy report for Claude"}</button>

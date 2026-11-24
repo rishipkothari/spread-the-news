@@ -13,6 +13,7 @@ import { UseVersionButton, versionLabel } from "./VersionBar";
 import type { AssembleOut } from "@/pipeline/phase3";
 import { buildTimingReport } from "@/review/timing-report";
 import CopyButton from "../../CopyButton";
+import RunNav from "./RunNav";
 
 export const dynamic = "force-dynamic";
 
@@ -156,7 +157,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   return (
     <main>
       {(status.state === "queued" || status.state === "running") && <meta httpEquiv="refresh" content="5" />}
-      <p className="muted"><Link href="/debug/runs">← runs</Link>{status.state === "queued" || status.state === "running" ? " · refreshing every 5s" : ""}</p>
+      <RunNav runId={id} current="run" />
+      {(status.state === "queued" || status.state === "running") && <p className="muted">Refreshing every 5s</p>}
       <h1 className="mono" style={{ fontSize: 18 }}>{id}</h1>
       <div className="row muted">
         <span className={status.state === "failed" ? "bad" : status.state === "done" ? "ok" : "warn"}>{status.state}</span>

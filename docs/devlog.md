@@ -10,6 +10,8 @@ One entry per work session, newest first: what changed, what we learned, what's 
 
 **Checked here**: typecheck, 123 tests, `next build`; the feeds page rendered with sample data and screenshotted (desktop light/dark, phone).
 
+**Run page navigation**: shared `RunNav` on the run, ranking review, analysis and script pages: a prominent "← Run" button and tabs to jump straight between ranking review, analysis, script and the episode (greyed out until that step has run; version counts shown; the version picker stays on the analysis and script pages). Merged `backlog-01` to `main`.
+
 **Next**: user's first 27-source run with the time and cost report.
 
 ## 2026-11-23: backlog-01 (merge check, 27 sources, versions, 5-story episodes, Trafilatura, Aria)
