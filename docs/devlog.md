@@ -2,6 +2,12 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-25: pronunciation listening test
+
+**Built** (branch `listening-test`): "Pronunciation test" on `/debug/voices`. 38 short news lines covering the 20 categories in `docs/pronunciation.md`, each in 2–6 versions: as written, respelling styles (per-FECT / perFECT / pur-fect, U.S. / U S / U-S / you-ess…), written-out forms, and SSML tags (IPA `<phoneme>`, `<sub>`, `<say-as>`, `<break>`, `<emphasis>`) to learn whether the free Edge endpoint honors them. Clips voice on demand or with "Prepare all clips" (3 at a time, cached in `audio/`); a refused tag shows as a failure and goes in the report. Marks and notes stay in the browser until sent. `TTSProvider.synthesizeMarkup` (optional; edge-tts passes the fragment unescaped). Tests: `tests/pronunciation-test.test.ts`.
+
+**Next**: user takes the test and sends it; then plan the spoken script on its own branch.
+
 ## 2026-11-25: feedback to Claude; pronunciation planned
 
 **Discussed**: TTS mispronunciations (heard: "read" in the intro, "perfect" in a story, names, "US" choppy). Agreed: no manual list, no approvals, no rewording; a Claude pass writes a separate spoken script. The 20 categories it must catch are in `docs/pronunciation.md`. I can't listen to audio, and this sandbox can't reach Edge TTS or Whisper's model host (the user declined widening the network), and speech-to-text can't hear stress or "reed"/"red" anyway, so a one-time listening test by the user settles what Edge reads well.

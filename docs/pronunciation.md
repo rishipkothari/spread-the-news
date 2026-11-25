@@ -1,6 +1,6 @@
 # Pronunciation (spoken script)
 
-Agreed with the user on 2026-11-25. Status: **planned**; the feedback system it reports through is built.
+Agreed with the user on 2026-11-25. Status: listening test built (`/debug/voices`, `src/audio/pronunciation-test.ts`); spoken script planned.
 
 ## Goal
 

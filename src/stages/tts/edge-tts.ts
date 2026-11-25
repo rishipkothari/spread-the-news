@@ -51,11 +51,12 @@ async function withRetries<T>(what: string, fn: () => Promise<T>): Promise<T> {
   throw new Error(`edge-tts ${what} failed after ${tries} tries: ${last instanceof Error ? last.message : String(last)}`);
 }
 
+/** `text` is already SSML-safe: escaped plain text, or a markup fragment for the pronunciation test. */
 async function voiceChunk(text: string, voice: string): Promise<Uint8Array> {
   const tts = new MsEdgeTTS({ connectionTimeoutMs: 15_000, synthesisTimeoutMs: 60_000 });
   try {
     await tts.setMetadata(voice, FORMAT);
-    const { audioStream } = tts.toStream(escapeXml(text));
+    const { audioStream } = tts.toStream(text);
     const mp3 = await collect(audioStream);
     if (mp3.length < 500) throw new Error(`no audio returned (${mp3.length} bytes); the voice name may be wrong or the service refused the request`);
     return mp3;
@@ -72,8 +73,13 @@ export const edgeTts: TTSProvider = {
     const chunks = splitForTts(text, config.audio.maxChunkChars);
     if (!chunks.length) throw new Error("nothing to voice (empty text)");
     const parts: Uint8Array[] = [];
-    for (const [i, chunk] of chunks.entries()) parts.push(await withRetries(`chunk ${i + 1}/${chunks.length}`, () => voiceChunk(chunk, voice)));
+    for (const [i, chunk] of chunks.entries()) parts.push(await withRetries(`chunk ${i + 1}/${chunks.length}`, () => voiceChunk(escapeXml(chunk), voice)));
     return parts.length === 1 ? parts[0] : joinMp3(parts.map((mp3) => ({ mp3 }))).mp3;
+  },
+
+  async synthesizeMarkup(fragment, voice) {
+    // One try only: if the service refuses a tag, that refusal is the test result.
+    return voiceChunk(fragment, voice);
   },
 
   async voices() {

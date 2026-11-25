@@ -210,3 +210,11 @@ th { font: 600 11px/1.3 var(--mono); text-transform: uppercase; letter-spacing: 
 .send-pop textarea, .send-inline textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 7px 9px; border: 1px solid var(--line-2); background: var(--card); color: var(--fg); }
 .send-status { font-size: 13px; }
 .send-status a { color: inherit; text-decoration: underline; }
+
+/* Pronunciation test (app/(admin)/debug/voices/PronunciationTest.tsx) */
+.pron { width: 100%; margin-top: 6px; }
+.pron td { vertical-align: top; padding: 6px 4px; }
+.admin button.pron-play { min-width: 36px; padding: 6px 0; }
+.admin button.pron-mark { min-width: 38px; padding: 6px 0; }
+.admin button.pron-mark.on-ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.admin button.pron-mark.on-bad { background: var(--bad); border-color: var(--bad); color: #fff; }

@@ -186,6 +186,11 @@ export interface TTSProvider {
   /** Short format id, part of the audio cache key (e.g. "mp3-24k-48k-mono"). */
   format: string;
   synthesize(text: string, voice: string): Promise<Uint8Array>;
+  /**
+   * Voices a short SSML fragment as is (tags such as <phoneme>, <sub>, <break> are passed through, not escaped).
+   * Optional: only providers that accept markup. Used by the pronunciation test on /debug/voices.
+   */
+  synthesizeMarkup?(ssmlFragment: string, voice: string): Promise<Uint8Array>;
   voices(): Promise<TtsVoice[]>;
 }
 
