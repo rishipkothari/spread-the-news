@@ -11,7 +11,6 @@ export default function Landing() {
           <img className="art-dark" src="/brand/glasses.jpg" alt="" width={1200} height={1200} />
         </div>
         <div className="hero-text">
-          <p className="kicker">Refracting the headlines</p>
           <h1 className="hero-title">One story.<br /><em>Every lens.</em></h1>
           <p className="hero-sub">The news, fully framed. Bringing stories into focus.</p>
           <div className="hero-cta">
@@ -43,7 +42,7 @@ export default function Landing() {
       <footer className="site-footer">
         <div>
           <span className="brand-word">PRISM</span>
-          <p>Refracting the headlines.</p>
+          <p>One story. Every lens.</p>
         </div>
         <Link href="/debug" className="site-admin">Admin</Link>
       </footer>
