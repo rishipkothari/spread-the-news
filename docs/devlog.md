@@ -2,6 +2,14 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-25: data for the public news pages
+
+**Built** (`src/news/`): a run's saved output becomes the public pages' data. `buildNews` (pure) makes story rows (rank, neutral title, section, outlet count, left/center/right counts, `hasAnalysis` / `hasScript` / `hasAudio`, duration, a playable track), story pages (script paragraphs, analysis: summary, agreed facts, material disputes with sides and outlets, framing; outlets left to right with their own headlines) and the day (section counts, voiced count, the episode as one file and as tracks). `publishRun` writes `news/days/{date}.json`, `news/stories/{id}.json` and `news/index.json`; runs publish after rank, synthesize, script and assemble, and after "Use this version". `pickForLength` fills "Play this section" (5/10/15 min). JSON at `/data/news`, `/data/news/{date}` (with older/newer days for the date arrows and infinite scroll), `/data/story/{id}`. Admin: "Publish to news" on the run page, "News data" card with "Rebuild from all runs" on `/debug`.
+
+**Checked here**: typecheck, 132 tests (`tests/news.test.ts`), `next build`. Not verified live.
+
+**Next**: user presses "Rebuild from all runs" on `/debug` once (backfills existing runs); then build the pages from Stitch on top of this data.
+
 ## 2026-11-25: frontend spec (PRISM News), landing page, admin console frame
 
 **Branch housekeeping**: the session branch started from an old commit because the repo's default branch had been `claude/gracious-feynman-icy2to` since day one (GitHub makes the first pushed branch the default). The user switched the default to `main`; every other branch is fully merged into `main`.

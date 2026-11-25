@@ -61,6 +61,9 @@ runs/{runId}/assemble.json    Phase 3: episode id, duration, segments left out
 audio/{audioKey}.mp3          voiced segment (cache; voice tests share it)
 episodes/{runId}-a{n}.json   episode manifest per audio version: chapters, voice, run, versions, missing segments (older: {date}-{paramsHash})
 episodes/{runId}-a{n}.mp3    episode audio
+news/index.json               public news: every published day, newest first (src/news/store.ts)
+news/days/{date}.json         public news: the day's story rows, section counts, episode tracks; the run with the most done wins (publishRun)
+news/stories/{date}-{storyId}.json  public news: one story page (script paragraphs, analysis, outlets, track)
 admin/voice-test.json         last test from /debug/voices
 segments/{scriptHash}.json    story bank: every kept story segment with its checker result
 cache/text/{urlHash}.json     extracted article text (full/partial only)
@@ -89,10 +92,15 @@ Admin pages (`/debug/*`, `/player/*`) live in the route group `app/(admin)/`, wh
 | `/debug/runs/[id]/analysis` | Phase 1 output: extraction by source, syntheses with quotes, copyable report |
 | `/debug/runs/[id]/script` | Phase 2 output: full script, checker verdicts and claims, first drafts, dropped stories, plan, 👍/👎 + notes per segment (autosaved), copyable report (`src/review/script-report.ts`) |
 | `/debug/feeds` | feed discovery and source editing: overview table, one card per source, batch "Add all active found feeds" (`src/admin/feed-plan.ts`), "Add them" for repo sources missing from the live list (`src/admin/discover.ts`, `app/(admin)/debug/feeds/actions.ts`) |
+| `/data/news`, `/data/news/[date]`, `/data/story/[id]` | public news data as JSON (index; day + older/newer days; story page), built by `src/news/` |
 | `/api/runs…` | Bearer-authenticated API (see README) |
 
 Auth: `proxy.ts` gates every non-API page with Basic auth (`PLAYER_PASSWORD`); API routes check `Bearer RUN_SECRET` (`src/lib/auth.ts`). Workflow's `/.well-known/workflow/*` routes are excluded from the proxy.
 
+## Public news data
+
+`src/news/build.ts` `buildNews()` (pure) turns a run's bundle, synthesis, script, voice output and episode into story rows (`NewsStoryCard`), story pages (`NewsStory`) and the day (`NewsDay`); types in `src/news/types.ts`. `src/news/store.ts` `publishRun()` writes them; `publishAfterStage()` runs after rank, synthesize, script and assemble (`src/workflows/steps.ts`, never fails a stage), and after "Use this version". A run replaces its day's published run only with at least as much progress, unless forced ("Publish to news"). `rebuildAllNews()` republishes every run. `src/news/queue.ts` `pickForLength()` picks "Play this section" tracks. Story tracks are the cached segment audio (`/audio/audio/{key}.mp3`).
+
 ## Tests
 
-`tests/` runs with vitest against fixtures (the sandbox can't reach news sites): feed parsing and normalization, robots.txt, ranking on `tests/fixtures/bundle-synthetic.json` (regenerate with `npx tsx scripts/make-fixture-bundle.ts`), cluster-output validation, schema sanitizing, homepage matching, feed discovery, review report, Phase 1 runner (in-memory Blob), extractor chain (mocked fetch), fact/synthesis parsing against recorded Claude responses, Phase 2 planner/material/checks/runner (`tests/script.test.ts`, including the tone-guide sync check), merge check (`tests/merge.test.ts`), versions (`tests/versions.test.ts`), Phase 3 MP3 parsing/joining, text chunking, Range handling, chapters and the voice/assemble runners with a stub TTS (`tests/audio.test.ts`). `scripts/prompt-harness.ts` regenerates prompts and checks new responses (`script-prompts` / `check-script` for Phase 2).
+`tests/` runs with vitest against fixtures (the sandbox can't reach news sites): feed parsing and normalization, robots.txt, ranking on `tests/fixtures/bundle-synthetic.json` (regenerate with `npx tsx scripts/make-fixture-bundle.ts`), cluster-output validation, schema sanitizing, homepage matching, feed discovery, review report, Phase 1 runner (in-memory Blob), extractor chain (mocked fetch), fact/synthesis parsing against recorded Claude responses, Phase 2 planner/material/checks/runner (`tests/script.test.ts`, including the tone-guide sync check), merge check (`tests/merge.test.ts`), versions (`tests/versions.test.ts`), public news data: rows, story pages, episode tracks, publishing rule, section picker (`tests/news.test.ts`), Phase 3 MP3 parsing/joining, text chunking, Range handling, chapters and the voice/assemble runners with a stub TTS (`tests/audio.test.ts`). `scripts/prompt-harness.ts` regenerates prompts and checks new responses (`script-prompts` / `check-script` for Phase 2).

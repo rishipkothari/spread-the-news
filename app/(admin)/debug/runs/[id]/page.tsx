@@ -6,7 +6,8 @@ import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus, stageWallMs } from "@/pipeline/status";
 import { ANALYSIS_STAGES, AUDIO_STAGES, DISCOVERY_STAGES, SCRIPT_STAGES, isFanout } from "@/pipeline/stages";
-import { analysisAction, audioAction, mergeAction, replayAction, rerankAction, scriptAction } from "../../actions";
+import { analysisAction, audioAction, mergeAction, publishNewsAction, replayAction, rerankAction, scriptAction } from "../../actions";
+import type { NewsDay } from "@/news/types";
 import type { MergeOut } from "@/pipeline/run";
 import { PHASES, readVersions, type Phase } from "@/pipeline/versions";
 import { UseVersionButton, versionLabel } from "./VersionBar";
@@ -137,6 +138,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   const versionView = (phase: Phase, n: number, episodeId?: string) =>
     phase === "audio" ? (episodeId ? `/player/${episodeId}` : null) : `/debug/runs/${id}/${phase}${n === versions.active[phase] ? "" : `?v=${n}`}`;
   const assembled = status.stages.assemble?.state === "done" ? await getJson<AssembleOut>(paths.stage(id, "assemble")) : null;
+  const newsDate = bundle?.window.end.slice(0, 10);
+  const newsDay = newsDate ? await getJson<NewsDay>(paths.newsDay(newsDate)) : null;
   const sourcesOut = bundle ? { sources: bundle.sources } : await getJson<{ sources: Source[] }>(paths.stage(id, "sources"));
   const sources = sourcesOut?.sources ?? [];
   const health = bundle?.sourceHealth ?? fetched?.sourceHealth;
@@ -172,6 +175,27 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         {status.replayFrom && <span>replay of <Link href={`/debug/runs/${status.replayFrom}`}>{status.replayFrom}</Link></span>}
         <span className="mono">{Object.entries(status.methods).map(([k, v]) => `${k}=${v}`).join(" ")}</span>
       </div>
+
+      {newsDate && (
+        <div className="row" style={{ marginTop: 16, alignItems: "center" }}>
+          <span>
+            News for {newsDate}:{" "}
+            {newsDay?.runId === id ? (
+              <span className="ok">this run ({newsDay.counts.stories} stories, {newsDay.counts.voiced} with audio{newsDay.episode ? ", episode" : ""})</span>
+            ) : newsDay ? (
+              <span className="muted">shows run <Link href={`/debug/runs/${newsDay.runId}`} className="mono">{newsDay.runId}</Link></span>
+            ) : (
+              <span className="muted">nothing published yet</span>
+            )}
+          </span>
+          <form action={publishNewsAction}>
+            <input type="hidden" name="runId" value={id} />
+            <button type="submit" title="Make this run the day's news on the public pages (free). Runs publish on their own after each phase unless another run of the day has more done.">
+              {newsDay?.runId === id ? "Re-publish to news" : "Publish to news"}
+            </button>
+          </form>
+        </div>
+      )}
 
       <div className="row" style={{ marginTop: 32, alignItems: "center" }}>
         <h2 style={{ margin: 0 }}>Pipeline</h2>

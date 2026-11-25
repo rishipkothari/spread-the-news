@@ -100,4 +100,7 @@ export const paths = {
   audio: (audioKey: string) => `audio/${audioKey}.mp3`,
   episode: (episodeId: string) => `episodes/${episodeId}.json`,
   episodeAudio: (episodeId: string) => `episodes/${episodeId}.mp3`,
+  newsIndex: () => `news/index.json`,
+  newsDay: (date: string) => `news/days/${date}.json`,
+  newsStory: (publicId: string) => `news/stories/${publicId}.json`,
 };

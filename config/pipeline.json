@@ -159,5 +159,12 @@
     "concurrency": 3,
     "maxStoryFailShare": 0.5,
     "rangeChunkBytes": 2000000
+  },
+  "news": {
+    "_note": "Public news pages (src/news). A ranked story is listed when at least minOutlets distinct outlets cover it. 'Play this section' fills the chosen length (minutes) with voiced stories in rank order; a story that would pass the length by more than overflowSec is skipped.",
+    "minOutlets": 2,
+    "sectionMinutes": [5, 10, 15],
+    "defaultSectionMinutes": 10,
+    "overflowSec": 45
   }
 }
