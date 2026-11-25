@@ -2,6 +2,14 @@
 
 Phases follow `docs/PRD.md`. Check items off as they're done; add new items where they belong. Newest discoveries go at the top of their section.
 
+## Now: feedback to Claude and pronunciation
+
+- [ ] **User: check "Send to Claude" works** (after merging, once `GITHUB_FEEDBACK_TOKEN` is in Vercel): on `/debug`, type anything in "Note to Claude" and press Send. A "view" link should appear; it opens the GitHub issue. Claude reads it next session.
+- [x] 2026-11-25: "Send to Claude" built: ranking review, analysis, script, run page (time and cost), "Note to Claude" on `/debug`, and "Flag this moment" in the player (open the full player while listening). Issues labelled `feedback` + `feedback:<area>`; same-thing sends thread as comments. See `docs/architecture.md` "Feedback to Claude".
+- [ ] Before opening pages publicly: hide "Flag this moment" for visitors (the send already refuses anyone without the page password).
+- [ ] **Pronunciation** (`docs/pronunciation.md`): build the one-time listening test card on `/debug/voices` (all 20 categories, competing respelling styles, SSML check), then the spoken-script pass (display and spoken text per segment; intended readings for intro/rundown/outro; audio from spoken text).
+- [ ] **User: listening test** once the card exists (~5 min): tick what sounds right, Send to Claude.
+
 ## Now: frontend (PRISM News)
 
 - [ ] **User: first one-button run.** On `/debug` press "Run full pipeline"; when it finishes, open the run page, press "Copy time and cost for Claude" and paste it here.

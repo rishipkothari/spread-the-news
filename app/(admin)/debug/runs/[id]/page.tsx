@@ -14,6 +14,7 @@ import { UseVersionButton, versionLabel } from "./VersionBar";
 import type { AssembleOut } from "@/pipeline/phase3";
 import { buildTimingReport } from "@/review/timing-report";
 import CopyButton from "../../CopyButton";
+import SendToClaude from "../../../../_feedback/SendToClaude";
 import RunNav from "./RunNav";
 
 export const dynamic = "force-dynamic";
@@ -156,6 +157,12 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
     .map(([name, stages]) => [name, phaseMs(stages)] as const)
     .filter(([, ms]) => ms > 0);
   const totalMs = phases.reduce((a, [, ms]) => a + ms, 0);
+  const timing = buildTimingReport(status, usage ?? [], {
+    sources: health ? Object.keys(health).length : undefined,
+    okSources: health ? Object.values(health).filter((h) => h.ok).length : undefined,
+    articles: (bundle?.articles ?? fetched?.articles)?.length,
+    stories: bundle?.stories.length,
+  });
 
   return (
     <main>
@@ -218,15 +225,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
       <div className="row" style={{ marginTop: 32, alignItems: "center" }}>
         <h2 style={{ margin: 0 }}>Pipeline</h2>
         <span style={{ flex: 1 }} />
-        <CopyButton
-          label="Copy time and cost for Claude"
-          text={buildTimingReport(status, usage ?? [], {
-            sources: health ? Object.keys(health).length : undefined,
-            okSources: health ? Object.values(health).filter((h) => h.ok).length : undefined,
-            articles: (bundle?.articles ?? fetched?.articles)?.length,
-            stories: bundle?.stories.length,
-          })}
-        />
+        <CopyButton label="Copy time and cost" text={timing} />
+        <SendToClaude area="timing" threadKey={`timing:${id}`} title={`Time and cost ${id}`} report={timing} data={{ runId: id }} label="Send time and cost to Claude" />
       </div>
       <div className="scroll">
         <table>

@@ -52,6 +52,7 @@ Personal daily news podcast for one user: cross-spectrum RSS → LLM story group
 | `BLOB_READ_WRITE_TOKEN` | Blob store access | Yes | Added by connecting the Blob store | – | ✓ | ✓ |
 | `RUN_SECRET` | Bearer token for `/api/runs` | Yes | Made up | – | ✓ | ✓ |
 | `PLAYER_PASSWORD` | Password for pages | Yes | Made up | – | ✓ | ✓ |
+| `GITHUB_FEEDBACK_TOKEN` | "Send to Claude": opens feedback issues in this repo. Fine-grained token, this repo only, Issues read and write | Yes | GitHub → Settings → Developer settings → Fine-grained tokens (`prism-feedback`) | – | ✓ | ✓ |
 | `BLOB_ACCESS` | `private` (default) or `public` | No | Optional | – | – | – |
 | `TRAFILATURA_URL` | Override the Trafilatura function's URL (default: `https://$VERCEL_PROJECT_PRODUCTION_URL/api/trafilatura`, set by Vercel) | No | Optional | – | – | – |
 

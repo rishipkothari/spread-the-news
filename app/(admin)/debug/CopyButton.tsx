@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 
-export default function CopyButton({ text, label = "Copy report for Claude" }: { text: string; label?: string }) {
+/** Copies text to the clipboard. Secondary since "Send to Claude" (app/_feedback/SendToClaude.tsx) sends reports directly. */
+export default function CopyButton({ text, label = "Copy report", primary = false }: { text: string; label?: string; primary?: boolean }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
       type="button"
-      className="primary"
+      className={primary ? "primary" : undefined}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text);
@@ -18,7 +19,7 @@ export default function CopyButton({ text, label = "Copy report for Claude" }: {
         }
       }}
     >
-      {copied ? "Copied ✓ — paste it to Claude" : label}
+      {copied ? "Copied ✓" : label}
     </button>
   );
 }

@@ -166,5 +166,9 @@
     "sectionMinutes": [5, 10, 15],
     "defaultSectionMinutes": 10,
     "overflowSec": 45
+  },
+  "feedback": {
+    "_note": "Send to Claude buttons on the site open GitHub issues in this repo (labels feedback + feedback:<area>). Needs GITHUB_FEEDBACK_TOKEN in Vercel.",
+    "repo": "rishipkothari/spread-the-news"
   }
 }

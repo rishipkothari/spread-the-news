@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, CloseIcon, DragIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon } from "../../_ui/icons";
+import FlagMoment from "./FlagMoment";
 import { RATES, usePlayer } from "./player";
 import { clock, sectionLabel } from "./sections";
 
@@ -133,6 +134,8 @@ export default function Drawer() {
                 <button key={r} type="button" className={r === p.rate ? "on" : undefined} aria-pressed={r === p.rate} onClick={() => p.setRate(r)}>{r}×</button>
               ))}
             </div>
+
+            <FlagMoment />
 
             {p.error && (
               <div className="player-error" role="alert">

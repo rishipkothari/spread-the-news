@@ -2,6 +2,16 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-25: feedback to Claude; pronunciation planned
+
+**Discussed**: TTS mispronunciations (heard: "read" in the intro, "perfect" in a story, names, "US" choppy). Agreed: no manual list, no approvals, no rewording; a Claude pass writes a separate spoken script. The 20 categories it must catch are in `docs/pronunciation.md`. I can't listen to audio, and this sandbox can't reach Edge TTS or Whisper's model host (the user declined widening the network), and speech-to-text can't hear stress or "reed"/"red" anyway, so a one-time listening test by the user settles what Edge reads well.
+
+**Built**: "Send to Claude" (`src/feedback/`, `app/_feedback/`): pages send their report plus a note as a GitHub issue (labels `feedback`, `feedback:<area>`; same-key sends become comments while open; long bodies continue in comments; logged in Blob). On the ranking review, analysis, script and run pages, a "Note to Claude" card on `/debug`, and "Flag this moment" in the player (track, second, the sentence probably playing, the segment text). Sends require the page password. Copy buttons kept as secondary. CLAUDE.md: read open feedback issues at the start of every session.
+
+**Checked here**: typecheck, 152 tests (new `tests/feedback.test.ts` with a fake GitHub), `next build`; the `/debug` card in a browser (reaches the send and reports the missing token).
+
+**Next**: user adds `GITHUB_FEEDBACK_TOKEN` in Vercel (done before merging) and sends a test note; then the pronunciation listening test and the spoken-script pass.
+
 ## 2026-11-25: run buttons
 
 **Player bar** (follow-up): floating card on phones with the brand tile (shows a playing indicator) and a faint left-center-right progress line, so it reads as its own object without being louder.

@@ -6,6 +6,7 @@ import type { ScriptUnit } from "@/pipeline/phase2";
 import { buildScriptReport } from "@/review/script-report";
 import type { ScriptReview, SegmentFeedback } from "@/review/script-types";
 import CopyButton from "../../../CopyButton";
+import SendToClaude from "../../../../../_feedback/SendToClaude";
 import { saveScriptReview } from "../../../review-actions";
 
 function CheckDetails({ check, label }: { check: CheckResult; label: string }) {
@@ -139,6 +140,7 @@ export default function ScriptClient(props: {
           <span style={{ flex: 1 }} />
           {fullText && <CopyButton text={fullText} label="Copy script text" />}
           <CopyButton text={report} />
+          <SendToClaude area="script" threadKey={`script:${props.runId}:v${props.version ?? "current"}`} title={`Script review ${props.runId}${props.version ? ` v${props.version}` : ""}`} report={report} data={{ runId: props.runId, version: props.version ?? null }} />
         </div>
         {props.versionBar}
       </div>
@@ -147,7 +149,7 @@ export default function ScriptClient(props: {
         {script
           ? <>{script.segments.filter((s) => s.kind === "story").length} stories · {script.words} words ≈ {script.estMinutes} min · {script.dropped.length} dropped · cost ${cost.toFixed(3)}. </>
           : <>Writing {plan.stories.length} stories… </>}
-        Read it as a listener would. Mark each segment 👍 or 👎 and add a note on anything off (tone, accuracy, length), then copy the report to Claude.
+        Read it as a listener would. Mark each segment 👍 or 👎 and add a note on anything off (tone, accuracy, length), then press Send to Claude.
       </p>
       {script && script.dropped.length > 0 && (
         <div className="story" style={{ borderLeft: "4px solid var(--bad)" }}>

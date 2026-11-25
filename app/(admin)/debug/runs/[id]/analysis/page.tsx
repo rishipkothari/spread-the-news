@@ -5,6 +5,7 @@ import { readStatus } from "@/pipeline/status";
 import { buildAnalysisReport } from "@/review/analysis-report";
 import { readVersions, versionedPath } from "@/pipeline/versions";
 import CopyButton from "../../../CopyButton";
+import SendToClaude from "../../../../../_feedback/SendToClaude";
 import VersionBar from "../VersionBar";
 import RunNav from "../RunNav";
 
@@ -54,6 +55,7 @@ export default async function AnalysisPage({ params, searchParams }: { params: P
           </span>
           <span style={{ flex: 1 }} />
           <CopyButton text={report} />
+          <SendToClaude area="analysis" threadKey={`analysis:${id}:v${v ?? "current"}`} title={`Analysis review ${id}${v ? ` v${v}` : ""}`} report={report} data={{ runId: id, version: v ?? null }} />
         </div>
         <VersionBar runId={id} phase="analysis" versions={versions} viewing={v} hrefFor={(n) => `/debug/runs/${id}/analysis?v=${n}`} />
       </div>

@@ -5,6 +5,8 @@ import { listPaths } from "@/lib/storage";
 import { STAGES } from "@/pipeline/stages";
 import { readStatus } from "@/pipeline/status";
 import { readNewsIndex } from "@/news/store";
+import { feedbackConfigured } from "@/feedback/github";
+import SendToClaude from "../../_feedback/SendToClaude";
 import { rebuildNewsAction, startRunAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +26,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
   const latest = ids[0] ? await readStatus(ids[0]) : null;
   const [[episode], newsIndex] = await Promise.all([listEpisodes(1), readNewsIndex()]);
   const missing = missingEnv();
+  const feedbackOn = feedbackConfigured();
 
   return (
     <main className="console">
@@ -106,6 +109,16 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
           <form action={rebuildNewsAction}>
             <button type="submit" title="Rebuild the public pages' data from every saved run (free)">Rebuild from all runs</button>
           </form>
+        </section>
+
+        <section className="card">
+          <h2>Note to Claude</h2>
+          {feedbackOn ? (
+            <p className="muted">Anything at all: an idea, a bug, something you heard. Claude reads it at the start of the next session.</p>
+          ) : (
+            <p className="warn">Sending needs GITHUB_FEEDBACK_TOKEN in Vercel&apos;s environment variables.</p>
+          )}
+          <SendToClaude area="general" title="Note from the admin console" inline placeholder="What should Claude know?" />
         </section>
       </div>
 

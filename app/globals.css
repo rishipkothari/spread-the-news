@@ -203,3 +203,10 @@ th { font: 600 11px/1.3 var(--mono); text-transform: uppercase; letter-spacing: 
 .tile b { font: 500 19px var(--serif); }
 .tile:hover { background: var(--bg-2); }
 .tile .muted { font-size: 13px; }
+
+/* Send to Claude (app/_feedback/SendToClaude.tsx) */
+.send-wrap { position: relative; display: inline-flex; align-items: center; gap: 8px; }
+.send-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: min(420px, calc(100vw - 32px)); padding: 10px; background: var(--card); border: 1px solid var(--line-2); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12); }
+.send-pop textarea, .send-inline textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 7px 9px; border: 1px solid var(--line-2); background: var(--card); color: var(--fg); }
+.send-status { font-size: 13px; }
+.send-status a { color: inherit; text-decoration: underline; }
