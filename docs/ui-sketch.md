@@ -20,7 +20,6 @@ It's a personal app for now: one user, password-protected, used mostly on a phon
 - **Name:** PRISM (or PRISM News).
 - **Hero headline:** One story. Every lens.
 - **Hero subheadline:** The news, fully framed. Bringing stories into focus.
-- **Masthead sub-line (optional):** Refracting the headlines.
 - **Metaphor:** an optical eyeglass lens with prism refraction. Lenses sit in frames, like media framing. A corrective prism lens merges double vision into one clear image.
 - **Logo mark:** a minimal, architectural eyeglass or optical lens. A single neutral beam bends at the first glass surface and refracts again on exit into a smooth gradient, never hard rainbow bands.
 - **Palette:** mature, muted, non-partisan. Muted cobalt, slate gray and warm terracotta, on deep charcoal/slate backgrounds, with clean off-white cards.
@@ -134,7 +133,7 @@ A showy brand moment, but restrained and editorial, not a startup cliché.
   1. **Every lens.** "Each story is read across outlets from left to right. You get the facts they share and how each side framed the rest."
   2. **Press play.** "Every story is a short audio clip. Play one, queue a few, or play a whole section. It keeps playing while you browse."
 - Optionally a third, quieter strip: "How it works" in three steps (Read widely → Find the shared facts → Show every frame).
-- **Footer:** the masthead sub-line "Refracting the headlines.", the date, and a small Admin link.
+- **Footer:** the date and a small Admin link. (No masthead sub-line: "Refracting the headlines" was dropped from the pitch.)
 - The player drawer appears here too, once something is queued.
 
 ### 6.2 News home: "All news" (`/news`)

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, CloseIcon, DragIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon } from "../../_ui/icons";
 import { RATES, usePlayer } from "./player";
@@ -16,6 +17,8 @@ export default function Drawer() {
   const sheet = useRef<HTMLDivElement>(null);
   const [dragY, setDragY] = useState(0);
   const startY = useRef<number | null>(null);
+  // The landing page is marketing only: no player there (audio keeps playing; the bar comes back on the news pages).
+  const onLanding = usePathname() === "/";
 
   useEffect(() => {
     if (!open) return;
@@ -30,9 +33,10 @@ export default function Drawer() {
   }, [open, setOpen]);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("has-player", !!current);
-  }, [current]);
+    document.documentElement.classList.toggle("has-player", !!current && !onLanding);
+  }, [current, onLanding]);
 
+  if (onLanding) return null;
   if (!current) {
     return p.toast ? <div className="toast" role="status">{p.toast}</div> : null;
   }

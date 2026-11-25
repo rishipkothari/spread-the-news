@@ -4,6 +4,7 @@ The PRD's decision log (`docs/PRD.md` → "Decision log") is the baseline. This 
 
 | Date | Topic | Decision | Why | PRD change? |
 | :- | :- | :- | :- | :- |
+| 2026-11-25 | Landing | Marketing only: hero, three points, "Read the news". No stories, no episode button, and the player bar is hidden there (audio keeps playing) | User feedback | Narrows ui-sketch 6.1 |
 | 2026-11-25 | Theme | Follows the device setting until the visitor toggles; choice saved per device | User's choice; Stitch made light the main look, the brief said dark | Changes ui-sketch ("dark is the signature") |
 | 2026-11-25 | Shape | Soft corners and light shadows on the public site, sharp corners and hairlines in admin | As Stitch drew each part | No |
 | 2026-11-25 | Public screens | Landing, news (all + sections as chips), story; no bottom tabs, no "saved"; the player drawer is the only player (slim bar while something is queued) | User: MVP scope | Narrows ui-sketch |
