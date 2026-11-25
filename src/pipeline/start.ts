@@ -5,7 +5,7 @@ import { newRunId } from "@/lib/hash";
 import { CATEGORIES } from "@/lib/types";
 import { pipelineWorkflow } from "@/workflows/pipeline";
 import { copyStages, stagesBefore } from "./run";
-import { ANALYSIS_STAGES, AUDIO_STAGES, SCRIPT_STAGES, STAGES, stageRange, type StageId } from "./stages";
+import { ANALYSIS_STAGES, AUDIO_STAGES, DISCOVERY_STAGES, SCRIPT_STAGES, STAGES, stageRange, type StageId } from "./stages";
 import { type RunStatus, clearUsage, readStatus, updateStatus, writeStatus } from "./status";
 import { prepareRerun } from "./versions";
 
@@ -63,6 +63,33 @@ export async function startRun(body: z.infer<typeof StartRunBody>): Promise<RunS
   return updateStatus(runId, (s) => {
     s.workflowRunId = wf.runId;
   });
+}
+
+/**
+ * "Create run": the run's record with nothing started. Its page then offers "Find stories" (discovery) or
+ * "Run full pipeline". Stages beyond discovery stay skipped until their phase is started.
+ */
+export async function createRun(): Promise<RunStatus> {
+  const status: RunStatus = {
+    runId: newRunId(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    state: "created",
+    params: vanillaParams(),
+    methods: { ...config.methods },
+    stages: Object.fromEntries(STAGES.map((s) => [s, { state: DISCOVERY_STAGES.includes(s) ? "pending" : "skipped" }])),
+    errors: [],
+  };
+  await writeStatus(status);
+  return status;
+}
+
+/** Start a created run: discovery only (sources → rank), or every phase through audio. */
+export async function startCreatedRun(runId: string, scope: "discovery" | "everything"): Promise<RunStatus> {
+  const s = await readStatus(runId);
+  if (!s) throw new Error(`run ${runId} not found`);
+  if (s.state !== "created") throw new Error(`run ${runId} has already started`);
+  return rerunStages(runId, scope === "discovery" ? DISCOVERY_STAGES : [...STAGES]);
 }
 
 /** Re-run a single stage in place on an existing run (e.g. re-rank with new weights). */

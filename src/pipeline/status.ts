@@ -16,7 +16,8 @@ export interface RunStatus {
   runId: string;
   createdAt: string;
   updatedAt: string;
-  state: "queued" | "running" | "done" | "failed";
+  /** "created": made with "Create run" and not started yet (nothing has run). */
+  state: "created" | "queued" | "running" | "done" | "failed";
   params: RunParams;
   methods: Record<string, string>;
   replayFrom?: string;

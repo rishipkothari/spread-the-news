@@ -4,14 +4,28 @@ import { redirect } from "next/navigation";
 import { isStage } from "@/pipeline/stages";
 import { publishRun, rebuildAllNews } from "@/news/store";
 import { PHASES, activateVersion, type Phase } from "@/pipeline/versions";
-import { rerunStage, rerunStages, startAnalysis, startAudio, startRun, startScript } from "@/pipeline/start";
+import { createRun, rerunStage, rerunStages, startAnalysis, startAudio, startCreatedRun, startRun, startScript } from "@/pipeline/start";
 
 // These run behind the password gate in proxy.ts (the debug pages' Basic auth).
 
+/**
+ * Buttons on /debug and /debug/runs. mode: "fetch-only" = check feeds (free); "create" = make the run without
+ * starting anything (its page offers Find stories / Run full pipeline); "everything" = every phase through audio.
+ */
 export async function startRunAction(formData: FormData) {
   const mode = formData.get("mode");
-  const status = await startRun(mode === "fetch-only" ? { stages: { through: "fetch" } } : {});
+  const status =
+    mode === "fetch-only" ? await startRun({ stages: { through: "fetch" } })
+    : mode === "everything" ? await startRun({ stages: { through: "assemble" } })
+    : await createRun();
   redirect(`/debug/runs/${status.runId}`);
+}
+
+/** Start a created run from its page: discovery only, or the whole pipeline. */
+export async function startCreatedAction(formData: FormData) {
+  const runId = String(formData.get("runId"));
+  await startCreatedRun(runId, formData.get("scope") === "everything" ? "everything" : "discovery");
+  redirect(`/debug/runs/${runId}`);
 }
 
 export async function replayAction(formData: FormData) {
