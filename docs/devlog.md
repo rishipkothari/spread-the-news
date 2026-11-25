@@ -2,6 +2,12 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-25: run buttons
+
+**Built**: "Create run" (record only, state `created`, nothing runs; the run page shows "Find stories" and "Run full pipeline") and "Run full pipeline" (sources through assemble in one workflow) on `/debug` and `/debug/runs`. `createRun` / `startCreatedRun` in `src/pipeline/start.ts`; `tests/start.test.ts`. API unchanged (`POST /api/runs` still stops after rank by default).
+
+**Next**: user tries "Run full pipeline" once and pastes "Copy time and cost for Claude" (first measured full run).
+
 ## 2026-11-25: frontend-stitch-1, the whole site rebuilt from Stitch
 
 **Imported** from the Stitch project (design system, News Page, Story Detail & Framing Analysis, Landing, Simple Audio Drawer, admin screens): `docs/stitch.md`. The user supplied the glasses image and the light prism photo (`public/brand/`).

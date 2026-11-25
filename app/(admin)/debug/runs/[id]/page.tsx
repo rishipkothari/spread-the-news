@@ -6,7 +6,7 @@ import { getJson, paths } from "@/lib/storage";
 import type { Article, LeanGroup, Source, SourceHealth, Story, StoryBundle, UsageEntry } from "@/lib/types";
 import { readStatus, stageWallMs } from "@/pipeline/status";
 import { ANALYSIS_STAGES, AUDIO_STAGES, DISCOVERY_STAGES, SCRIPT_STAGES, isFanout } from "@/pipeline/stages";
-import { analysisAction, audioAction, mergeAction, publishNewsAction, replayAction, rerankAction, scriptAction } from "../../actions";
+import { analysisAction, audioAction, mergeAction, publishNewsAction, replayAction, rerankAction, scriptAction, startCreatedAction } from "../../actions";
 import type { NewsDay } from "@/news/types";
 import type { MergeOut } from "@/pipeline/run";
 import { PHASES, readVersions, type Phase } from "@/pipeline/versions";
@@ -176,6 +176,24 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         <span className="mono">{Object.entries(status.methods).map(([k, v]) => `${k}=${v}`).join(" ")}</span>
       </div>
 
+      {status.state === "created" && (
+        <div className="panel notice" style={{ marginTop: 16 }}>
+          <span>This run hasn't started yet. Nothing has run and nothing has been spent.</span>
+          <div className="toolbar">
+            <form action={startCreatedAction}>
+              <input type="hidden" name="runId" value={id} />
+              <input type="hidden" name="scope" value="discovery" />
+              <button type="submit" title="Read the feeds, group articles into stories and rank them (uses Claude)">Find stories (~$0.10–0.30)</button>
+            </form>
+            <form action={startCreatedAction}>
+              <input type="hidden" name="runId" value={id} />
+              <input type="hidden" name="scope" value="everything" />
+              <button type="submit" className="primary" title="Find stories, analyze, write the script and make the audio in one go (uses Claude)">Run full pipeline (~$0.60–1.00)</button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {newsDate && (
         <div className="row" style={{ marginTop: 16, alignItems: "center" }}>
           <span>
@@ -226,6 +244,15 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
               const done = (x?: { state: string }) => x?.state === "done" || x?.state === "copied";
               let action: React.ReactNode = null;
               let view: React.ReactNode = null;
+              if (stage === "sources" && status.state === "created") {
+                action = (
+                  <form action={startCreatedAction}>
+                    <input type="hidden" name="runId" value={id} />
+                    <input type="hidden" name="scope" value="discovery" />
+                    <button type="submit" title="Read the feeds, group articles into stories and rank them (uses Claude)">Find stories</button>
+                  </form>
+                );
+              }
               if (stage === "cluster" && done(status.stages.fetch)) {
                 action = (
                   <form action={replayAction}>

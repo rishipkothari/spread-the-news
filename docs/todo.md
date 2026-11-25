@@ -4,6 +4,8 @@ Phases follow `docs/PRD.md`. Check items off as they're done; add new items wher
 
 ## Now: frontend (PRISM News)
 
+- [ ] **User: first one-button run.** On `/debug` press "Run full pipeline"; when it finishes, open the run page, press "Copy time and cost for Claude" and paste it here.
+
 Spec: `docs/ui-sketch.md`. Flow agreed 2026-11-25: the user pastes the spec into Google Stitch and builds a design project there; Claude reads it over the Stitch MCP and builds from it.
 
 - [ ] **High priority: public access.** Today every page sits behind `PLAYER_PASSWORD` (Basic auth, `proxy.ts`). Plan to open the landing and news pages (and their audio) publicly while keeping `/debug` and the API private. Discuss with the Security section before changing.

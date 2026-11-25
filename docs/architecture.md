@@ -5,7 +5,8 @@ How the code is organized and how a run flows. The design rationale is in `docs/
 ## Run flow
 
 ```
-POST /api/runs  or  "Start full run" button (server action)
+POST /api/runs  or  buttons on /debug: "Create run" (createRun: record only, state "created"; its page starts
+                 discovery or everything via startCreatedRun) and "Run full pipeline" (every stage through assemble)
   └─ src/pipeline/start.ts  startRun()      writes runs/{id}/status.json, starts the workflow
        └─ src/workflows/pipeline.ts         "use workflow": stages in order, one durable step each
             └─ src/workflows/steps.ts       "use step": runStage(); LLM-output and 4xx errors are FatalError (no retry)

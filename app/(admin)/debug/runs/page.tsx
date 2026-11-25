@@ -21,9 +21,13 @@ export default async function RunsPage() {
           <button type="submit">Check feeds (free)</button>
         </form>
         <form action={startRunAction}>
-          <input type="hidden" name="mode" value="full" />
-          <button type="submit">Start full run (uses Claude, ~$0.10–0.30)</button>
-        </form>
+              <input type="hidden" name="mode" value="create" />
+              <button type="submit" title="Make a new run without starting it. Its page lets you find stories or run everything.">Create run</button>
+            </form>
+            <form action={startRunAction}>
+              <input type="hidden" name="mode" value="everything" />
+              <button type="submit" className="primary" title="Find stories, analyze, write the script and make the audio in one go (uses Claude)">Run full pipeline (~$0.60–1.00)</button>
+            </form>
       </div>
       <div className="scroll">
         <table>
