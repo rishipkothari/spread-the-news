@@ -184,10 +184,8 @@ html.drawer-open { overflow: hidden; }
 .hero-title em { font-style: italic; }
 .hero-sub { margin: 0 0 28px; font-size: 18px; line-height: 1.5; color: var(--muted); max-width: 30ch; }
 .hero-cta { display: flex; flex-direction: column; gap: 10px; align-items: stretch; max-width: 360px; }
-.lp-top { max-width: 1120px; margin: 0 auto; padding: 32px 16px; }
-.lp-top-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 8px; }
-.lp-top h2 { margin: 6px 0 0; font: 400 28px/1.2 var(--serif); letter-spacing: -0.015em; color: var(--fg); text-transform: none; }
-.lp-top .rows .srow:first-child { border-top: 1px solid var(--line); }
+.lp-close { max-width: 1120px; margin: 0 auto; padding: 24px 16px 64px; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+.lp-close h2 { margin: 0; font: 400 30px/1.15 var(--serif); letter-spacing: -0.02em; color: var(--fg); text-transform: none; }
 .pillars { max-width: 1120px; margin: 0 auto; padding: 24px 16px 56px; display: grid; gap: 12px; }
 .pillar { position: relative; padding: 22px 22px 22px 26px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
 .pillar::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
@@ -284,7 +282,7 @@ html:not(.has-player) .toast { bottom: calc(24px + env(safe-area-inset-bottom, 0
   .hero-text { flex: 1; }
   .hero-title { font-size: 68px; }
   .hero-cta { flex-direction: row; max-width: none; align-items: center; }
-  .lp-top, .pillars, .site-footer { padding-left: 24px; padding-right: 24px; }
+  .lp-close, .pillars, .site-footer { padding-left: 24px; padding-right: 24px; }
   .pillars { grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .mini { left: 50%; right: auto; bottom: 16px; width: min(720px, calc(100% - 32px)); transform: translateX(-50%); border: 1px solid var(--line); border-radius: 16px; padding: 6px 8px 6px 4px; }
   .mini-progress { left: 16px; right: 16px; border-radius: 2px; }

@@ -82,7 +82,7 @@ Local preview only: `LOCAL_BLOB_DIR=/folder` makes `getJson`/`putJson`/`listPath
 
 | Route | What |
 | :- | :- |
-| `/` | landing: brand, way into the news, the day's top three stories, daily episode button |
+| `/` | landing: marketing only (hero, three points, "Read the news"); the player bar is hidden here |
 | `/news`, `/news/[section]` | news home and section pages: section chips, date ‹ › with calendar, daily episode (home), Play this section (5/10/15 min), story rows, earlier days on scroll; `?date=YYYY-MM-DD` |
 | `/story/[id]` | story page: headline, summary, coverage split, Play / Add to queue, the script, "How the coverage compares", "Who covered it" |
 | `/debug` | admin console overview: start runs, latest run and episode, links |

@@ -12,6 +12,8 @@ One entry per work session, newest first: what changed, what we learned, what's 
 
 **Checked here**: typecheck, 132 tests, `next build`; screenshots with sample data (phone and desktop, light and dark: landing, news, section, story, unvoiced story, drawer, admin). Audio playback itself can't be checked here (no real audio in the sandbox).
 
+**Follow-up**: landing made marketing only (no stories, no listen buttons, player bar hidden there) on user feedback.
+
 **Next**: user checks on Vercel after merging: press "Rebuild from all runs" on `/debug` first so the news pages have data; then play a story, queue a few, lock the phone.
 
 ## 2026-11-25: data for the public news pages
