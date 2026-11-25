@@ -10,11 +10,13 @@ Personal daily news podcast: 12 RSS sources balanced left to right → stories g
 - `docs/decisions.md`: decisions and every deviation from the PRD, with reasons.
 - `docs/architecture.md`: code layout, pipeline, storage, how to add a stage.
 - `docs/tone-guide.md`: how the podcast sounds; script writer and checker follow it. Add rules there.
+- `docs/pronunciation.md`: the spoken-script plan and the 20 kinds of TTS mistakes it must catch.
 - `docs/ui-sketch.md`: the public site and admin console design brief (input for Google Stitch; build from the Stitch project).
 - `docs/stack.md`: stack choices, env vars, costs.
 - `docs/reviews/`: the user's pasted run reviews, one file per run.
 
 ## Working rules
+- **Start of every session: read the user's feedback.** The site's "Send to Claude" buttons open GitHub issues labelled `feedback` (one more label per area, `feedback:<area>`). List open ones with `gh api "repos/rishipkothari/spread-the-news/issues?labels=feedback&state=open&per_page=100"` and read each with its comments (`gh api repos/rishipkothari/spread-the-news/issues/<n>/comments`). Act on them; when done, comment what changed (with the footer the GitHub rules require) and close the issue (`gh api -X PATCH repos/rishipkothari/spread-the-news/issues/<n> -f state=closed`). Save run reviews worth keeping in `docs/reviews/` as before.
 - Remote-only project. The dev sandbox can't reach news sites or the Vercel deployment: unit-test against fixtures in `tests/`, and verify live behavior through the user on the Vercel deployment (`/debug/runs`, `/debug/feeds`).
 - Before pushing: `npm run typecheck`, `npm test`, `npx next build`.
 - Tunable values live in `config/pipeline.json`. The live source list is edited on `/debug/feeds` (stored in Blob); `config/sources.json` is the default.

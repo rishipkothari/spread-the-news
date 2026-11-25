@@ -66,6 +66,8 @@ news/index.json               public news: every published day, newest first (sr
 news/days/{date}.json         public news: the day's story rows, section counts, episode tracks; the run with the most done wins (publishRun)
 news/stories/{date}-{storyId}.json  public news: one story page (script paragraphs, analysis, outlets, track)
 admin/voice-test.json         last test from /debug/voices
+feedback/threads.json         "Send to Claude": thread key → GitHub issue
+feedback/log/{sentAt}-{area}.json  every feedback send (input + issue URL)
 segments/{scriptHash}.json    story bank: every kept story segment with its checker result
 cache/text/{urlHash}.json     extracted article text (full/partial only)
 config/sources.json           live source list edited on /debug/feeds (overrides the repo file)
@@ -104,6 +106,10 @@ Auth: `proxy.ts` gates every non-API page with Basic auth (`PLAYER_PASSWORD`); A
 ## Public news data
 
 `src/news/build.ts` `buildNews()` (pure) turns a run's bundle, synthesis, script, voice output and episode into story rows (`NewsStoryCard`), story pages (`NewsStory`) and the day (`NewsDay`); types in `src/news/types.ts`. `src/news/store.ts` `publishRun()` writes them; `publishAfterStage()` runs after rank, synthesize, script and assemble (`src/workflows/steps.ts`, never fails a stage), and after "Use this version". A run replaces its day's published run only with at least as much progress, unless forced ("Publish to news"). `rebuildAllNews()` republishes every run. `src/news/queue.ts` `pickForLength()` picks "Play this section" tracks. Story tracks are the cached segment audio (`/audio/audio/{key}.mp3`).
+
+## Feedback to Claude
+
+"Send to Claude" replaces copy and paste. `app/_feedback/SendToClaude.tsx` (button + note box, or `inline` for the "Note to Claude" card) calls `sendFeedbackAction` (`app/_feedback/actions.ts`), which checks the page password (`basicAuthOk`, `src/lib/auth.ts`) and calls `sendFeedback` (`src/feedback/send.ts`): the note, the page's report and a JSON data block (`feedbackBody`, `src/feedback/format.ts`) become a GitHub issue in `config feedback.repo` with labels `feedback` and `feedback:<area>` (`FEEDBACK_AREAS`; labels are created on first use, so a new area is one entry in that list). Sends with the same `key` (e.g. `script:{runId}:v{n}`, `player:{date}`) while the issue is open become comments on it; `feedback/threads.json` maps keys to issues. Bodies over 60k characters continue in comments. Every send is logged in `feedback/log/`. Token: `GITHUB_FEEDBACK_TOKEN` (`src/feedback/github.ts`). Where it's used: ranking review, analysis, script, run page (time and cost), `/debug` "Note to Claude", and the player's "Flag this moment" (`app/(site)/_components/FlagMoment.tsx` → `flagMomentAction`: track and second, the sentence probably playing (`locateMoment`, by share of characters) and the segment text, found through `momentContext`, `src/feedback/moment.ts`). Claude lists open `feedback` issues at the start of each session (CLAUDE.md).
 
 ## Tests
 

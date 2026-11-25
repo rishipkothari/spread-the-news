@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, type Article, type LeanGroup, type Source, type Story, type StoryBundle, type UsageEntry } from "@/lib/types";
 import { buildReport } from "@/review/report";
+import SendToClaude from "../../../../../_feedback/SendToClaude";
 import { type RunReview, type StoryReview, type Verdict, VERDICT_LABEL, VERDICTS } from "@/review/types";
 import { saveReview } from "../../../review-actions";
 
@@ -165,7 +166,8 @@ export default function ReviewClient({ bundle, usage, warnings, initial, nav }: 
           <b>Ranking review</b>
           <span className="muted">{reviewedCount}/{ranked.length} stories marked · {saveState}</span>
           <span style={{ flex: 1 }} />
-          <button type="button" className="primary" onClick={copy}>{copied ? "Copied ✓ — paste it to Claude" : "Copy report for Claude"}</button>
+          <button type="button" onClick={copy}>{copied ? "Copied ✓" : "Copy report"}</button>
+          <SendToClaude area="ranking" threadKey={`ranking:${bundle.runId}`} title={`Ranking review ${bundle.runId}`} report={report} data={{ runId: bundle.runId }} />
         </div>
       </div>
 
@@ -174,7 +176,7 @@ export default function ReviewClient({ bundle, usage, warnings, initial, nav }: 
         <li>Skim the ranked list. Open a news site or two and compare it with today&apos;s real headlines.</li>
         <li>Mark each story in roughly the top 15. <b>✓ Good</b> is fine for most; tag only the problems. Click &quot;show articles&quot; to check what was grouped together.</li>
         <li>Fill in the overall score and anything big that&apos;s missing. Use the search to see whether a missing story was fetched at all.</li>
-        <li>Click <b>Copy report for Claude</b> and paste it into the chat. Your marks save automatically.</li>
+        <li>Click <b>Send to Claude</b> (add a note if you like). Claude reads it next session; no pasting needed. Your marks save automatically.</li>
       </ol>
       {failed.length > 0 && (
         <p className="warn">Failed sources this run: {failed.map(([id, h]) => `${sources.get(id)?.name ?? id} (${h.error})`).join("; ")}</p>
