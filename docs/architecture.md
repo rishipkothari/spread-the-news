@@ -91,7 +91,7 @@ Local preview only: `LOCAL_BLOB_DIR=/folder` makes `getJson`/`putJson`/`listPath
 | `/debug` | admin console overview: start runs, latest run and episode, links |
 | `/player`, `/player/[id]` | episode list; player (chapters, −15/+15, speed, resume per device, lock-screen controls via Media Session) |
 | `/audio/[...key]` | streams `audio/*.mp3` and `episodes/*.mp3` from private Blob with HTTP Range, ≤ `audio.rangeChunkBytes` per response (`src/audio/range.ts`) |
-| `/debug/voices` | voice test: pick a voice, voice a real story segment, play it |
+| `/debug/voices` | voice test: pick a voice, voice a real story segment, play it; pronunciation test (`src/audio/pronunciation-test.ts`, `voiceClipAction`; markup versions through `TTSProvider.synthesizeMarkup`), sent to Claude as `feedback:pronunciation` |
 | `/debug/runs`, `/debug/runs/[id]` | start runs; run status, source health, ranked stories, re-cluster / re-rank |
 | (all `/debug/runs/[id]/*`) | `RunNav`: "← Run" button and tabs between ranking review, analysis, script, episode |
 | `/debug/runs/[id]/review` | verdicts per story, autosaved; "Copy report for Claude" (`src/review/report.ts`) |

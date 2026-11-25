@@ -4,6 +4,7 @@ import type { EpisodeScript } from "@/lib/types";
 import { impls, type Methods } from "@/stages/registry";
 import { VOICE_TEST_PATH, type VoiceTest } from "@/audio/voice-test";
 import { voiceTestAction } from "./actions";
+import PronunciationTest from "./PronunciationTest";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,8 @@ export default async function VoicesPage({ searchParams }: { searchParams: Promi
       )}
 
       <p className="muted">Found {voices.length} voices{voices.length <= 10 ? " (the built-in short list; the full list couldn't be fetched)" : ""}. Tell Claude which voice you like and it becomes the episode voice.</p>
+
+      <PronunciationTest voice={config.audio.voice} provider={tts.id} />
     </main>
   );
 }
