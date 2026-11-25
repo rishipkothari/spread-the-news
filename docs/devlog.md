@@ -4,6 +4,8 @@ One entry per work session, newest first: what changed, what we learned, what's 
 
 ## 2026-11-25: run buttons
 
+**Player bar** (follow-up): floating card on phones with the brand tile (shows a playing indicator) and a faint left-center-right progress line, so it reads as its own object without being louder.
+
 **Built**: "Create run" (record only, state `created`, nothing runs; the run page shows "Find stories" and "Run full pipeline") and "Run full pipeline" (sources through assemble in one workflow) on `/debug` and `/debug/runs`. `createRun` / `startCreatedRun` in `src/pipeline/start.ts`; `tests/start.test.ts`. API unchanged (`POST /api/runs` still stops after rank by default).
 
 **Next**: user tries "Run full pipeline" once and pastes "Copy time and cost for Claude" (first measured full run).

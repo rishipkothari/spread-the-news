@@ -62,8 +62,12 @@ export default function Drawer() {
       {p.toast && <div className="toast" role="status">{p.toast}</div>}
 
       <div className="mini" role="region" aria-label="Player">
-        <div className="mini-progress" style={{ transform: `scaleX(${progress})` }} />
+        <div className="mini-track" aria-hidden><div className="mini-progress" style={{ transform: `scaleX(${progress})` }} /></div>
         <button type="button" className="mini-main" onClick={() => setOpen(true)} aria-label="Open player and queue">
+          <span className={`mini-art${p.playing ? " on" : ""}`} aria-hidden>
+            <img src="/brand/glasses-icon.jpg" alt="" width={40} height={40} />
+            {p.playing && <span className="eq"><i /><i /><i /></span>}
+          </span>
           <span className="mini-text">
             <span className="mini-title">{current.title}</span>
             <span className="mini-meta">{meta}</span>
