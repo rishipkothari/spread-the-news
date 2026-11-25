@@ -2,6 +2,18 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-25: frontend spec (PRISM News), landing page, admin console frame
+
+**Branch housekeeping**: the session branch started from an old commit because the repo's default branch had been `claude/gracious-feynman-icy2to` since day one (GitHub makes the first pushed branch the default). The user switched the default to `main`; every other branch is fully merged into `main`.
+
+**Discussed**: the public site as a music web player (stories as tracks, Play / Add to queue, premade playlists per section and the daily episode, persistent bottom drawer with the queue, date selector with infinite scroll, story page = headline + script + analysis accordion, coverage split bar on every row). Unvoiced stories are listed without player buttons. Password stays for now; public access is a high-priority backlog item. Design will be made in Google Stitch from `docs/ui-sketch.md`, then built.
+
+**Built**: `docs/ui-sketch.md` (Stitch brief); PRISM landing page at `/` (brand copy, no links except the admin console); admin pages moved into route group `app/(admin)` with a console frame (sidebar on desktop, tab row on phones) and a new `/debug` overview (start runs, latest run, latest episode, tiles); brand fonts (Playfair Display + Jost) and PRISM color tokens site-wide.
+
+**Checked here**: typecheck, 123 tests, `next build`; screenshots of the landing (desktop, phone) and the console frame with sample data (pages that read Blob can't render in the sandbox).
+
+**Next**: user builds the Stitch project; then import and build the news pages, player drawer and data (see todo).
+
 ## 2026-11-24: backlog-01, second batch (sections, every outlet, feeds page, time report)
 
 **Discussed** (no code): wire copy (outlets running AP/Reuters text word for word inflates "agreed" facts and misattributes framing): two-step plan in the backlog. Fast yes/no classifiers (Jev): not useful here (the 300 s limit is per step, our calls aren't yes/no); dropped. Trafilatura check left for the user after merging; the function's open GET reply moved to a new Security section to discuss.

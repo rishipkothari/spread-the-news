@@ -2,6 +2,17 @@
 
 Phases follow `docs/PRD.md`. Check items off as they're done; add new items where they belong. Newest discoveries go at the top of their section.
 
+## Now: frontend (PRISM News)
+
+Spec: `docs/ui-sketch.md`. Flow agreed 2026-11-25: the user pastes the spec into Google Stitch and builds a design project there; Claude reads it over the Stitch MCP and builds from it.
+
+- [ ] **High priority: public access.** Today every page sits behind `PLAYER_PASSWORD` (Basic auth, `proxy.ts`). Plan to open the landing and news pages (and their audio) publicly while keeping `/debug` and the API private. Discuss with the Security section before changing.
+- [ ] **User: make the Stitch project** from `docs/ui-sketch.md`; acquire the images Stitch asks for (logo, icon, hero, 6 section covers); then ask Claude to import it.
+- [ ] Data for the public pages: a story object for every ranked headline that meets a bar (e.g. min outlets), with `hasScript` / `hasAudio` flags so unvoiced stories can be listed; per-story lean counts for the split bar; per-day index for the date selector and infinite scroll.
+- [ ] Build from Stitch: news home with daily-episode spot, section pages, story page, "Play this section" (5/10/15 min), persistent player drawer in the root layout (keeps playing across navigation, queue survives reload, lock-screen controls).
+- [ ] Rest of the admin pages restyled to match the new console frame (runs, run detail, feeds, voices, episodes) once the Stitch design exists.
+- [x] 2026-11-25: PRISM landing page (brand only, link to the admin console) and admin console frame (sidebar / phone tabs, `/debug` overview). Brand fonts and color tokens.
+
 ## Done in `backlog-01` (second batch, 2026-11-24): user checks
 
 - [x] Every section label kept (`sections: ["us", "world"]`); the clusterer sees all of them.
