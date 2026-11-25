@@ -4,7 +4,8 @@ import { missingEnv } from "@/lib/env";
 import { listPaths } from "@/lib/storage";
 import { STAGES } from "@/pipeline/stages";
 import { readStatus } from "@/pipeline/status";
-import { startRunAction } from "./actions";
+import { readNewsIndex } from "@/news/store";
+import { rebuildNewsAction, startRunAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +17,12 @@ const TILES = [
 ];
 
 /** Admin console home: start a run, see the latest run and episode, jump anywhere. */
-export default async function AdminOverview() {
+export default async function AdminOverview({ searchParams }: { searchParams: Promise<{ news?: string }> }) {
+  const { news } = await searchParams;
   const files = await listPaths("runs/");
   const ids = [...new Set(files.filter((p) => p.endsWith("/status.json")).map((p) => p.split("/")[1]))].sort().reverse();
   const latest = ids[0] ? await readStatus(ids[0]) : null;
-  const [episode] = await listEpisodes(1);
+  const [[episode], newsIndex] = await Promise.all([listEpisodes(1), readNewsIndex()]);
   const missing = missingEnv();
 
   return (
@@ -80,6 +82,26 @@ export default async function AdminOverview() {
           ) : (
             <p className="muted">No episodes yet. Make audio from a run with a finished script.</p>
           )}
+        </section>
+
+        <section className="card">
+          <h2>News data</h2>
+          {news === "rebuilt" && <p className="ok">Rebuilt from every run.</p>}
+          {newsIndex.days.length ? (
+            <ul>
+              {newsIndex.days.slice(0, 3).map((d) => (
+                <li key={d.date}>
+                  {formatDate(d.date)}: {d.stories} stories, {d.voiced} with audio{d.hasEpisode ? ", episode" : ""} ·{" "}
+                  <Link href={`/debug/runs/${d.runId}`} className="mono">run</Link> · <a href={`/data/news/${d.date}`}>data</a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted">Nothing published yet. Runs publish their day after ranking, analysis, script and audio.</p>
+          )}
+          <form action={rebuildNewsAction}>
+            <button type="submit" title="Rebuild the public pages' data from every saved run (free)">Rebuild from all runs</button>
+          </form>
         </section>
       </div>
 

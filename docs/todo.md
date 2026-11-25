@@ -8,7 +8,7 @@ Spec: `docs/ui-sketch.md`. Flow agreed 2026-11-25: the user pastes the spec into
 
 - [ ] **High priority: public access.** Today every page sits behind `PLAYER_PASSWORD` (Basic auth, `proxy.ts`). Plan to open the landing and news pages (and their audio) publicly while keeping `/debug` and the API private. Discuss with the Security section before changing.
 - [ ] **User: make the Stitch project** from `docs/ui-sketch.md`; acquire the images Stitch asks for (logo, icon, hero, 6 section covers); then ask Claude to import it.
-- [ ] Data for the public pages: a story object for every ranked headline that meets a bar (e.g. min outlets), with `hasScript` / `hasAudio` flags so unvoiced stories can be listed; per-story lean counts for the split bar; per-day index for the date selector and infinite scroll.
+- [x] 2026-11-25: data for the public pages (`src/news/`, `/data/news…` JSON): story rows with `hasAnalysis` / `hasScript` / `hasAudio`, lean counts, tracks; story pages; per-day files and index; "Play this section" picker. **User: backfill** on `/debug`, "News data" card → "Rebuild from all runs"; then open `/data/news` and check the days look right.
 - [ ] Build from Stitch: news home with daily-episode spot, section pages, story page, "Play this section" (5/10/15 min), persistent player drawer in the root layout (keeps playing across navigation, queue survives reload, lock-screen controls).
 - [ ] Rest of the admin pages restyled to match the new console frame (runs, run detail, feeds, voices, episodes) once the Stitch design exists.
 - [x] 2026-11-25: PRISM landing page (brand only, link to the admin console) and admin console frame (sidebar / phone tabs, `/debug` overview). Brand fonts and color tokens.
