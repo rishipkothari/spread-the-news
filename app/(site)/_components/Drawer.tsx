@@ -62,23 +62,20 @@ export default function Drawer() {
       {p.toast && <div className="toast" role="status">{p.toast}</div>}
 
       <div className="mini" role="region" aria-label="Player">
-        <div className="mini-track" aria-hidden><div className="mini-progress" style={{ transform: `scaleX(${progress})` }} /></div>
-        <button type="button" className="mini-main" onClick={() => setOpen(true)} aria-label="Open player and queue">
+        <MiniScrub />
+        <button type="button" className="mini-main" onClick={() => setOpen(true)} aria-label={`Open player and queue. Now playing: ${current.title}`}>
           <span className={`mini-art${p.playing ? " on" : ""}`} aria-hidden>
             <img src="/brand/glasses-icon.jpg" alt="" width={40} height={40} />
             {p.playing && <span className="eq"><i /><i /><i /></span>}
           </span>
-          <span className="mini-text">
-            <span className="mini-title">{current.title}</span>
-            <span className="mini-meta">{meta}</span>
-          </span>
+          <span className="mini-title">{current.title}</span>
         </button>
         <div className="mini-ctrls">
-          <button type="button" className="ib desk" onClick={p.prev} aria-label="Previous"><PrevIcon size={18} /></button>
-          <button type="button" className="ib ib-solid" onClick={p.toggle} aria-label={p.playing ? "Pause" : "Play"}>
-            {p.playing ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
+          <button type="button" className="ib ib-mini" onClick={p.prev} aria-label="Previous"><PrevIcon size={16} /></button>
+          <button type="button" className="ib ib-solid ib-mini" onClick={p.toggle} aria-label={p.playing ? "Pause" : "Play"}>
+            {p.playing ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
           </button>
-          <button type="button" className="ib" onClick={p.next} disabled={p.index >= p.queue.length - 1} aria-label="Next"><NextIcon size={18} /></button>
+          <button type="button" className="ib ib-mini" onClick={p.next} disabled={p.index >= p.queue.length - 1} aria-label="Next"><NextIcon size={16} /></button>
         </div>
       </div>
 
@@ -146,6 +143,64 @@ export default function Drawer() {
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * The bar's top edge is a scrubber: a thin line with a taller invisible touch strip. Dragging thickens it and
+ * shows the time you'd jump to; letting go seeks. Arrow keys move 5 s.
+ */
+function MiniScrub() {
+  const p = usePlayer();
+  const ref = useRef<HTMLDivElement>(null);
+  const [drag, setDrag] = useState<number | null>(null); // fraction while dragging
+  const dur = p.duration || p.current?.durationSec || 0;
+  const frac = drag ?? (dur ? Math.min(1, p.time / dur) : 0);
+
+  const at = (clientX: number) => {
+    const r = ref.current!.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+  };
+  const onDown = (e: React.PointerEvent) => {
+    if (!dur) return;
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setDrag(at(e.clientX));
+  };
+  const onMove = (e: React.PointerEvent) => { if (drag != null) setDrag(at(e.clientX)); };
+  const onUp = (e: React.PointerEvent) => {
+    if (drag == null) return;
+    p.seek(at(e.clientX) * dur);
+    setDrag(null);
+  };
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      p.seek(p.time + (e.key === "ArrowRight" ? 5 : -5));
+    }
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={`mini-scrub${drag != null ? " dragging" : ""}`}
+      role="slider"
+      tabIndex={0}
+      aria-label="Position"
+      aria-valuemin={0}
+      aria-valuemax={Math.round(dur)}
+      aria-valuenow={Math.round(frac * dur)}
+      aria-valuetext={`${clock(frac * dur)} of ${clock(dur)}`}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={() => setDrag(null)}
+      onKeyDown={onKey}
+    >
+      <div className="mini-track"><div className="mini-progress" style={{ transform: `scaleX(${frac})` }} /></div>
+      {drag != null && <span className="mini-bubble" style={{ left: `${frac * 100}%` }}>{clock(frac * dur)}</span>}
+    </div>
   );
 }
 

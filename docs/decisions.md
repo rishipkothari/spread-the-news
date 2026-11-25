@@ -4,6 +4,7 @@ The PRD's decision log (`docs/PRD.md` → "Decision log") is the baseline. This 
 
 | Date | Topic | Decision | Why | PRD change? |
 | :- | :- | :- | :- | :- |
+| 2026-11-25 | Player bar controls | Top edge is a scrubber (thin line, ~22 px touch strip, time bubble while dragging, arrow keys); title on two lines, no section/position line; previous, play, next on phones too, slightly smaller | User: scrub without opening the drawer, room for a previous button | No |
 | 2026-11-25 | Player bar look | On phones a floating card (inset from the edges, rounded, clear edge and soft shadow) with the brand tile and a faint left-center-right progress line; same size and colors | User: the edge-to-edge bar blended into the bottom of the screen; make it distinct, not louder | No |
 | 2026-11-25 | Run buttons | "Start full run" replaced by "Create run" (makes the run, starts nothing; its page offers "Find stories" or "Run full pipeline") and "Run full pipeline" (every phase through audio in one go). "Check feeds" unchanged; phase buttons on the run page unchanged | User: the old name hid that it only ran discovery | Ends the "Phase 1 rollout: opt-in" decision for one-button runs |
 | 2026-11-25 | Landing | Marketing only: hero, three points, "Read the news". No stories, no episode button, and the player bar is hidden there (audio keeps playing) | User feedback | Narrows ui-sketch 6.1 |
