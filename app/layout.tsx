@@ -1,21 +1,18 @@
-import Link from "next/link";
+import { Jost, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
-export const metadata = { title: "Spread the News" };
+const serif = Playfair_Display({ subsets: ["latin"], variable: "--font-serif", display: "swap" });
+const sans = Jost({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+
+export const metadata = {
+  title: "PRISM News",
+  description: "One story. Every lens. The news, fully framed.",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <nav className="nav">
-          <Link href="/">Spread the News</Link>
-          <Link href="/player">Player</Link>
-          <Link href="/debug/runs">Runs</Link>
-          <Link href="/debug/feeds">Feeds</Link>
-          <Link href="/debug/voices">Voices</Link>
-        </nav>
-        {children}
-      </body>
+    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }

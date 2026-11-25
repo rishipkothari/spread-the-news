@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Spread the News
+# Spread the News (brand: PRISM News)
 
 Personal daily news podcast: 12 RSS sources balanced left to right → stories grouped by Claude → ranked by cross-spectrum coverage → summarized and voiced. Spec: `docs/PRD.md`.
 
@@ -10,6 +10,7 @@ Personal daily news podcast: 12 RSS sources balanced left to right → stories g
 - `docs/decisions.md`: decisions and every deviation from the PRD, with reasons.
 - `docs/architecture.md`: code layout, pipeline, storage, how to add a stage.
 - `docs/tone-guide.md`: how the podcast sounds; script writer and checker follow it. Add rules there.
+- `docs/ui-sketch.md`: the public site and admin console design brief (input for Google Stitch; build from the Stitch project).
 - `docs/stack.md`: stack choices, env vars, costs.
 - `docs/reviews/`: the user's pasted run reviews, one file per run.
 

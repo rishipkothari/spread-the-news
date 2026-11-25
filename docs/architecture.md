@@ -73,9 +73,13 @@ admin/discovery/{source}.json last feed-discovery results per source
 
 ## Web
 
+Admin pages (`/debug/*`, `/player/*`) live in the route group `app/(admin)/`, whose layout (`app/(admin)/layout.tsx`, `AdminNav.tsx`) is the console frame: sidebar on desktop, tab strip on phones. The group doesn't change URLs. The root layout (`app/layout.tsx`) loads the brand fonts (Playfair Display, Jost via `next/font`) and nothing else; brand tokens are at the top of `app/globals.css`.
+
+
 | Route | What |
 | :- | :- |
-| `/` | play the latest episode; links to episodes, runs and the latest review |
+| `/` | PRISM landing page (brand only; links to the admin console). Public news pages will follow `docs/ui-sketch.md` |
+| `/debug` | admin console overview: start runs, latest run and episode, links |
 | `/player`, `/player/[id]` | episode list; player (chapters, −15/+15, speed, resume per device, lock-screen controls via Media Session) |
 | `/audio/[...key]` | streams `audio/*.mp3` and `episodes/*.mp3` from private Blob with HTTP Range, ≤ `audio.rangeChunkBytes` per response (`src/audio/range.ts`) |
 | `/debug/voices` | voice test: pick a voice, voice a real story segment, play it |
@@ -84,7 +88,7 @@ admin/discovery/{source}.json last feed-discovery results per source
 | `/debug/runs/[id]/review` | verdicts per story, autosaved; "Copy report for Claude" (`src/review/report.ts`) |
 | `/debug/runs/[id]/analysis` | Phase 1 output: extraction by source, syntheses with quotes, copyable report |
 | `/debug/runs/[id]/script` | Phase 2 output: full script, checker verdicts and claims, first drafts, dropped stories, plan, 👍/👎 + notes per segment (autosaved), copyable report (`src/review/script-report.ts`) |
-| `/debug/feeds` | feed discovery and source editing: overview table, one card per source, batch "Add all active found feeds" (`src/admin/feed-plan.ts`), "Add them" for repo sources missing from the live list (`src/admin/discover.ts`, `app/debug/feeds/actions.ts`) |
+| `/debug/feeds` | feed discovery and source editing: overview table, one card per source, batch "Add all active found feeds" (`src/admin/feed-plan.ts`), "Add them" for repo sources missing from the live list (`src/admin/discover.ts`, `app/(admin)/debug/feeds/actions.ts`) |
 | `/api/runs…` | Bearer-authenticated API (see README) |
 
 Auth: `proxy.ts` gates every non-API page with Basic auth (`PLAYER_PASSWORD`); API routes check `Bearer RUN_SECRET` (`src/lib/auth.ts`). Workflow's `/.well-known/workflow/*` routes are excluded from the proxy.

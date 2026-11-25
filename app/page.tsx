@@ -1,34 +1,33 @@
 import Link from "next/link";
-import { formatClock, formatDate, listEpisodes } from "@/audio/episodes";
-import { listPaths } from "@/lib/storage";
-import { readStatus } from "@/pipeline/status";
 
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
-  const files = await listPaths("runs/");
-  const ids = [...new Set(files.filter((p) => p.endsWith("/status.json")).map((p) => p.split("/")[1]))].sort().reverse();
-  let latestReviewable: string | null = null;
-  for (const id of ids.slice(0, 15)) {
-    const s = await readStatus(id);
-    if (s?.stages.rank?.state === "done") {
-      latestReviewable = id;
-      break;
-    }
-  }
-  const [latest] = await listEpisodes(1);
+/** Public landing page. Links only to the admin console until the news pages exist (docs/ui-sketch.md). */
+export default function Landing() {
   return (
-    <main>
-      <h1>Spread the News</h1>
-      <p className="muted">Daily news read across the spectrum.</p>
-      <div style={{ marginTop: 20 }}>
-        {latest ? (
-          <Link href={`/player/${latest.id}`} className="big">▶ Play {formatDate(latest.date)} ({formatClock(latest.durationSec)}) →</Link>
-        ) : null}
-        <Link href="/player" className="big">All episodes →</Link>
-        <Link href="/debug/runs" className="big">Runs: start a run, see results →</Link>
-        {latestReviewable && <Link href={`/debug/runs/${latestReviewable}/review`} className="big">Review latest run →</Link>}
-      </div>
-    </main>
+    <div className="landing">
+      <header className="lp-header">
+        <span className="wordmark">PRISM</span>
+        <Link href="/debug" className="lp-admin">Admin console</Link>
+      </header>
+
+      <main className="lp-main">
+        <p className="lp-kicker">Refracting the headlines</p>
+        <h1 className="lp-title">One story.<br />Every lens.</h1>
+        <p className="lp-sub">The news, fully framed. Bringing stories into focus.</p>
+        <div className="lp-beam" aria-hidden />
+
+        <div className="lp-values">
+          <section>
+            <h2>Every lens</h2>
+            <p>Each story is read across outlets from left to right. You get the facts they share and how each side framed the rest.</p>
+          </section>
+          <section>
+            <h2>Press play</h2>
+            <p>Every story is a short audio clip. Play one, queue a few, or play a whole section. It keeps playing while you browse.</p>
+          </section>
+        </div>
+      </main>
+
+      <footer className="lp-footer">PRISM News · Refracting the headlines.</footer>
+    </div>
   );
 }
