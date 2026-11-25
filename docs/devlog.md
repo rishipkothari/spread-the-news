@@ -2,6 +2,18 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-25: frontend-stitch-1, the whole site rebuilt from Stitch
+
+**Imported** from the Stitch project (design system, News Page, Story Detail & Framing Analysis, Landing, Simple Audio Drawer, admin screens): `docs/stitch.md`. The user supplied the glasses image and the light prism photo (`public/brand/`).
+
+**Decided with the user**: theme follows the phone with a toggle; soft corners on the public site, sharp in admin; only three public screens (landing, news, story); sections are chips, no bottom tabs, no "saved" yet; the only player is the drawer; nothing technical in the public copy (no file sizes, methods, version numbers).
+
+**Built**: public site in `app/(site)/` (landing, news home and sections with date navigation and infinite scroll, story page, the player drawer with queue, reorder, speed, lock-screen controls, saved queue); admin console restyled (sharp, hairlines, icons, theme switch); new fonts and tokens; favicon from the glasses image. `LOCAL_BLOB_DIR` for local previews with sample data.
+
+**Checked here**: typecheck, 132 tests, `next build`; screenshots with sample data (phone and desktop, light and dark: landing, news, section, story, unvoiced story, drawer, admin). Audio playback itself can't be checked here (no real audio in the sandbox).
+
+**Next**: user checks on Vercel after merging: press "Rebuild from all runs" on `/debug` first so the news pages have data; then play a story, queue a few, lock the phone.
+
 ## 2026-11-25: data for the public news pages
 
 **Built** (`src/news/`): a run's saved output becomes the public pages' data. `buildNews` (pure) makes story rows (rank, neutral title, section, outlet count, left/center/right counts, `hasAnalysis` / `hasScript` / `hasAudio`, duration, a playable track), story pages (script paragraphs, analysis: summary, agreed facts, material disputes with sides and outlets, framing; outlets left to right with their own headlines) and the day (section counts, voiced count, the episode as one file and as tracks). `publishRun` writes `news/days/{date}.json`, `news/stories/{id}.json` and `news/index.json`; runs publish after rank, synthesize, script and assemble, and after "Use this version". `pickForLength` fills "Play this section" (5/10/15 min). JSON at `/data/news`, `/data/news/{date}` (with older/newer days for the date arrows and infinite scroll), `/data/story/{id}`. Admin: "Publish to news" on the run page, "News data" card with "Rebuild from all runs" on `/debug`.

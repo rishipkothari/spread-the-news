@@ -9,7 +9,23 @@ function access(): "public" | "private" {
   return process.env.BLOB_ACCESS === "public" ? "public" : "private";
 }
 
+/**
+ * Local development only: LOCAL_BLOB_DIR=/some/folder makes the JSON helpers read and write files there instead
+ * of Blob (used to preview pages with sample data in a sandbox that can't reach Blob). Never set on Vercel.
+ */
+const localDir = () => (process.env.VERCEL ? undefined : process.env.LOCAL_BLOB_DIR);
+async function localFs() {
+  const [fs, nodePath] = await Promise.all([import("node:fs/promises"), import("node:path")]);
+  return { fs, join: (p: string) => nodePath.join(localDir()!, p), dirname: nodePath.dirname };
+}
+
 export async function putJson(path: string, data: unknown): Promise<void> {
+  if (localDir()) {
+    const { fs, join, dirname } = await localFs();
+    await fs.mkdir(dirname(join(path)), { recursive: true });
+    await fs.writeFile(join(path), JSON.stringify(data));
+    return;
+  }
   await put(path, JSON.stringify(data), {
     access: access(),
     contentType: "application/json",
@@ -20,6 +36,10 @@ export async function putJson(path: string, data: unknown): Promise<void> {
 }
 
 export async function getJson<T>(path: string): Promise<T | null> {
+  if (localDir()) {
+    const { fs, join } = await localFs();
+    try { return JSON.parse(await fs.readFile(join(path), "utf8")) as T; } catch { return null; }
+  }
   const res = await get(path, { access: access(), useCache: false });
   if (!res || res.statusCode !== 200 || !res.stream) return null;
   const text = await new Response(res.stream as ReadableStream).text();
@@ -74,6 +94,11 @@ export async function getRange(path: string, start: number, end: number): Promis
 }
 
 export async function listPaths(prefix: string, limit = 1000): Promise<string[]> {
+  if (localDir()) {
+    const { fs } = await localFs();
+    const files = (await fs.readdir(localDir()!, { recursive: true }).catch(() => [] as string[])).map(String);
+    return files.filter((f) => f.startsWith(prefix) && f.endsWith(".json")).slice(0, limit);
+  }
   const out: string[] = [];
   let cursor: string | undefined;
   do {

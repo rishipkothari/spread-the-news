@@ -76,12 +76,15 @@ admin/discovery/{source}.json last feed-discovery results per source
 
 ## Web
 
-Admin pages (`/debug/*`, `/player/*`) live in the route group `app/(admin)/`, whose layout (`app/(admin)/layout.tsx`, `AdminNav.tsx`) is the console frame: sidebar on desktop, tab strip on phones. The group doesn't change URLs. The root layout (`app/layout.tsx`) loads the brand fonts (Playfair Display, Jost via `next/font`) and nothing else; brand tokens are at the top of `app/globals.css`.
+Two route groups (neither changes URLs). **Public site** `app/(site)/`: its layout holds the header, the page and the player (`_components/player.tsx`: queue, position and speed saved per device, Media Session lock-screen controls; `_components/Drawer.tsx`: the slim bar at the bottom while something is queued, pulled up into the full player and queue). Pages read the prebuilt news data (`src/news/store.ts`); earlier days load on scroll from `/data/news/{date}`. Soft corners, light shadows: `app/(site)/site.css`. **Admin console** `app/(admin)/` (`layout.tsx`, `AdminNav.tsx`): sidebar on desktop, tab strip on phones, sharp corners and hairlines. Shared: tokens and admin styles in `app/globals.css` (light and dark via `html[data-theme]`, set before paint in `app/layout.tsx`: device setting until the visitor toggles), icons and the theme switch in `app/_ui/`. Fonts: Newsreader, Inter, JetBrains Mono. Brand images in `public/brand/`; design notes from Stitch in `docs/stitch.md`.
 
+Local preview only: `LOCAL_BLOB_DIR=/folder` makes `getJson`/`putJson`/`listPaths` use files in that folder instead of Blob (ignored on Vercel).
 
 | Route | What |
 | :- | :- |
-| `/` | PRISM landing page (brand only; links to the admin console). Public news pages will follow `docs/ui-sketch.md` |
+| `/` | landing: brand, way into the news, the day's top three stories, daily episode button |
+| `/news`, `/news/[section]` | news home and section pages: section chips, date ‹ › with calendar, daily episode (home), Play this section (5/10/15 min), story rows, earlier days on scroll; `?date=YYYY-MM-DD` |
+| `/story/[id]` | story page: headline, summary, coverage split, Play / Add to queue, the script, "How the coverage compares", "Who covered it" |
 | `/debug` | admin console overview: start runs, latest run and episode, links |
 | `/player`, `/player/[id]` | episode list; player (chapters, −15/+15, speed, resume per device, lock-screen controls via Media Session) |
 | `/audio/[...key]` | streams `audio/*.mp3` and `episodes/*.mp3` from private Blob with HTTP Range, ≤ `audio.rangeChunkBytes` per response (`src/audio/range.ts`) |
