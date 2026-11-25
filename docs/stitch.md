@@ -19,7 +19,8 @@ Stitch project `projects/6133575386756677562` ("PRISM News"), read over the Stit
 ## Assets
 
 - `public/prism-mark.svg`: lens mark (screen `a4508d84399540fc81168d7d8b6b85c0`).
-- Not imported (the sandbox can't download Stitch images): the glasses logo `PRISM_glasses_logo.jpg` (screen `2939323198349618197`) and the hero refraction banner (screen `612471010fb54336b76ec745f19d0e6c`).
+- `public/brand/glasses.jpg` (dark glasses with refraction, from the user; dark-theme hero), `public/brand/glasses-icon.jpg` (crop: logo tile, favicon `app/icon.jpg`, lock-screen art), `public/brand/prism-light.webp` (prism on paper, from the user; light-theme hero).
+- Screens used for the public MVP: Landing, News Page, Story Detail & Framing Analysis, Simple Audio Drawer. Daily Feed is an older version (not used).
 
 ## Screens
 

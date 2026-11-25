@@ -15,6 +15,8 @@ export interface RunNewsInputs {
 }
 
 const SIDES: LeanGroup[] = ["left", "center", "right"];
+/** Listener-facing names for the episode's fixed parts. */
+const TEMPLATE_TITLES: Record<string, string> = { welcome: "Welcome", rundown: "Today's stories", outro: "Sign-off" };
 
 export const publicStoryId = (date: string, storyId: string) => `${date}-${storyId}`;
 /** Splits `{date}-{storyId}`; null when it isn't one. */
@@ -140,7 +142,7 @@ function episodeOf(ep: Episode, stories: NewsStory[], unitBySeg: Map<string, Voi
     const src = unit ? audioSrc(`audio/${unit.audioKey}.mp3`) : `${audioSrc(ep.audioPath)}#t=${ch.startSec},${+(ch.startSec + ch.durationSec).toFixed(2)}`;
     return {
       id: story ? story.id : `${ep.id}:${ch.segmentId}`,
-      title: story?.title ?? ch.title,
+      title: story?.title ?? TEMPLATE_TITLES[ch.kind] ?? ch.title,
       kind: ch.kind,
       ...(story ? { category: story.category, storyId: story.id } : {}),
       durationSec: ch.durationSec,

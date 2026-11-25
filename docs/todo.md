@@ -7,10 +7,12 @@ Phases follow `docs/PRD.md`. Check items off as they're done; add new items wher
 Spec: `docs/ui-sketch.md`. Flow agreed 2026-11-25: the user pastes the spec into Google Stitch and builds a design project there; Claude reads it over the Stitch MCP and builds from it.
 
 - [ ] **High priority: public access.** Today every page sits behind `PLAYER_PASSWORD` (Basic auth, `proxy.ts`). Plan to open the landing and news pages (and their audio) publicly while keeping `/debug` and the API private. Discuss with the Security section before changing.
-- [ ] **User: make the Stitch project** from `docs/ui-sketch.md`; acquire the images Stitch asks for (logo, icon, hero, 6 section covers); then ask Claude to import it.
+- [x] 2026-11-25: Stitch project made and imported (`docs/stitch.md`).
 - [x] 2026-11-25: data for the public pages (`src/news/`, `/data/news…` JSON): story rows with `hasAnalysis` / `hasScript` / `hasAudio`, lean counts, tracks; story pages; per-day files and index; "Play this section" picker. **User: backfill** on `/debug`, "News data" card → "Rebuild from all runs"; then open `/data/news` and check the days look right.
-- [ ] Build from Stitch: news home with daily-episode spot, section pages, story page, "Play this section" (5/10/15 min), persistent player drawer in the root layout (keeps playing across navigation, queue survives reload, lock-screen controls).
-- [ ] Rest of the admin pages restyled to match the new console frame (runs, run detail, feeds, voices, episodes) once the Stitch design exists.
+- [x] 2026-11-25 (`frontend-stitch-1`): built from Stitch: landing, news home with the daily episode, section pages, story page, "Play this section" (5/10/15 min), the player drawer (keeps playing across pages, queue survives reload, lock-screen controls).
+- [ ] **User: check on the phone** after merging: `/debug` → "Rebuild from all runs"; then `/news`: play a story, add two to the queue, open the drawer, reorder, change speed, lock the screen, reload (queue comes back paused), open a story page, switch theme.
+- [ ] Later: highlight the paragraph being read on the story page; date selector follows the day in view while scrolling; "Saved" stories.
+- [x] 2026-11-25: admin restyled through shared styles (sharp corners, hairlines, mono metadata, icons, theme switch). Page layouts unchanged; deeper per-page redesigns from the Stitch admin screens can follow.
 - [x] 2026-11-25: PRISM landing page (brand only, link to the admin console) and admin console frame (sidebar / phone tabs, `/debug` overview). Brand fonts and color tokens.
 
 ## Done in `backlog-01` (second batch, 2026-11-24): user checks

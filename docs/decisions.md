@@ -4,6 +4,12 @@ The PRD's decision log (`docs/PRD.md` → "Decision log") is the baseline. This 
 
 | Date | Topic | Decision | Why | PRD change? |
 | :- | :- | :- | :- | :- |
+| 2026-11-25 | Theme | Follows the device setting until the visitor toggles; choice saved per device | User's choice; Stitch made light the main look, the brief said dark | Changes ui-sketch ("dark is the signature") |
+| 2026-11-25 | Shape | Soft corners and light shadows on the public site, sharp corners and hairlines in admin | As Stitch drew each part | No |
+| 2026-11-25 | Public screens | Landing, news (all + sections as chips), story; no bottom tabs, no "saved"; the player drawer is the only player (slim bar while something is queued) | User: MVP scope | Narrows ui-sketch |
+| 2026-11-25 | Public copy | No technical words: no file formats, sizes, versions or method talk ("synthesized" etc.) | A news reader, not a methods site | No |
+| 2026-11-25 | Rows order | Voiced stories first, then the rest, by rank; no rank numbers on rows (they'd read out of order) | Listening first, without confusing numbering | Drops ui-sketch's optional rank numeral |
+| 2026-11-25 | Fonts | Newsreader, Inter, JetBrains Mono (Stitch) replace Playfair Display and Jost | Stitch design system | No |
 | 2026-11-25 | News data: which run is a day's news | Each run publishes its day (UTC date of its fetch window) after rank, analysis, script and audio, but only replaces the day's current run if it has at least as much done (audio > script > analysis > ranking). "Publish to news" on the run page forces it | A later ranking-only run must not hide a day that already has audio | New |
 | 2026-11-25 | News data: storage | Prebuilt JSON in Blob (`news/index.json`, `news/days/{date}.json`, `news/stories/{date}-{storyId}.json`), not read from run files per request | Pages read one small file; run internals can change without touching the pages. Phase 4 can move this to the database | New |
 | 2026-11-25 | News data: listing bar | Every ranked story with ≥2 distinct covering outlets (`news.minOutlets`); lean counts are distinct outlets per side | Matches the ranking's own floor; counts read naturally ("5 left · 4 center · 3 right") | New |

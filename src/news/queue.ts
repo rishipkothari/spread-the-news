@@ -1,13 +1,12 @@
-import { config } from "@/lib/config";
 import type { Category } from "@/lib/types";
 import type { NewsStoryCard, Track } from "./types";
 
 /**
  * "Play this section": voiced stories in rank order until the chosen length is filled.
  * A story that would go past the length by more than overflowSec is skipped and a shorter later one may fit.
- * Always returns at least one track when any story is voiced.
+ * Always returns at least one track when any story is voiced. Browser-safe (no config import): pass config.news.overflowSec.
  */
-export function pickForLength(cards: NewsStoryCard[], minutes: number, overflowSec = config.news.overflowSec): Track[] {
+export function pickForLength(cards: NewsStoryCard[], minutes: number, overflowSec = 45): Track[] {
   const target = minutes * 60;
   const voiced = cards.filter((c) => c.track).sort((a, b) => a.rank - b.rank);
   const out: Track[] = [];
