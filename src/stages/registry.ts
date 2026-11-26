@@ -10,6 +10,7 @@ import { synthesizers } from "./synthesize";
 import { planners } from "./plan";
 import { checkers, writers } from "./script";
 import { ttsProviders } from "./tts";
+import { speakers } from "./speak";
 import { assemblers } from "./assemble";
 import { mergers } from "./merge";
 import type { ArticleFetcher, SourceRegistry, StoryClusterer, StoryRanker } from "./types";
@@ -40,6 +41,8 @@ export const impls = {
   plan: (m: Methods) => pick(planners, m.plan, "plan"),
   script: (m: Methods) => pick(writers, m.script, "script"),
   check: (m: Methods) => pick(checkers, m.check, "check"),
+  // Runs from before the spoken script have no methods.speak; they get the config default.
+  speak: (m: Methods) => pick(speakers, m.speak ?? config.methods.speak, "speak"),
   tts: (m: Methods) => pick(ttsProviders, m.tts, "tts"),
   assemble: (m: Methods) => pick(assemblers, m.assemble, "assemble"),
 };

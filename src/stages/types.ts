@@ -209,3 +209,17 @@ export interface EpisodeAssembler {
     format: { sampleRate: number; bitrate: number; mono: boolean };
   };
 }
+
+/** Phase 3, before voicing: the spoken text of each segment (docs/pronunciation.md, src/audio/spoken.ts). */
+export interface SpeakInput {
+  segments: { id: string; kind: string; storyId?: string; text: string }[];
+}
+export interface SpeakResult {
+  segments: import("@/audio/spoken").SpokenSegment[];
+  usage: Omit<UsageEntry, "stage" | "ms">[];
+  warnings: string[];
+}
+export interface SpokenScriptWriter {
+  id: string;
+  speak(input: SpeakInput): Promise<SpeakResult>;
+}

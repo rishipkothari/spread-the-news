@@ -7,6 +7,8 @@ import { readVersions, versionedPath } from "@/pipeline/versions";
 import VersionBar from "../VersionBar";
 import RunNav from "../RunNav";
 import ScriptClient from "./ScriptClient";
+import SpokenChanges from "./SpokenChanges";
+import { readSpoken } from "@/pipeline/speak";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +19,13 @@ export default async function ScriptPage({ params, searchParams }: { params: Pro
   // ?v=n views a saved version; the current version (or none given) reads the working files.
   const v = asked && versions.script.some((x) => x.n === asked) && asked !== versions.active.script ? asked : null;
   const at = (rel: string) => versionedPath(id, rel, "script", v, versions);
-  const [status, plan, script, usage, saved] = await Promise.all([
+  const [status, plan, script, usage, saved, spoken] = await Promise.all([
     readStatus(id),
     getJson<EpisodePlan>(at("plan.json")),
     getJson<EpisodeScript>(at("script.json")),
     getJson<UsageEntry[]>(paths.usage(id)),
     getJson<ScriptReview>(at("script-review.json")),
+    readSpoken(id),
   ]);
   if (!status) return <main><h1>Run {id} not found</h1></main>;
   const units = plan
@@ -55,6 +58,7 @@ export default async function ScriptPage({ params, searchParams }: { params: Pro
       initial={saved ?? emptyScriptReview(id)}
       running={running}
       stageStates={v ? `version ${v}` : `plan: ${status.stages.plan?.state ?? "–"} · script: ${status.stages.script?.state ?? "–"}`}
+      spoken={<SpokenChanges spoken={spoken} script={script} titles={new Map(plan.stories.map((s) => [s.storyId, s.title]))} />}
     />
   );
 }

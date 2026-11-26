@@ -1,12 +1,12 @@
-/** Phase 0: discovery (merge = the post-clustering merge check). Phase 1: full text and story analysis. Phase 2: episode plan and script. Phase 3: audio. Phases 1–3 are opt-in on a finished run. */
-export const STAGES = ["sources", "fetch", "cluster", "merge", "rank", "extract", "analyze", "synthesize", "plan", "script", "voice", "assemble"] as const;
+/** Phase 0: discovery (merge = the post-clustering merge check). Phase 1: full text and story analysis. Phase 2: episode plan and script. Phase 3: audio (speak = the spoken text the voice reads). Phases 1–3 are opt-in on a finished run. */
+export const STAGES = ["sources", "fetch", "cluster", "merge", "rank", "extract", "analyze", "synthesize", "plan", "script", "speak", "voice", "assemble"] as const;
 export type StageId = (typeof STAGES)[number];
 
 /** A plain "start run" stops here; later phases are started separately until they're proven. */
 export const DEFAULT_THROUGH: StageId = "rank";
 export const ANALYSIS_STAGES: StageId[] = ["extract", "analyze", "synthesize"];
 export const SCRIPT_STAGES: StageId[] = ["plan", "script"];
-export const AUDIO_STAGES: StageId[] = ["voice", "assemble"];
+export const AUDIO_STAGES: StageId[] = ["speak", "voice", "assemble"];
 export const DISCOVERY_STAGES: StageId[] = ["sources", "fetch", "cluster", "merge", "rank"];
 
 /** Stages that fan out as one workflow step per story (voice: per segment). */
