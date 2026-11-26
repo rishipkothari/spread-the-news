@@ -2,6 +2,16 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-26: /debug down; Blob operation limit
+
+**Reported**: `/debug` wouldn't load on the live site (error digest 328776516); the user had hit a Vercel Blob operation limit.
+
+**Fixed** (#18): pages list run folders (`listRunIds`, folded) instead of every file under `runs/` (one list call per view, no 1000-file cutoff hiding newer runs); the overview loads each card on its own and shows what failed; episode manifests read 20 at a time.
+
+**Discussed**: most Blob operations come from many small JSON reads and writes, status rewrites, version snapshots (copy every file) and news rebuilds. Recommended moving all run data to Postgres (Neon) with Blob kept for audio only, as an expanded Phase 4; plan first.
+
+**Next**: user checks Blob usage in Vercel; draft `docs/phase4-plan.md` (database) for agreement.
+
 ## 2026-11-26: listening test results
 
 **Read**: feedback issue #16 (pronunciation test v1, 115 of 118 versions marked). Saved as `docs/reviews/2026-11-26-pronunciation-test-v1.md`; findings and a rule per kind in `docs/pronunciation.md`.

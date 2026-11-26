@@ -75,7 +75,9 @@ Plan: `docs/phase3-plan.md`. Exit (PRD): a vanilla episode can be triggered and 
 
 Not planned yet. PRD: move the story bank from Blob JSON to Neon + Drizzle; a profile becomes a query over the story bank (category percentages, duration); audio for non-vanilla segments generated on first request; playlists assembled on demand. Versions (built in `backlog-01`) move into the database here; the 30-day cleanup can prune old versions.
 
+- [ ] **Sooner than planned (Blob operation limit hit 2026-11-26):** move all run data (status, stage outputs, per-story units, versions, news data, feedback log) to Postgres on Neon; Blob keeps audio only. Versions become rows, not file copies.
 - [ ] Write `docs/phase4-plan.md` and agree it with the user before building.
+- [ ] **User: check Blob usage** in Vercel (project → Usage, or Storage → the Blob store) and whether `/debug` loads after #18 deploys.
 
 ## Now: Phase 0 exit (story discovery)
 
