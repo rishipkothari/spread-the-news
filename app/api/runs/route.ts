@@ -1,6 +1,6 @@
 import { checkBearer } from "@/lib/auth";
 import { missingEnv } from "@/lib/env";
-import { listPaths } from "@/lib/storage";
+import { listRunIds } from "@/lib/storage";
 import { StartRunBody, startRun } from "@/pipeline/start";
 
 export async function POST(req: Request) {
@@ -25,7 +25,6 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const denied = checkBearer(req);
   if (denied) return denied;
-  const files = await listPaths("runs/");
-  const ids = [...new Set(files.filter((p) => p.endsWith("/status.json")).map((p) => p.split("/")[1]))].sort().reverse();
+  const ids = await listRunIds();
   return Response.json({ runs: ids.slice(0, 50) });
 }

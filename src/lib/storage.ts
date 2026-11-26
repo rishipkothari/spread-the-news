@@ -93,6 +93,26 @@ export async function getRange(path: string, start: number, end: number): Promis
   return new ReadableStream({ start(c) { c.enqueue(slice); c.close(); } });
 }
 
+/**
+ * Run ids, newest first. Lists the run folders (folded) instead of every file under runs/, which passes the
+ * 1000-file page limit once runs have versions and per-story files, and then misses the newest runs.
+ */
+export async function listRunIds(): Promise<string[]> {
+  if (localDir()) {
+    const { fs } = await localFs();
+    const dirs = await fs.readdir(`${localDir()}/runs`).catch(() => [] as string[]);
+    return dirs.map(String).sort().reverse();
+  }
+  const ids: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const page = await list({ prefix: "runs/", mode: "folded", cursor, limit: 1000 });
+    ids.push(...page.folders.map((f) => f.slice("runs/".length).replace(/\/$/, "")).filter(Boolean));
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+  return ids.sort().reverse();
+}
+
 export async function listPaths(prefix: string, limit = 1000): Promise<string[]> {
   if (localDir()) {
     const { fs } = await localFs();

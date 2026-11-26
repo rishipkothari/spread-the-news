@@ -10,7 +10,11 @@ export async function listEpisodes(limit = 60): Promise<Episode[]> {
     .sort()
     .reverse()
     .slice(0, Math.max(limit, 200));
-  const eps = await Promise.all(ids.map((id) => getJson<Episode>(paths.episode(id))));
+  // A few at a time (200 reads at once can hit Blob's rate limit); an unreadable manifest is skipped, not fatal.
+  const eps: (Episode | null)[] = [];
+  for (let i = 0; i < ids.length; i += 20) {
+    eps.push(...(await Promise.all(ids.slice(i, i + 20).map((id) => getJson<Episode>(paths.episode(id)).catch(() => null)))));
+  }
   return eps
     .filter((e): e is Episode => !!e)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))

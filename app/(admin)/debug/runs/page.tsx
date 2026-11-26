@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listPaths } from "@/lib/storage";
+import { listRunIds } from "@/lib/storage";
 import { readStatus } from "@/pipeline/status";
 import { STAGES } from "@/pipeline/stages";
 import { missingEnv } from "@/lib/env";
@@ -8,9 +8,8 @@ import { replayAction, startRunAction } from "../actions";
 export const dynamic = "force-dynamic";
 
 export default async function RunsPage() {
-  const files = await listPaths("runs/");
-  const ids = [...new Set(files.filter((p) => p.endsWith("/status.json")).map((p) => p.split("/")[1]))].sort().reverse().slice(0, 30);
-  const statuses = await Promise.all(ids.map((id) => readStatus(id)));
+  const ids = (await listRunIds()).slice(0, 30);
+  const statuses = await Promise.all(ids.map((id) => readStatus(id).catch(() => null)));
   return (
     <main>
       <h1>Runs</h1>

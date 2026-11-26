@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatClock, formatDate, listEpisodes } from "@/audio/episodes";
 import { missingEnv } from "@/lib/env";
-import { listPaths } from "@/lib/storage";
+import { listRunIds } from "@/lib/storage";
 import { STAGES } from "@/pipeline/stages";
 import { readStatus } from "@/pipeline/status";
 import { readNewsIndex } from "@/news/store";
@@ -21,10 +21,28 @@ const TILES = [
 /** Admin console home: start a run, see the latest run and episode, jump anywhere. */
 export default async function AdminOverview({ searchParams }: { searchParams: Promise<{ news?: string }> }) {
   const { news } = await searchParams;
-  const files = await listPaths("runs/");
-  const ids = [...new Set(files.filter((p) => p.endsWith("/status.json")).map((p) => p.split("/")[1]))].sort().reverse();
-  const latest = ids[0] ? await readStatus(ids[0]) : null;
-  const [[episode], newsIndex] = await Promise.all([listEpisodes(1), readNewsIndex()]);
+  // Each part loads on its own: one failing (storage hiccup, odd file) shows its error in its card instead of breaking the page.
+  const problems: string[] = [];
+  const safe = async <T,>(what: string, f: () => Promise<T>, fallback: T): Promise<T> => {
+    try {
+      return await f();
+    } catch (e) {
+      problems.push(`${what}: ${e instanceof Error ? e.message : String(e)}`);
+      return fallback;
+    }
+  };
+  const [latest, [episode], newsIndex] = await Promise.all([
+    safe("Latest run", async () => {
+      // The newest folder may be a run that's still being created; take the newest with a status.
+      for (const id of (await listRunIds()).slice(0, 5)) {
+        const s = await readStatus(id);
+        if (s) return s;
+      }
+      return null;
+    }, null),
+    safe("Latest episode", () => listEpisodes(1), []),
+    safe("News data", () => readNewsIndex(), { days: [] } as Awaited<ReturnType<typeof readNewsIndex>>),
+  ]);
   const missing = missingEnv();
   const feedbackOn = feedbackConfigured();
 
@@ -32,6 +50,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
     <main className="console">
       <h1>Overview</h1>
       {missing.length > 0 && <p className="panel notice">Missing environment variables: {missing.join(", ")}</p>}
+      {problems.map((p) => <p key={p} className="panel notice bad">Couldn&apos;t load {p}</p>)}
 
       <div className="cards">
         <section className="card">
