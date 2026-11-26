@@ -1,5 +1,5 @@
 import { config } from "@/lib/config";
-import { getJson, listPaths, paths } from "@/lib/storage";
+import { getJson, listRunIds, paths } from "@/lib/storage";
 import type { EpisodeScript } from "@/lib/types";
 import { impls, type Methods } from "@/stages/registry";
 import { VOICE_TEST_PATH, type VoiceTest } from "@/audio/voice-test";
@@ -10,9 +10,8 @@ export const dynamic = "force-dynamic";
 
 /** A story segment from the most recent script, so voices are judged on real copy. */
 async function sampleText(): Promise<string | null> {
-  const ids = [...new Set((await listPaths("runs/")).filter((p) => p.endsWith("/script.json")).map((p) => p.split("/")[1]))].sort().reverse();
-  for (const id of ids.slice(0, 5)) {
-    const script = await getJson<EpisodeScript>(paths.stage(id, "script"));
+  for (const id of (await listRunIds()).slice(0, 15)) {
+    const script = await getJson<EpisodeScript>(paths.stage(id, "script")).catch(() => null);
     const story = script?.segments.find((s) => s.kind === "story");
     if (story) return story.text;
   }
