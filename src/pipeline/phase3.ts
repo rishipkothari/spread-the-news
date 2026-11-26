@@ -6,11 +6,12 @@ import { getBytes, getJson, paths, putBytes, putJson, sizeOf } from "@/lib/stora
 import type { Episode, EpisodeChapter, EpisodePlan, EpisodeScript, Segment } from "@/lib/types";
 import { impls, type Methods } from "@/stages/registry";
 import { stageUsage } from "./phase1";
+import { readSpoken } from "./speak";
 import { appendUsage, readStatus, updateStatus } from "./status";
 
 /**
  * Phase 3 audio, on a run with a script:
- *   planVoiceUnits → runVoiceUnit × segment (voice once per audioKey; cached in audio/{audioKey}.mp3; runs/{id}/voice/{segmentId}.json)
+ *   (speak: the spoken text, src/pipeline/speak.ts) → planVoiceUnits → runVoiceUnit × segment (voice once per audioKey; cached in audio/{audioKey}.mp3; runs/{id}/voice/{segmentId}.json)
  *   → mergeVoice (runs/{id}/voice.json; fails the stage when too little could be voiced)
  *   → assembleEpisode (join in script order with pauses → episodes/{id}.mp3 + manifest; runs/{id}/assemble.json).
  */
@@ -88,6 +89,12 @@ function titleOf(seg: Segment, titles: Map<string, string>): string {
   return seg.kind === "story" ? titles.get(seg.storyId ?? "") ?? seg.storyId ?? seg.id : TEMPLATE_TITLES[seg.kind] ?? seg.kind;
 }
 
+/** The text the voice reads: the spoken version when the speak stage made one for this exact segment text, else the display text. */
+async function spokenText(runId: string, seg: Segment): Promise<string> {
+  const spoken = (await readSpoken(runId))?.segments.find((x) => x.segmentId === seg.id);
+  return spoken && spoken.text === seg.text && spoken.spoken.trim() ? spoken.spoken : seg.text;
+}
+
 export async function planVoiceUnits(runId: string): Promise<string[]> {
   const script = await need<EpisodeScript>(paths.stage(runId, "script"), "script; write the script first");
   if (!script.segments.length) throw new AudioPolicyError("the script has no segments (no story passed the checker), so there is nothing to voice");
@@ -111,7 +118,8 @@ export async function runVoiceUnit(runId: string, segmentId: string): Promise<vo
   ]);
   const seg = script.segments.find((s) => s.id === segmentId);
   if (!seg) throw new Error(`segment ${segmentId} is not in the script of run ${runId}`);
-  const key = audioKey(seg.text, plan.voice, plan.provider, plan.format);
+  const text = await spokenText(runId, seg);
+  const key = audioKey(text, plan.voice, plan.provider, plan.format);
   const unit: VoiceUnit = { segmentId, kind: seg.kind, storyId: seg.storyId, title: titleOf(seg, titles), audioKey: key, ms: 0 };
   try {
     const path = paths.audio(key);
@@ -122,7 +130,7 @@ export async function runVoiceUnit(runId: string, segmentId: string): Promise<vo
       unit.cached = true;
     }
     if (!mp3) {
-      mp3 = await impls.tts(m).synthesize(seg.text, plan.voice);
+      mp3 = await impls.tts(m).synthesize(text, plan.voice);
       await putBytes(path, mp3, "audio/mpeg");
       unit.cached = false;
     }

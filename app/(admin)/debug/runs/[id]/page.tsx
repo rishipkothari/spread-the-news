@@ -30,6 +30,7 @@ const STAGE_INFO: Record<StageId, string> = {
   synthesize: "per-story comparison (Sonnet)",
   plan: "pick and order stories, word budgets",
   script: "write + fact-check each story (Sonnet)",
+  speak: "spoken text: fix words the voice says wrong (rules + Sonnet)",
   voice: "read each segment aloud (text-to-speech)",
   assemble: "join segments into the episode MP3",
 };
@@ -304,7 +305,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                 );
               }
               if (stage === "script" && (st?.state ?? "skipped") !== "skipped") view = <Link href={`/debug/runs/${id}/script`}>Script →</Link>;
-              if (stage === "voice" && status.stages.script?.state === "done") {
+              if (stage === "speak" && status.stages.script?.state === "done") {
                 action = (
                   <form action={audioAction}>
                     <input type="hidden" name="runId" value={id} />
@@ -314,8 +315,9 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                   </form>
                 );
               }
+              if (stage === "speak" && st?.state === "done") view = <Link href={`/debug/runs/${id}/script#spoken`}>Changes →</Link>;
               if (stage === "assemble" && assembled) view = <Link href={`/player/${assembled.episodeId}`}>Play →</Link>;
-              const groupHeader = stage === "sources" ? "Discovery" : stage === "extract" ? "Phase 1: analysis (top stories)" : stage === "plan" ? "Phase 2: script" : stage === "voice" ? "Phase 3: audio" : null;
+              const groupHeader = stage === "sources" ? "Discovery" : stage === "extract" ? "Phase 1: analysis (top stories)" : stage === "plan" ? "Phase 2: script" : stage === "speak" ? "Phase 3: audio" : null;
               return (
                 <Fragment key={stage}>
                   {groupHeader && <tr><td colSpan={7} style={{ fontWeight: 600, background: "var(--bg)" }}>{groupHeader}</td></tr>}

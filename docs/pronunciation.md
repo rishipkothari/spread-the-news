@@ -1,6 +1,6 @@
 # Pronunciation (spoken script)
 
-Agreed with the user on 2026-11-25. Status: listening test taken 2026-11-26 (results below; raw report `docs/reviews/2026-11-26-pronunciation-test-v1.md`); spoken script planned, not built.
+Agreed with the user on 2026-11-25. Status: listening test taken 2026-11-26 (results below; raw report `docs/reviews/2026-11-26-pronunciation-test-v1.md`); spoken script built 2026-11-26 (`speak` stage, below).
 
 ## Goal
 
@@ -9,7 +9,7 @@ The voice must say every word the way a careful human newsreader would, with no 
 - **display text**: what the site shows (the checked script, unchanged);
 - **spoken text**: what the voice reads. Same words and order; only respellings, written-out numbers and symbols, and punctuation change.
 
-A Claude pass after the checker writes the spoken text for the whole episode at once (so a name is respelled the same way everywhere). Audio is keyed on the spoken text. Fixed lines (intro, rundown, outro) carry our intended reading, because intent can't be inferred (the intro's "we read across the spectrum" is meant as "reed", present tense; the voice already reads it that way). This is a safety net that stays useful if we move to a better paid voice later.
+A pass over the whole episode at once (so a name is respelled the same way everywhere) writes the spoken text. Audio is keyed on the spoken text. Fixed lines (welcome, outro) get code rules only, because intent can't be inferred (the intro's "we read across the spectrum" is meant as "reed", present tense; the voice already reads it that way). This is a safety net that stays useful if we move to a better paid voice later.
 
 ## What the pass must catch
 
@@ -82,9 +82,18 @@ Out of reach for text fixes: contrastive emphasis ("*she* voted no"). That needs
 
 Usability: the note box of "Send to Claude" was cut off on a narrow phone (fixed 2026-11-26: on phones it sits at the top of the screen).
 
+## How it's built (2026-11-26)
+
+`speak` is the first stage of "Make audio" (so any older script gets it too). `src/audio/spoken.ts`:
+1. **Code rules** on every segment: degrees, mph, km/h, bps, % written out; `$1.2B` / `$3 billion` → "1.2 billion dollars"; time zones after a time → "Eastern"…; Jan./Feb./Aug./Sept./Oct./Nov./Dec. before a day; Sen./Rep./Gov./Gen./Lt./Lt. Gov./Atty. Gen. before a name; party labels ("R-Texas", "D-Calif.") → "Republican of Texas"; WHO → W.H.O.; accents stripped.
+2. **One Sonnet call** (`src/stages/speak/sonnet-spoken-v1.ts`, `SPEAK_SYSTEM`) over the story and rundown segments, returning find/replace edits for heteronyms, stress, likely-wrong names, initialisms that look like words, all-caps emphasis and garden-path commas.
+3. **Code checks** refuse an edit with markup, capitals inside a respelling, a long or growing replacement, or one that changes a word from the "leave alone" list (`LEAVE_ALONE`: US, NATO, AT&T, xAI, Kyiv, Roe v. Wade…). Refused edits are kept and shown.
+
+Results: `runs/{id}/speak.json`; the script page lists every change ("What the voice reads differently"). `methods.speak` switches it: `sonnet-spoken-v1`, `rules-only`, `none`.
+
 ## Next: listening test v2 (short)
 
-Only the open cases: "1.2 billion dollars" vs "one point two billion dollars"; lowercase respellings for names that failed with capitals (Sheinbaum "shane-bowm", Erdoğan "air-doh-ahn") so we know whether lowercase is safe; cadence of "King Charles the Third, met"; a few more heteronyms (live, wind, tear, close, minute) and stress pairs (object, contract, protest, increase) as written vs a lowercase respelling.
+Agreed 2026-11-26: not a separate test; check these in the first episode made with the spoken pass. Open cases: "1.2 billion dollars" vs "one point two billion dollars"; lowercase respellings for names that failed with capitals (Sheinbaum "shane-bowm", Erdoğan "air-doh-ahn") so we know whether lowercase is safe; cadence of "King Charles the Third, met"; a few more heteronyms (live, wind, tear, close, minute) and stress pairs (object, contract, protest, increase) as written vs a lowercase respelling.
 
 ## Open questions (before the test)
 

@@ -5,6 +5,7 @@ import { impls, type Methods } from "@/stages/registry";
 import type { StoryMerge, TimeWindow } from "@/stages/types";
 import { readHistory, updateHistory } from "./history";
 import { assembleEpisode } from "./phase3";
+import { speakScript } from "./speak";
 import type { AnalysisPlan, SynthesizeOut } from "./phase1";
 import { STAGES, type FanoutStage, type StageId } from "./stages";
 import { appendUsage, readStatus, updateStatus } from "./status";
@@ -125,6 +126,11 @@ const runners: Record<Exclude<StageId, FanoutStage>, StageFn> = {
       summary: { stories: plan.stories.length, skipped: plan.skipped.length, order: plan.orderStrategy, plannedMin: +(plan.plannedWords / plan.wordsPerMinute).toFixed(1) },
       usage: [],
     };
+  },
+
+  /** Phase 3: the spoken text the voice reads (src/pipeline/speak.ts). */
+  async speak(runId, m) {
+    return speakScript(runId, m);
   },
 
   /** Phase 3: join the voiced segments into the episode MP3 and manifest (src/pipeline/phase3.ts). */

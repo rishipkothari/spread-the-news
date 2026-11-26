@@ -18,14 +18,14 @@ export type Phase = (typeof PHASES)[number];
 export const PHASE_STAGES: Record<Phase, StageId[]> = {
   analysis: ["extract", "analyze", "synthesize"],
   script: ["plan", "script"],
-  audio: ["voice", "assemble"],
+  audio: ["speak", "voice", "assemble"],
 };
 
 /** Files per phase, relative to runs/{id}/. Directories end in "/" and hold one file per story or segment. */
 const PHASE_FILES: Record<Phase, string[]> = {
   analysis: ["analysis-plan.json", "extract.json", "analyze.json", "synthesize.json", "extract/", "analyze/", "synthesize/"],
   script: ["plan.json", "script.json", "script-review.json", "script/"],
-  audio: ["voice-plan.json", "voice.json", "assemble.json", "voice/"],
+  audio: ["speak.json", "voice-plan.json", "voice.json", "assemble.json", "voice/"],
 };
 
 /** Files edited after a phase finishes (the user's script review): synced back into the active version before it's replaced. */

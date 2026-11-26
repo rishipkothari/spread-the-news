@@ -10,7 +10,9 @@ One entry per work session, newest first: what changed, what we learned, what's 
 
 **Fixed**: the "Send to Claude" note box was cut off on a narrow phone (it hung off the left edge when the button wrapped); on screens up to 640 px it now sits at the top of the screen.
 
-**Next**: agree the spoken-script plan with the user, then build it on its own branch.
+**Built** (same day, plan agreed): the spoken script. New `speak` stage at the start of "Make audio": code rules (`src/audio/spoken.ts`), then one Sonnet call returning find/replace edits (`src/stages/speak/sonnet-spoken-v1.ts`), checked in code (no markup, no capitals inside respellings, words the test showed are read right stay untouched); welcome/outro rules only; Claude failure → rules only. `speak.json` per run (part of the audio version); the voice reads the spoken text; the script page shows "What the voice reads differently". Run page: "Make audio" moved to the speak row, "Changes →" link. Tests: `tests/spoken.test.ts` (15). Checked here: typecheck, 171 tests, `next build`.
+
+**Next**: user makes audio on a scripted run and listens for the listed changes and the open cases.
 
 ## 2026-11-25: pronunciation listening test
 

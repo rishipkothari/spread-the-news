@@ -39,6 +39,6 @@ describe("create run", () => {
     const b = await createRun();
     await startCreatedRun(b.runId, "everything");
     expect(started[1].stages.at(-1)).toBe("assemble");
-    expect(started[1].stages).toHaveLength(12);
+    expect(started[1].stages).toHaveLength(13);
   });
 });

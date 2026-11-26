@@ -72,6 +72,8 @@ export default function ScriptClient(props: {
   initial: ScriptReview;
   running: boolean;
   stageStates: string;
+  /** "What the voice reads differently" (server-rendered SpokenChanges). */
+  spoken?: React.ReactNode;
 }) {
   const { runId, plan, script, units, usage, running } = props;
   const [review, setReview] = useState<ScriptReview>(props.initial);
@@ -173,6 +175,8 @@ export default function ScriptClient(props: {
           {plan.stories.map((s) => <li key={s.storyId}>{s.title} {byId.get(s.storyId) ? (byId.get(s.storyId)!.segment ? "✓ written" : "✗ dropped") : "…"}</li>)}
         </ul>
       )}
+
+      {props.spoken}
 
       <div className="field" style={{ marginTop: 16 }}>
         <b>Overall notes</b>
