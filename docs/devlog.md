@@ -2,6 +2,16 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-26: listening test results
+
+**Read**: feedback issue #16 (pronunciation test v1, 115 of 118 versions marked). Saved as `docs/reviews/2026-11-26-pronunciation-test-v1.md`; findings and a rule per kind in `docs/pronunciation.md`.
+
+**Learned**: every SSML clip failed on the free Edge endpoint (plain text only). Capitals inside respellings get spelled out as letters ("per-FECT", "WUSS-ter"); lowercase real-word respellings work ("pur-fect", "led"). The voice gets most news text right as written (US, NATO, NAACP, Buttigieg, Kyiv, Qatar, 52-48, F-35, 401(k), AT&T, xAI) and our rewrites broke many of them, so the spoken pass must be conservative: fix a short list of known failures (heteronyms like lead, WHO, Sen./R-Texas, units and symbols, ET, $1.2B, diacritics, garden-path commas, caps for emphasis, a few foreign names) and leave everything else. The intro's "read" is meant as "reed", which is what the voice already says.
+
+**Fixed**: the "Send to Claude" note box was cut off on a narrow phone (it hung off the left edge when the button wrapped); on screens up to 640 px it now sits at the top of the screen.
+
+**Next**: agree the spoken-script plan with the user, then build it on its own branch.
+
 ## 2026-11-25: pronunciation listening test
 
 **Built** (branch `listening-test`): "Pronunciation test" on `/debug/voices`. 38 short news lines covering the 20 categories in `docs/pronunciation.md`, each in 2–6 versions: as written, respelling styles (per-FECT / perFECT / pur-fect, U.S. / U S / U-S / you-ess…), written-out forms, and SSML tags (IPA `<phoneme>`, `<sub>`, `<say-as>`, `<break>`, `<emphasis>`) to learn whether the free Edge endpoint honors them. Clips voice on demand or with "Prepare all clips" (3 at a time, cached in `audio/`); a refused tag shows as a failure and goes in the report. Marks and notes stay in the browser until sent. `TTSProvider.synthesizeMarkup` (optional; edge-tts passes the fragment unescaped). Tests: `tests/pronunciation-test.test.ts`.

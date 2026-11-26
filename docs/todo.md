@@ -8,8 +8,9 @@ Phases follow `docs/PRD.md`. Check items off as they're done; add new items wher
 - [x] 2026-11-25: "Send to Claude" built: ranking review, analysis, script, run page (time and cost), "Note to Claude" on `/debug`, and "Flag this moment" in the player (open the full player while listening). Issues labelled `feedback` + `feedback:<area>`; same-thing sends thread as comments. See `docs/architecture.md` "Feedback to Claude".
 - [ ] Before opening pages publicly: hide "Flag this moment" for visitors (the send already refuses anyone without the page password).
 - [x] 2026-11-25 (`listening-test`): pronunciation test on `/debug/voices`: 38 lines over all 20 categories, each in 2–6 versions (as written, respelling styles, IPA phoneme / sub / say-as / break / emphasis tags), ✓/✗ per version, notes, "Prepare all clips", Send to Claude (`feedback:pronunciation`).
-- [ ] **User: listening test** (~10 min, headphones help): `/debug/voices` → "Pronunciation test" → "Prepare all clips" (about a minute) → play each version, mark ✓ / ✗ → Send to Claude.
-- [ ] **Spoken script** (`docs/pronunciation.md`), own branch, after the test results: display and spoken text per segment; intended readings for intro/rundown/outro; audio from spoken text. Touches Phases 2 and 3 and the news data: agree the plan first.
+- [x] 2026-11-26: **listening test v1 taken** (issue #16). Results and the rule per kind in `docs/pronunciation.md`: SSML doesn't work on free Edge; capitals in respellings get spelled out; most text is read right as written, so the pass changes only known failures. Send-to-Claude box fixed on narrow phones.
+- [ ] Short listening test v2 for the open cases (`docs/pronunciation.md` "Next"): only if the user wants it before the spoken-script pass; otherwise fold those checks into the first spoken-script review.
+- [ ] **Spoken script** (`docs/pronunciation.md`), own branch, test results in: display and spoken text per segment; intended readings for intro/rundown/outro; audio from spoken text. Touches Phases 2 and 3 and the news data: agree the plan first.
 
 ## Now: frontend (PRISM News)
 
