@@ -142,10 +142,11 @@ export interface ScriptInput {
   story: { id: string; title: string; category: Category };
   synthesis: StorySynthesis;
   sideOf: Record<string, LeanGroup>; // sourceId → side, for every outlet that covered the story
-  outlets: { name: string; side: LeanGroup }[]; // every source in the run, so names in Phase 1 text can be replaced by sides
-  headlines: { text: string; side: LeanGroup }[]; // covering outlets' own headlines (citable for identities and basic context)
+  nameOf: Record<string, string>; // sourceId → on-air name ("The Guardian"), for every outlet in sideOf
+  headlines: { text: string; side: LeanGroup; outlet?: string }[]; // covering outlets' own headlines (citable for identities and basic context)
   whoIsWho: string[]; // role phrases for people in this story, found in other stories' material today ("Transportation Secretary Sean Duffy")
   coverage: Record<LeanGroup, number>; // covering outlets per side
+  coveringNames?: Record<LeanGroup, string[]>; // their on-air names, per side
   wordBudget: number;
   lead: boolean;
   includeRecently: boolean;

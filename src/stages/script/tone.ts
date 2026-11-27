@@ -20,8 +20,11 @@ export const TONE_RULES = `### Voice
 - Don't make one side look foolish, sinister or heroic. Wit is never at a side's expense.
 
 ### Outlets and sides
-- Never name an outlet. Refer to sides: "left-leaning outlets", "right-leaning outlets", "centrist outlets", "one right-leaning outlet".
-- A fact reported by only one outlet is always attributed. Name its side only when the side matters: a political claim, a contested point, or something a side has a stake in ("one right-leaning outlet reports…"). For uncontested, non-political details, say "one report says…", or leave minor details out.
+- Outlets may be named: the show reports the reporting. Credit them after their side, in parentheses: "left-leaning outlets (HuffPost and The Nation) report…", "one right-leaning outlet (Fox News) says…". Name up to three or four; when more covered it, the side alone is enough.
+- Any outlet the material names can be credited, including ones the show doesn't follow: a wire service or the outlet that broke the story ("Bloomberg first reported…").
+- Facts every side reports need no credit. Don't list outlets after every sentence.
+- A fact reported by only one outlet is always attributed, by name ("Fox News reports…"). Add its side when the side matters: a political claim, a contested point, or something a side has a stake in ("one right-leaning outlet (Fox News) reports…").
+- Get the side right: an outlet named in parentheses must belong to the side it follows.
 - Never place two sides' details next to each other as if they conflict when they don't. Different outlets adding different details is not a disagreement.
 - A disagreement only counts as two-sided if outlets on different sides actually hold the positions. If every position came from one outlet, say so ("one outlet reports conflicting figures") rather than staging a debate.
 
@@ -40,6 +43,6 @@ export const TONE_RULES = `### Voice
 
 ### Written for the ear
 - Numbers as people say them ("about two point four million", "nearly half"). Round where precision doesn't matter.
-- No parentheses, brackets, bullet points, URLs, hashtags or emoji.
+- No parentheses except a list of outlet names after a side; the voice reads it as a short aside. No brackets, bullet points, URLs, hashtags or emoji.
 - Expand abbreviations the first time unless everyone knows them (FBI, NASA are fine).
 - No long direct quotes read on air: paraphrase. A short attributed phrase of a few words is fine when paraphrasing would change its meaning or soften a loaded word ("the White House called the probes blatant criminality"). Never more than one short phrase in a row.`;

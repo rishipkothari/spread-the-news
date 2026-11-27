@@ -2,6 +2,16 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-27: outlets may be named in the script
+
+**Read**: feedback issue #19 (ranking review, run 2026-11-27T1823-ccdf88). The #2 story, "Nvidia chips reach China; Huang and Lutnick face scrutiny", was dropped from the script after three drafts for naming an outlet: Bloomberg, whose scoop the articles credited. Our material replaced only our own 27 outlet names with sides, so "Bloomberg" reached the writer, the AI checker rejected it every time, and no side label fits an outlet we don't follow. Review saved as `docs/reviews/2026-11-27-1823-ranking.md`.
+
+**Decided** (user): outlet names are fine ("reporting the reporting"). Credit them in parentheses after the side, any outlet allowed. Backlog: clickable inline citations on the site.
+
+**Changed**: the material no longer swaps names for sides. It labels facts, positions, headlines, framing and coverage with side plus on-air name ("one right-leaning outlet (Fox News)"; "The Guardian (US)" becomes "The Guardian"). Writer prompt: credit by name in parentheses. Checker prompt: `outlet_named` removed; `attribution` now also covers an outlet named under the wrong side or credited with what it didn't report. Code checks: the outlet-name check is gone. A new wrong-side check covers our own outlets. Parentheses are allowed only around a short list of names. Spoken pass: "(HuffPost, Vox)" is read as ", HuffPost and Vox," (401(k) untouched). Tone guide "Outlets and sides" and "Written for the ear" rewritten, plus an addendum row. Tests updated (outlet names, wrong side, spoken aside). Checked here: typecheck, 172 tests, `next build`.
+
+**Next**: the user rewrites the script for run 2026-11-27T1823 and checks the Nvidia story and how the credits read.
+
 ## 2026-11-26: listening test results
 
 **Read**: feedback issue #16 (pronunciation test v1, 115 of 118 versions marked). Saved as `docs/reviews/2026-11-26-pronunciation-test-v1.md`; findings and a rule per kind in `docs/pronunciation.md`.
