@@ -1,39 +1,58 @@
-import type { CheckIssue, CheckResult, Source } from "@/lib/types";
+import type { CheckIssue, CheckResult, LeanGroup, Source } from "@/lib/types";
+import { leanGroup } from "@/stages/rank/headline-index-v1";
+
+const SIDE_LABEL: Record<LeanGroup, string> = { left: "left-leaning", center: "centrist", right: "right-leaning" };
 
 /**
  * Deterministic checks the runner adds to every checker verdict. Cheap, exact, and they never depend on the LLM noticing.
  */
 
-/**
- * Strings that would name an outlet on air: the full name, plus the name without a leading "The " or a trailing " News"
- * when what remains is still distinctive (two+ words, or an unusual single word like "BBC"/"Breitbart").
- * Single common words ("Hill", "Nation", "Beast") are not used alone: "Capitol Hill" is not an outlet name.
- */
-const COMMON_WORDS = new Set(["hill", "nation", "beast", "wire", "caller", "monitor", "news"]);
-
-export function outletAliases(sources: Pick<Source, "name">[]): string[] {
-  const out = new Set<string>();
-  for (const { name } of sources) {
-    out.add(name);
-    for (const variant of [name.replace(/^The\s+/, ""), name.replace(/\s+News$/, "")]) {
-      if (variant === name) continue;
-      const words = variant.split(/\s+/);
-      if (words.length >= 2 || !COMMON_WORDS.has(variant.toLowerCase())) out.add(variant);
-    }
-  }
-  return [...out];
+/** An outlet's name as said on air: "The Guardian (US)" → "The Guardian", "The Wall Street Journal (News)" → "The Wall Street Journal". */
+export function onAirName(name: string): string {
+  return name.replace(/\s*\([^)]*\)\s*$/, "").trim();
 }
 
-const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/**
+ * The only parentheses the script may use: a list of outlet names after a side ("left-leaning outlets (HuffPost and
+ * The Nation)"). Any outlet counts, followed or not ("one report (Bloomberg)"). Each item is a short capitalized name.
+ */
+const NAME_ITEM = /^(?:[Tt]he\s+)?[A-Z][\w'’.&-]*(?:\s+(?:[A-Z][\w'’.&-]*|of|&))*$/;
+export function isOutletList(inner: string): boolean {
+  const items = inner.trim().split(/\s*,\s*(?:and\s+)?|\s+and\s+/).filter(Boolean);
+  return items.length > 0 && items.length <= 6 && items.every((i) => i.split(/\s+/).length <= 6 && NAME_ITEM.test(i));
+}
 
-export function codeChecks(text: string, sources: Pick<Source, "name">[]): CheckIssue[] {
-  const issues: CheckIssue[] = [];
-  for (const alias of outletAliases(sources)) {
-    const m = text.match(new RegExp(`(^|[^A-Za-z])(${escape(alias)})(?![A-Za-z])`));
-    if (m) issues.push({ kind: "outlet_named", severity: "must_fix", excerpt: m[2], problem: `names an outlet ("${m[2]}"); refer to it by side`, source: "code" });
+const SIDE_WORD: Record<string, LeanGroup> = { "left-leaning": "left", centrist: "center", "right-leaning": "right" };
+
+/** Name forms of our own outlets → side: the on-air name, plus without a leading "The". Outlets we don't follow have no side to check. */
+function sideByName(sources: Pick<Source, "name" | "leanValue">[]): Map<string, LeanGroup> {
+  const out = new Map<string, LeanGroup>();
+  for (const s of sources) {
+    const n = onAirName(s.name);
+    const side = leanGroup(s.leanValue ?? 0);
+    out.set(n.toLowerCase(), side);
+    out.set(n.replace(/^The\s+/, "").toLowerCase(), side);
   }
+  return out;
+}
+
+export function codeChecks(text: string, sources: Pick<Source, "name" | "leanValue">[]): CheckIssue[] {
+  const issues: CheckIssue[] = [];
+  // Naming outlets is fine (docs/decisions.md, 2026-11-27); naming one under the wrong side is not.
+  const sides = sideByName(sources);
+  for (const m of text.matchAll(/\b(left-leaning|centrist|right-leaning)\s+(?:outlets?|ones?|reports?)\s*\(([^()]+)\)/gi)) {
+    const said = SIDE_WORD[m[1].toLowerCase()];
+    for (const item of m[2].split(/\s*,\s*(?:and\s+)?|\s+and\s+/).filter(Boolean)) {
+      const actual = sides.get(item.trim().toLowerCase()) ?? sides.get(item.trim().replace(/^the\s+/i, "").toLowerCase());
+      if (actual && actual !== said) {
+        issues.push({ kind: "attribution", severity: "must_fix", excerpt: m[0], problem: `${item.trim()} is a ${SIDE_LABEL[actual]} outlet, not ${SIDE_LABEL[said]}`, source: "code" });
+      }
+    }
+  }
+  const paren = [...text.matchAll(/\(([^()]*)\)/g)].find((m) => !isOutletList(m[1]));
+  if (paren) issues.push({ kind: "ear", severity: "must_fix", excerpt: paren[0], problem: "parentheses don't work when read aloud (only a list of outlet names may go in parentheses)", source: "code" });
   const ear: [RegExp, string][] = [
-    [/[()[\]]/, "parentheses or brackets don't work when read aloud"],
+    [/[[\]]/, "brackets don't work when read aloud"],
     [/https?:\/\/|www\./i, "web address"],
     [/[#*•]|^\s*-\s/m, "symbol or list formatting"],
   ];

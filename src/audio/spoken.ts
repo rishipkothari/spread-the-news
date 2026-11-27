@@ -1,3 +1,4 @@
+import { isOutletList } from "@/stages/script/checks";
 /**
  * Spoken script (docs/pronunciation.md): what the voice reads, made from the checked script by small edits.
  *
@@ -135,6 +136,15 @@ export function applyRules(text: string): { text: string; edits: SpokenEdit[] } 
       return to;
     });
   }
+  // Outlet credits: "outlets (HuffPost, Vox) report" is read as "outlets, HuffPost and Vox, report". Codes like 401(k) don't match.
+  out = out.replace(/\s+\(([^()]+)\)(?=([\s\S]?))/g, (m, inner: string, next: string) => {
+    if (!isOutletList(inner)) return m;
+    const items = inner.trim().split(/\s*,\s*(?:and\s+)?|\s+and\s+/).filter(Boolean);
+    const list = items.length > 1 ? `${items.slice(0, -1).join(", ")} and ${items.at(-1)}` : items[0];
+    const to = /[.,;:!?]/.test(next) || next === "" ? `, ${list}` : `, ${list},`;
+    note(m.trim(), to.trim(), "aside", "the voice can't read parentheses; an outlet credit becomes a spoken aside");
+    return to;
+  });
   out = out.replace(/[\p{L}\p{M}]+/gu, (w) => {
     if (!/[^\x00-\x7F]/.test(w)) return w;
     const plain = stripAccents(w);

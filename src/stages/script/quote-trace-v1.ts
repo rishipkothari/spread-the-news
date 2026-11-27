@@ -14,18 +14,17 @@ export const CHECK_SYSTEM = `You fact-check and tone-check one story segment for
    - support: the material ids that support it (F3, D1a, H2, W1, FR-right, COV, BG); empty if none;
    - related: when the claim isn't fully supported, the ids of the material closest to it (what the writer should have used), if any;
    - status: "supported" if the material says it; "distorted" if the material says something related but the segment changes its meaning, certainty, numbers, attribution or who holds a position; "unsupported" if the material doesn't say it at all.
-   Plain narration with no factual content ("Here's what happened") is not a claim. Reasonable paraphrase and rounding ("nearly half" for 48%) count as supported. Headlines (H…) and WHO'S WHO lines (W…) support who people are and basic context (a title, a role, what something is), not extra details about events. A single-outlet fact (marked "one … outlet") is supported only if the segment attributes it: by side when the side matters, otherwise "one report says…" is enough.
+   Plain narration with no factual content ("Here's what happened") is not a claim. Reasonable paraphrase and rounding ("nearly half" for 48%) count as supported. Headlines (H…) and WHO'S WHO lines (W…) support who people are and basic context (a title, a role, what something is), not extra details about events. A single-outlet fact (marked "one … outlet") is supported only if the segment attributes it: to that outlet by name, with its side when the side matters. Naming outlets is allowed and expected; an outlet credited with something the material doesn't tie to it is "distorted".
 
 2. Issues. List every problem a listener or editor would object to, each with kind, severity, excerpt (the exact words from the segment), problem, and fix:
    - "unsupported" / "distorted": restate any such claim from step 1 as a must_fix issue.
-   - "outlet_named": the segment names a news outlet. must_fix.
-   - "attribution": a single-outlet fact stated as settled, or a position assigned to the wrong side. must_fix.
+   - "attribution": a single-outlet fact stated as settled, a position assigned to the wrong side, or an outlet named under the wrong side or credited with a position it doesn't hold. must_fix. Naming an outlet correctly is never a problem.
    - "false_contrast": details from different sides placed side by side as if they conflict when they don't ("The left-leaning outlet says… The right-leaning outlet says…" about unrelated details). must_fix if a listener would hear a left/right dispute that isn't there; otherwise minor.
    - "one_sided_dispute": a disagreement presented as two-sided when the material says all positions come from one outlet or one side. must_fix.
    - "missing_side": a DISAGREEMENT THAT MATTERS is left out, or only one of its positions is given, or the positions get unequal care or a hinted winner. must_fix.
    - "coverage_line": the coverage line invents a difference, judges motives, keeps score, isn't backed by the FR lines, or compares sides when the material says only one side covered the story. must_fix.
    - "tone": breaks the tone guide below: opinion in the narrator's voice, loaded words not attributed, wit at a side's expense or on a tragedy, dated slang, stiff newsreader phrasing, an "update" or "as we told you" framing. must_fix if a listener would hear bias or bad taste; minor for style nits.
-   - "ear": hard to follow when heard: parentheses, unexpanded abbreviations, number soup, long direct quotes read aloud. A short attributed phrase of a few words kept to preserve meaning is fine, not an issue. Usually minor; must_fix if it would confuse.
+   - "ear": hard to follow when heard: parentheses other than a short list of outlet names, unexpanded abbreviations, number soup, long direct quotes read aloud. A short attributed phrase of a few words kept to preserve meaning is fine, not an issue. Usually minor; must_fix if it would confuse.
    Don't invent problems. An empty issues list is a good outcome.
 
 The tone guide:
@@ -35,7 +34,7 @@ export const CheckOutput = z.object({
   claims: z.array(z.object({ claim: z.string(), support: z.array(z.string()), related: z.array(z.string()).optional(), status: z.enum(["supported", "unsupported", "distorted"]) })),
   issues: z.array(
     z.object({
-      kind: z.enum(["unsupported", "distorted", "outlet_named", "attribution", "false_contrast", "one_sided_dispute", "missing_side", "coverage_line", "tone", "ear", "other"]),
+      kind: z.enum(["unsupported", "distorted", "attribution", "false_contrast", "one_sided_dispute", "missing_side", "coverage_line", "tone", "ear", "other"]),
       severity: z.enum(["must_fix", "minor"]),
       excerpt: z.string(),
       problem: z.string(),

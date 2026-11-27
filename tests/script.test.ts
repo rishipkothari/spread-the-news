@@ -19,15 +19,15 @@ vi.mock("@/lib/storage", async (orig) => {
 });
 
 // Test writers/checkers alongside the real ones.
-const ALWAYS_NAMES = "story-names-outlet";
+const ALWAYS_WRONG_SIDE = "story-wrong-side";
 vi.mock("@/stages/script", async (orig) => {
   const real = await orig<typeof import("@/stages/script")>();
   const flaky: ScriptWriter = {
     id: "flaky",
     async write(input, revision) {
-      if (input.story.id === ALWAYS_NAMES) return { text: `Breitbart says ${input.synthesis.title}.`, usage: [] };
-      // First draft names an outlet; the rewrite fixes it.
-      return { text: revision ? `Here's the deal: ${input.synthesis.title}.` : `Fox News reports ${input.synthesis.title}.`, usage: [] };
+      if (input.story.id === ALWAYS_WRONG_SIDE) return { text: `Left-leaning outlets (Breitbart) say ${input.synthesis.title}.`, usage: [] };
+      // First draft puts an outlet under the wrong side; the rewrite fixes it.
+      return { text: revision ? `Right-leaning outlets (Fox News) report ${input.synthesis.title}.` : `Left-leaning outlets (Fox News) report ${input.synthesis.title}.`, usage: [] };
     },
   };
   const passAll: ScriptChecker = { id: "pass-all", async check() { return { result: { pass: true, claims: [{ claim: "x", support: ["F1"], status: "supported" }], issues: [], checker: "pass-all" }, usage: [] }; } };
@@ -37,7 +37,8 @@ vi.mock("@/stages/script", async (orig) => {
 const { TONE_RULES } = await import("@/stages/script/tone");
 const { wordBudgetV1, wordBudgets } = await import("@/stages/plan/word-budget-v1");
 const { buildMaterial, describeOutlets } = await import("@/stages/script/material");
-const { codeChecks, outletAliases } = await import("@/stages/script/checks");
+const { codeChecks, isOutletList } = await import("@/stages/script/checks");
+const { applyRules } = await import("@/audio/spoken");
 const { toCheckResult, materialIds, CHECK_SYSTEM } = await import("@/stages/script/quote-trace-v1");
 const { WRITE_SYSTEM, buildWriteUser } = await import("@/stages/script/neutral-v1");
 const { resolveSynthesis, SynthesizeOutput } = await import("@/stages/synthesize/sonnet-synthesis-v1");
@@ -135,11 +136,12 @@ describe("episode planner (word-budget-v1)", () => {
 });
 
 describe("story material", () => {
-  it("never names an outlet and labels sides", () => {
+  it("names outlets with their sides, so the script can credit them", () => {
     const { input } = stopgap();
     const m = buildMaterial(input);
-    for (const alias of outletAliases(sources)) expect(m).not.toContain(alias);
-    expect(m).toMatch(/^COV: covered by/m);
+    expect(Object.values(input.nameOf).some((n) => m.includes(n))).toBe(true);
+    expect(Object.values(input.nameOf).join(" ")).not.toMatch(/\(/); // on-air names: "The Guardian", not "The Guardian (US)"
+    expect(m).toMatch(/^COV: covered by \w+ outlets?: \d+ left-leaning/m);
     expect(m).toMatch(/^F1: /m);
     expect(m).toMatch(/FR-(left|center|right) \[/);
     expect(m).not.toContain("BG:"); // background off by default
@@ -155,6 +157,9 @@ describe("story material", () => {
     const one = { ...input, synthesis: { ...input.synthesis, disputed: [{ claim: "Death toll", positions: [{ position: "12", sourceIds: ["fox"] }, { position: "15", sourceIds: ["fox"] }] }] }, sideOf: { ...input.sideOf, fox: "right" as const } };
     expect(buildMaterial(one)).toContain("same single outlet");
     expect(describeOutlets(["a", "b", "c"], { a: "left", b: "left", c: "center" })).toBe("two left-leaning outlets and one centrist outlet");
+    expect(describeOutlets(["a", "b", "c"], { a: "left", b: "left", c: "center" }, { a: "HuffPost", b: "Vox", c: "NPR" })).toBe(
+      "two left-leaning outlets (HuffPost, Vox) and one centrist outlet (NPR)",
+    );
   });
 
   it("write prompt carries budget and revision problems", () => {
@@ -167,11 +172,21 @@ describe("story material", () => {
 });
 
 describe("code checks", () => {
-  it("catches outlet names but not ordinary words", () => {
-    expect(codeChecks("Fox News reported it.", sources).some((i) => i.kind === "outlet_named")).toBe(true);
-    expect(codeChecks("The BBC said so.", sources).some((i) => i.kind === "outlet_named")).toBe(true);
+  it("allows outlet names, ours or not, and outlet lists in parentheses", () => {
+    expect(codeChecks("Fox News reported it. The BBC said so. Bloomberg first reported the sale.", sources)).toEqual([]);
+    expect(codeChecks("Left-leaning outlets (HuffPost and The Nation) report it, while right-leaning ones (Fox News, Breitbart) stress cost.", sources)).toEqual([]);
+    expect(codeChecks("One centrist outlet (The Hill) and one report (Bloomberg) say so.", sources)).toEqual([]);
     expect(codeChecks("Lawmakers on Capitol Hill and across the nation reacted.", sources)).toEqual([]);
-    expect(outletAliases(sources)).not.toContain("Hill");
+    expect(isOutletList("HuffPost, Vox and The Wall Street Journal")).toBe(true);
+    expect(isOutletList("HR 12")).toBe(false);
+  });
+  it("catches an outlet named under the wrong side", () => {
+    const issues = codeChecks("Left-leaning outlets (HuffPost and Fox News) report it.", sources);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ kind: "attribution", severity: "must_fix" });
+    expect(issues[0].problem).toMatch(/Fox News is a right-leaning outlet, not left-leaning/);
+    expect(codeChecks("One right-leaning outlet (the Hill) says so.", sources)[0].kind).toBe("attribution");
+    expect(codeChecks("Right-leaning outlets (Bloomberg) say so.", sources)).toEqual([]); // not ours: no side to check
   });
   it("catches things that don't work read aloud", () => {
     const kinds = codeChecks('The bill (HR 12) passed. He said "this is the worst bill in a generation of bills".', sources).map((i) => i.problem);
@@ -214,7 +229,7 @@ describe("phase 2 runner", () => {
   function seed(methods: Record<string, string>) {
     store.clear();
     const stories = (fixture.stories as Story[]).map((s, i) => ({ ...s, ranked: true, headlineIndex: 1 - i / 10 }));
-    stories[2] = { ...stories[2], id: ALWAYS_NAMES };
+    stories[2] = { ...stories[2], id: ALWAYS_WRONG_SIDE };
     const bundle: StoryBundle = {
       runId, createdAt: fixture.window.end, window: fixture.window, params: vanillaParams(), methods: {},
       sources, sourceHealth: fixture.sourceHealth as SourceHealth, articles: fixture.articles as Article[], stories,
@@ -242,9 +257,9 @@ describe("phase 2 runner", () => {
     expect(kinds.slice(0, 2)).toEqual(["welcome", "rundown"]);
     expect(kinds.at(-1)).toBe("outro");
     expect(kinds.filter((k) => k === "story").length).toBe(3);
-    expect(script.dropped.map((d) => d.storyId)).toEqual([ALWAYS_NAMES]);
-    expect(script.dropped[0].reason).toMatch(/outlet_named/);
-    for (const s of script.segments) expect(s.text).not.toMatch(/Fox News|Breitbart/);
+    expect(script.dropped.map((d) => d.storyId)).toEqual([ALWAYS_WRONG_SIDE]);
+    expect(script.dropped[0].reason).toMatch(/attribution: Breitbart is a right-leaning outlet/);
+    for (const s of script.segments.filter((x) => x.kind === "story")) expect(s.text).toMatch(/^Right-leaning outlets \(Fox News\)/);
     expect(script.policy.ok).toBe(true);
 
     const unit = store.get(paths.unit(runId, "script", ids[0])) as import("@/pipeline/phase2").ScriptUnit;
@@ -262,7 +277,7 @@ describe("phase 2 runner", () => {
     expect(report).toContain("draft 1 failed");
     expect(report).toContain("## Dropped from this episode (1)");
     expect(report.indexOf("## Dropped from this episode")).toBeLessThan(report.indexOf("## Script"));
-    const dropped = store.get(paths.unit(runId, "script", ALWAYS_NAMES)) as import("@/pipeline/phase2").ScriptUnit;
+    const dropped = store.get(paths.unit(runId, "script", ALWAYS_WRONG_SIDE)) as import("@/pipeline/phase2").ScriptUnit;
     expect(dropped.attempts.length).toBe(config.script.maxAttempts); // full rewrites until the limit, then dropped
     expect(script.dropped[0].reason).toMatch(/failed the check 3 times/);
   });
@@ -277,19 +292,12 @@ describe("phase 2 runner", () => {
   });
 });
 
-describe("outlet scrubbing", () => {
-  it("replaces names in Phase 1 text with sides, leaving ordinary words alone", async () => {
-    const { scrubOutlets } = await import("@/stages/script/material");
-    const outlets = [
-      { name: "The Hill", side: "center" as const },
-      { name: "Fox News", side: "right" as const },
-      { name: "BBC News", side: "center" as const },
-      { name: "Mother Jones", side: "left" as const },
-    ];
-    expect(scrubOutlets("Mother Jones frames it, with the Hill adding floor debate and the BBC's take.", outlets)).toBe(
-      "A left-leaning outlet frames it, with a centrist outlet adding floor debate and a centrist outlet's take.",
-    );
-    expect(scrubOutlets("Fox News and Fox both reported it on Capitol Hill.", outlets)).toBe("A right-leaning outlet and a right-leaning outlet both reported it on Capitol Hill.");
+describe("outlet credits read aloud", () => {
+  it("turns a parenthesized outlet list into a spoken aside, leaving codes like 401(k) alone", () => {
+    expect(applyRules("Left-leaning outlets (HuffPost, Vox) report it.").text).toBe("Left-leaning outlets, HuffPost and Vox, report it.");
+    expect(applyRules("It was reported by one right-leaning outlet (Fox News).").text).toBe("It was reported by one right-leaning outlet, Fox News.");
+    expect(applyRules("Centrist ones (NPR and The Hill), meanwhile, agree.").text).toBe("Centrist ones, NPR and The Hill, meanwhile, agree.");
+    expect(applyRules("Savers moved money into 401(k) plans.").text).toBe("Savers moved money into 401(k) plans.");
   });
 });
 
@@ -321,11 +329,11 @@ describe("phase 2 refinements", () => {
     expect(synthesis.disputed.every((d) => d.significance === "material")).toBe(true);
   });
 
-  it("headlines are citable material, with outlet names replaced", () => {
+  it("headlines are citable material, labelled with side and outlet", () => {
     const { input } = stopgap();
-    const withName = { ...input, headlines: [{ text: "Fox News: Senate passes stopgap", side: "right" as const }, ...input.headlines] };
+    const withName = { ...input, headlines: [{ text: "Senate passes stopgap", side: "right" as const, outlet: "Fox News" }, ...input.headlines] };
     const m = buildMaterial(withName);
-    expect(m).toMatch(/^H1 \[right-leaning\]: A right-leaning outlet: Senate passes stopgap$/m);
+    expect(m).toMatch(/^H1 \[right-leaning, Fox News\]: Senate passes stopgap$/m);
     expect(materialIds(withName).has("H1")).toBe(true);
     expect(input.headlines.length).toBeGreaterThan(0);
   });

@@ -208,6 +208,7 @@ export interface EpisodePlan {
   skipped: { storyId: string; title: string; reason: string }[];
 }
 
+// "outlet_named": no longer raised (outlets may be named since 2026-11-27); kept so older runs still type-check.
 export type CheckIssueKind = "unsupported" | "distorted" | "outlet_named" | "attribution" | "false_contrast" | "one_sided_dispute" | "missing_side" | "coverage_line" | "tone" | "ear" | "length" | "other";
 
 export interface CheckIssue {

@@ -4,7 +4,7 @@ import { getJson, paths, putJson } from "@/lib/storage";
 import type { CheckResult, EpisodePlan, EpisodeScript, LeanGroup, PlannedStory, Segment, Story, StoryBundle, StorySynthesis, TemplateKind } from "@/lib/types";
 import { impls, type Methods } from "@/stages/registry";
 import { leanGroup } from "@/stages/rank/headline-index-v1";
-import { codeChecks, lengthIssue, verdict, wordCount } from "@/stages/script/checks";
+import { codeChecks, lengthIssue, onAirName, verdict, wordCount } from "@/stages/script/checks";
 import { enabledTemplates, templateText } from "@/stages/script/templates";
 import { buildMaterial } from "@/stages/script/material";
 import { extractRoles, runTexts, whoIsWhoFor } from "@/stages/script/whoswho";
@@ -48,7 +48,7 @@ async function methodsOf(runId: string): Promise<Methods> {
   return { ...config.methods, ...(s?.methods ?? {}) } as Methods;
 }
 
-/** Sides and per-side outlet counts for everything that covered the story; outlets are never named downstream. */
+/** Sides, names and per-side counts for every outlet that covered the story. The script may name outlets (docs/decisions.md, 2026-11-27). */
 export function buildScriptInput(story: Story, synthesis: StorySynthesis, bundle: Pick<StoryBundle, "articles" | "sources">, planned: PlannedStory): ScriptInput {
   const sources = new Map(bundle.sources.map((s) => [s.id, s]));
   const articles = new Map(bundle.articles.map((a) => [a.id, a]));
@@ -63,6 +63,10 @@ export function buildScriptInput(story: Story, synthesis: StorySynthesis, bundle
   const covering = new Set(story.articleIds.map((id) => articles.get(id)?.sourceId).filter((x): x is string => !!x));
   const coverage: Record<LeanGroup, number> = { left: 0, center: 0, right: 0 };
   for (const sourceId of covering) coverage[sideOf[sourceId]]++;
+  const nameOf: Record<string, string> = {};
+  for (const id of Object.keys(sideOf)) nameOf[id] = onAirName(sources.get(id)?.name ?? id);
+  const coveringNames: Record<LeanGroup, string[]> = { left: [], center: [], right: [] };
+  for (const sourceId of covering) coveringNames[sideOf[sourceId]].push(nameOf[sourceId]);
   const headlines: ScriptInput["headlines"] = [];
   const seen = new Set<string>();
   for (const id of story.articleIds) {
@@ -70,7 +74,7 @@ export function buildScriptInput(story: Story, synthesis: StorySynthesis, bundle
     const key = a?.title.trim().toLowerCase();
     if (!a || !key || seen.has(key) || headlines.length >= config.script.maxHeadlines) continue;
     seen.add(key);
-    headlines.push({ text: a.title.trim(), side: sideOf[a.sourceId] });
+    headlines.push({ text: a.title.trim(), side: sideOf[a.sourceId], outlet: nameOf[a.sourceId] });
   }
   return {
     story: { id: story.id, title: synthesis.title, category: story.category },
@@ -78,8 +82,9 @@ export function buildScriptInput(story: Story, synthesis: StorySynthesis, bundle
     whoIsWho: [],
     synthesis,
     sideOf,
-    outlets: bundle.sources.map((s) => ({ name: s.name, side: leanGroup(s.leanValue) })),
+    nameOf,
     coverage,
+    coveringNames,
     wordBudget: planned.wordBudget,
     lead: planned.lead,
     includeRecently: config.script.includeRecently,
