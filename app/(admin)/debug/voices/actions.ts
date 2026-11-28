@@ -12,7 +12,7 @@ import { impls, type Methods } from "@/stages/registry";
 
 export async function voiceTestAction(fd: FormData) {
   const voice = String(fd.get("voice") ?? config.audio.voice).trim() || config.audio.voice;
-  const text = String(fd.get("text") ?? "").trim().slice(0, 3000) || "This is Spread the News, where we read across the spectrum so you don't have to.";
+  const text = String(fd.get("text") ?? "").trim().slice(0, 3000) || "This is Prism News, where we read across the spectrum so you don't have to.";
   const tts = impls.tts(config.methods as Methods);
   const result: VoiceTest = { voice, text, provider: tts.id, at: new Date().toISOString() };
   const t0 = Date.now();

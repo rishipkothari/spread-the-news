@@ -3,7 +3,8 @@ import type { TemplateKind } from "@/lib/types";
 
 /**
  * Fixed segments (no LLM), each switchable: welcome (generic show intro), rundown (today's stories), outro.
- * Wording and which ones play live in config/pipeline.json → script.templates / welcome / rundown / outro.
+ * Which ones play: config/pipeline.json → script.templates. Wording: edited on /debug/show (src/show/store.ts), with
+ * config script.welcome / rundown / outro as the default.
  * To be replaced per profile once episodes are customizable.
  */
 export const TEMPLATE_KINDS: TemplateKind[] = ["welcome", "rundown", "outro"];
@@ -22,13 +23,15 @@ export function rundownList(titles: string[], top: number = config.script.rundow
   return `${t.join("; ")}; and more`;
 }
 
-export function templateText(kind: TemplateKind, titles: string[]): string {
-  const text = config.script[kind] ?? "";
+export type TemplateTexts = Partial<Record<TemplateKind, string>>;
+
+export function templateText(kind: TemplateKind, titles: string[], texts: TemplateTexts = {}): string {
+  const text = texts[kind] ?? config.script[kind] ?? "";
   return kind === "rundown" ? text.replace("{stories}", rundownList(titles)) : text;
 }
 
 /** Enabled template kinds in config order, split around the stories. */
-export function enabledTemplates(enabled: string[] = config.script.templates): { before: TemplateKind[]; after: TemplateKind[] } {
-  const on = TEMPLATE_KINDS.filter((k) => enabled.includes(k) && config.script[k]?.trim());
+export function enabledTemplates(enabled: string[] = config.script.templates, texts: TemplateTexts = {}): { before: TemplateKind[]; after: TemplateKind[] } {
+  const on = TEMPLATE_KINDS.filter((k) => enabled.includes(k) && (texts[k] ?? config.script[k])?.trim());
   return { before: on.filter((k) => k !== "outro"), after: on.filter((k) => k === "outro") };
 }

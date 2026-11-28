@@ -2,6 +2,12 @@
 
 One entry per work session, newest first: what changed, what we learned, what's next.
 
+## 2026-11-28: intro page and logo link
+
+**Asked**: a place to redo the intro (the show is PRISM News now, new tagline), and the logo should go to the landing page from everywhere.
+
+**Built**: `/debug/show` ("Intro" in the admin nav). It edits the welcome, rundown (`{stories}`) and sign-off, saved to Blob (`config/show-text.json`, `src/show/store.ts`) with `config/pipeline.json` as the default. "▶" voices a saved line in the episode voice through the episode's audio cache and code rules, so it's already voiced for the next episode. "Use on this run" calls `refreshFixedSegments`: it swaps the fixed lines in an existing script without rewriting stories (no LLM), and then the user re-makes audio. `mergeScript` uses the saved lines. Default lines and the writer/checker prompts now say "Prism News": the listening test showed the voice spells out capitals, so spoken text avoids "PRISM". Admin and site logos link to `/`; the admin header has a "News" link next to the logo (replacing "← Back to site" at the bottom of the sidebar). Test added (174 total). Checked here: typecheck, tests, `next build`.
+
 ## 2026-11-27: outlets may be named in the script
 
 **Read**: feedback issue #19 (ranking review, run 2026-11-27T1823-ccdf88). The #2 story, "Nvidia chips reach China; Huang and Lutnick face scrutiny", was dropped from the script after three drafts for naming an outlet: Bloomberg, whose scoop the articles credited. Our material replaced only our own 27 outlet names with sides, so "Bloomberg" reached the writer, the AI checker rejected it every time, and no side label fits an outlet we don't follow. Review saved as `docs/reviews/2026-11-27-1823-ranking.md`.

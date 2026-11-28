@@ -13,6 +13,11 @@ Phases follow `docs/PRD.md`. Check items off as they're done; add new items wher
 - [ ] **User: first episode with the spoken pass.** On a run with a script press "Re-make audio" (or "Make audio"). Then open the Script page, scroll to "What the voice reads differently", and play the episode listening for those words, plus the open cases ("1.2 billion dollars", lowercase name respellings like "Shane-bowm", "King Charles the Third"). Flag bad ones with "Flag this moment" in the player or "Send to Claude" on the script page.
 - [ ] Measure the speak stage: cost and time per episode (expect a few cents, under a minute).
 
+## Now: show lines (PRISM News)
+
+- [x] 2026-11-28: "Intro" page (`/debug/show`): edit the welcome, rundown and sign-off, hear each in the episode voice, "Use on this run" for an existing script. Default lines renamed to Prism News. Logo goes to the landing page everywhere.
+- [ ] **User: write the new tagline.** Admin → Intro, edit the welcome, Save, press "▶ Welcome" to hear it. Then "Use on this run" on the latest run and "Re-make audio" there.
+
 ## Now: outlet credits in the script
 
 - [x] 2026-11-27 (issue #19): outlets may be named. The material lists each fact's and position's outlets with their side, the writer credits them in parentheses ("left-leaning outlets (HuffPost and Vox) report…"), and outlets we don't follow (Bloomberg, AP) can be credited too. The checker no longer flags names; a code check flags one of ours under the wrong side; the voice reads "(HuffPost, Vox)" as ", HuffPost and Vox,".

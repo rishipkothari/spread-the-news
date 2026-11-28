@@ -23,7 +23,7 @@ export default async function VoicesPage({ searchParams }: { searchParams: Promi
   const tts = impls.tts(config.methods as Methods);
   const [voices, last, sample] = await Promise.all([tts.voices(), getJson<VoiceTest>(VOICE_TEST_PATH), sampleText()]);
   const selected = sp.voice ?? last?.voice ?? config.audio.voice;
-  const text = last?.text ?? sample ?? "This is Spread the News, where we read across the spectrum so you don't have to.";
+  const text = last?.text ?? sample ?? "This is Prism News, where we read across the spectrum so you don't have to.";
   const list = voices.some((v) => v.id === selected) ? voices : [{ id: selected, label: selected, locale: "" }, ...voices];
 
   return (

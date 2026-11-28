@@ -5,7 +5,7 @@ import type { Revision, ScriptInput, ScriptWriter } from "../types";
 import { buildMaterial, materialEntries } from "./material";
 import { TONE_RULES } from "./tone";
 
-export const WRITE_SYSTEM = `You write one story segment for Spread the News, a daily news podcast read aloud by a single nameless narrator. Each episode reads coverage from outlets across the political spectrum and tells the listener what happened, plainly and fairly.
+export const WRITE_SYSTEM = `You write one story segment for Prism News, a daily news podcast read aloud by a single nameless narrator. Each episode reads coverage from outlets across the political spectrum and tells the listener what happened, plainly and fairly.
 
 You receive the STORY MATERIAL for one story: facts checked against the outlets' articles, the disagreements that matter, the outlets' headlines, and how each side of the spectrum framed it. Every factual statement in your segment must come from that material. Never add outside knowledge, even if you are sure it's true: no extra names, numbers, dates, history or context. A fact checker will trace every claim back to the material and reject the segment if anything doesn't match.
 

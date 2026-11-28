@@ -7,7 +7,7 @@ import { verdict } from "./checks";
 import { buildMaterial, materialDisputes } from "./material";
 import { TONE_RULES } from "./tone";
 
-export const CHECK_SYSTEM = `You fact-check and tone-check one story segment for Spread the News, a neutral daily news podcast, before it is read aloud. You receive the STORY MATERIAL (the only facts the segment may use, each with an id) and the SEGMENT.
+export const CHECK_SYSTEM = `You fact-check and tone-check one story segment for Prism News, a neutral daily news podcast, before it is read aloud. You receive the STORY MATERIAL (the only facts the segment may use, each with an id) and the SEGMENT.
 
 1. Claims. Split the segment into its factual claims: every statement of what happened, who did or said what, numbers, dates, causes, and descriptions of how outlets or sides covered it. For each claim give:
    - claim: the claim in a few words;

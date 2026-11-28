@@ -101,7 +101,7 @@ export function Player({ episode, src }: Props) {
   const chapterTitle = current?.title;
   useEffect(() => {
     if (!("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
-    navigator.mediaSession.metadata = new MediaMetadata({ title: chapterTitle ?? episode.title, artist: "Spread the News", album: episode.title });
+    navigator.mediaSession.metadata = new MediaMetadata({ title: chapterTitle ?? episode.title, artist: "PRISM News", album: episode.title });
   }, [chapterTitle, episode.title]);
 
   const onTime = () => {

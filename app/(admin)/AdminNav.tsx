@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { EpisodesIcon, FeedIcon, GridIcon, RunsIcon, WaveIcon } from "../_ui/icons";
+import { EpisodesIcon, FeedIcon, GridIcon, MicIcon, RunsIcon, WaveIcon } from "../_ui/icons";
 
 export const ADMIN_LINKS = [
   { href: "/debug", label: "Overview", Icon: GridIcon, exact: true },
   { href: "/debug/runs", label: "Runs", Icon: RunsIcon },
   { href: "/debug/feeds", label: "Feeds", Icon: FeedIcon },
   { href: "/debug/voices", label: "Voices", Icon: WaveIcon },
+  { href: "/debug/show", label: "Intro", Icon: MicIcon },
   { href: "/player", label: "Episodes", Icon: EpisodesIcon },
 ];
 

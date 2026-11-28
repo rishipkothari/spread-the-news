@@ -43,7 +43,8 @@ const { toCheckResult, materialIds, CHECK_SYSTEM } = await import("@/stages/scri
 const { WRITE_SYSTEM, buildWriteUser } = await import("@/stages/script/neutral-v1");
 const { resolveSynthesis, SynthesizeOutput } = await import("@/stages/synthesize/sonnet-synthesis-v1");
 const { templateText, enabledTemplates, listTitles } = await import("@/stages/script/templates");
-const { buildScriptInput, planScriptUnits, runScriptUnit, mergeScript } = await import("@/pipeline/phase2");
+const { buildScriptInput, planScriptUnits, runScriptUnit, mergeScript, refreshFixedSegments } = await import("@/pipeline/phase2");
+const { loadShowText, saveShowText, SHOW_TEXT_PATH } = await import("@/show/store");
 const { runStage } = await import("@/pipeline/run");
 const { meetsFailurePolicy } = await import("@/pipeline/policy");
 const { buildScriptReport } = await import("@/review/script-report");
@@ -280,6 +281,31 @@ describe("phase 2 runner", () => {
     const dropped = store.get(paths.unit(runId, "script", ALWAYS_WRONG_SIDE)) as import("@/pipeline/phase2").ScriptUnit;
     expect(dropped.attempts.length).toBe(config.script.maxAttempts); // full rewrites until the limit, then dropped
     expect(script.dropped[0].reason).toMatch(/failed the check 3 times/);
+  });
+
+  it("intro lines saved on /debug/show go into new scripts, and into an existing one without touching stories", async () => {
+    seed({ script: "stub", check: "stub" });
+    expect((await loadShowText()).origin).toBe("repo");
+    await runPhase2();
+    const before = store.get(paths.stage(runId, "script")) as import("@/lib/types").EpisodeScript;
+    expect(before.segments[0].text).toBe(config.script.welcome);
+
+    await saveShowText({ welcome: "Welcome to Prism News.", rundown: "Today: {stories}.", outro: "" });
+    expect(await loadShowText()).toMatchObject({ welcome: "Welcome to Prism News.", origin: "blob" });
+    const { changed } = await refreshFixedSegments(runId);
+    expect(changed.sort()).toEqual(["outro", "rundown", "welcome"]);
+    const after = store.get(paths.stage(runId, "script")) as import("@/lib/types").EpisodeScript;
+    expect(after.segments.map((x) => x.kind)).toEqual(["welcome", "rundown", "story", "story", "story", "story"]); // empty sign-off is skipped
+    expect(after.segments[0]).toMatchObject({ text: "Welcome to Prism News.", scriptHash: expect.any(String) });
+    expect(after.segments[1].text).toMatch(/^Today: .+\.$/);
+    expect(after.segments.filter((x) => x.kind === "story")).toEqual(before.segments.filter((x) => x.kind === "story"));
+    expect(after.words).toBeLessThan(before.words);
+    expect((await refreshFixedSegments(runId)).changed).toEqual([]);
+
+    await mergeScript(runId); // a fresh script uses the saved lines too
+    expect((store.get(paths.stage(runId, "script")) as import("@/lib/types").EpisodeScript).segments[0].text).toBe("Welcome to Prism News.");
+    store.set(SHOW_TEXT_PATH, null);
+    expect((await loadShowText()).welcome).toBe(config.script.welcome);
   });
 
   it("stub writer + stub checker: everything passes for free", async () => {
