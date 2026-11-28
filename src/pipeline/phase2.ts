@@ -5,7 +5,8 @@ import type { CheckResult, EpisodePlan, EpisodeScript, LeanGroup, PlannedStory, 
 import { impls, type Methods } from "@/stages/registry";
 import { leanGroup } from "@/stages/rank/headline-index-v1";
 import { codeChecks, lengthIssue, onAirName, verdict, wordCount } from "@/stages/script/checks";
-import { enabledTemplates, templateText } from "@/stages/script/templates";
+import { loadShowText } from "@/show/store";
+import { enabledTemplates, templateText, type TemplateTexts } from "@/stages/script/templates";
 import { buildMaterial } from "@/stages/script/material";
 import { extractRoles, runTexts, whoIsWhoFor } from "@/stages/script/whoswho";
 import type { LlmUsageEntry, Revision, ScriptInput } from "@/stages/types";
@@ -161,22 +162,54 @@ export async function runScriptUnit(runId: string, storyId: string): Promise<voi
   if (unit.segment) await putJson(paths.segment(unit.segment.scriptHash), { ...unit.segment, runId, title: unit.title, createdAt: new Date().toISOString() });
 }
 
+function templateSegment(kind: TemplateKind, titles: string[], texts: TemplateTexts): Segment {
+  const text = templateText(kind, titles, texts);
+  return { id: `seg-${kind}`, kind, text, checkerResult: { pass: true, template: true }, scriptHash: sha(text), words: wordCount(text) };
+}
+
+/**
+ * Put the current welcome / rundown / sign-off (from /debug/show) into an existing script, without rewriting any story.
+ * No LLM calls. The audio has to be re-made afterwards to hear it.
+ */
+export async function refreshFixedSegments(runId: string): Promise<{ changed: TemplateKind[] }> {
+  const [script, plan, show] = await Promise.all([
+    need<EpisodeScript>(paths.stage(runId, "script"), "script; write the script first"),
+    need<EpisodePlan>(paths.stage(runId, "plan"), "episode plan"),
+    loadShowText(),
+  ]);
+  const stories = script.segments.filter((s) => s.kind === "story");
+  if (!stories.length) return { changed: [] };
+  const titleOf = new Map(plan.stories.map((p) => [p.storyId, p.title]));
+  const units = await Promise.all(stories.map((s) => getJson<ScriptUnit>(paths.unit(runId, "script", s.storyId ?? ""))));
+  const titles = stories.map((s, i) => units[i]?.title ?? titleOf.get(s.storyId ?? "") ?? "");
+  const old = new Map(script.segments.filter((s) => s.kind !== "story").map((s) => [s.kind, s.text]));
+  const { before, after } = enabledTemplates(undefined, show);
+  const segments = [...before.map((k) => templateSegment(k, titles, show)), ...stories, ...after.map((k) => templateSegment(k, titles, show))];
+  const changed = [...before, ...after].filter((k) => old.get(k) !== segments.find((s) => s.kind === k)?.text);
+  for (const k of old.keys()) if (k !== "story" && ![...before, ...after].includes(k as TemplateKind)) changed.push(k as TemplateKind);
+  if (!changed.length) return { changed };
+  const words = segments.reduce((a, s) => a + s.words, 0);
+  await putJson(paths.stage(runId, "script"), { ...script, segments, words, estMinutes: +(words / plan.wordsPerMinute).toFixed(1) } satisfies EpisodeScript);
+  await updateStatus(runId, (s) => {
+    if (s.stages.script?.summary) s.stages.script.summary = { ...s.stages.script.summary, words };
+  });
+  return { changed };
+}
+
 export async function mergeScript(runId: string): Promise<void> {
-  const [plan, bundle, status] = await Promise.all([
+  const [plan, bundle, status, show] = await Promise.all([
     need<EpisodePlan>(paths.stage(runId, "plan"), "episode plan"),
     need<StoryBundle>(paths.bundle(runId), "bundle"),
     readStatus(runId),
+    loadShowText(),
   ]);
   const units = (await Promise.all(plan.stories.map((s) => getJson<ScriptUnit>(paths.unit(runId, "script", s.storyId))))).filter((u): u is ScriptUnit => !!u);
   const byId = new Map(units.map((u) => [u.storyId, u]));
   const stories = plan.stories.map((p) => byId.get(p.storyId)?.segment).filter((s): s is Segment => !!s);
   const titles = plan.stories.filter((p) => byId.get(p.storyId)?.segment).map((p) => byId.get(p.storyId)!.title);
 
-  const template = (kind: TemplateKind): Segment => {
-    const text = templateText(kind, titles);
-    return { id: `seg-${kind}`, kind, text, checkerResult: { pass: true, template: true }, scriptHash: sha(text), words: wordCount(text) };
-  };
-  const { before, after } = enabledTemplates();
+  const template = (kind: TemplateKind): Segment => templateSegment(kind, titles, show);
+  const { before, after } = enabledTemplates(undefined, show);
   const segments = stories.length ? [...before.map(template), ...stories, ...after.map(template)] : [];
   const dropped = plan.stories
     .filter((p) => !byId.get(p.storyId)?.segment)

@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="admin">
       <aside className="admin-side">
-        <Link href="/debug" className="admin-brand">
+        <Link href="/" className="admin-brand" aria-label="PRISM News home">
           <img src="/brand/glasses-icon.jpg" alt="" width={30} height={30} />
           <span className="wordmark">PRISM</span>
           <span className="admin-tag">Admin</span>

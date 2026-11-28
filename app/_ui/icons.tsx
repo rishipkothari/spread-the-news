@@ -23,5 +23,6 @@ export const QueueIcon = ({ size, className }: P) => <svg {...base(size)} classN
 export const GridIcon = ({ size, className }: P) => <svg {...base(size)} className={className}><rect x="4" y="4" width="7" height="7" /><rect x="13" y="4" width="7" height="7" /><rect x="4" y="13" width="7" height="7" /><rect x="13" y="13" width="7" height="7" /></svg>;
 export const RunsIcon = ({ size, className }: P) => <svg {...base(size)} className={className}><circle cx="12" cy="12" r="8.5" /><path d="M10 8.5v7l5.5-3.5z" fill="currentColor" stroke="none" /></svg>;
 export const FeedIcon = ({ size, className }: P) => <svg {...base(size)} className={className}><path d="M5 5a14 14 0 0114 14M5 11a8 8 0 018 8" /><circle cx="6" cy="18" r="1.4" fill="currentColor" /></svg>;
+export const MicIcon = ({ size, className }: P) => <svg {...base(size)} className={className}><rect x="9" y="3.5" width="6" height="11" rx="3" /><path d="M6 11.5a6 6 0 0012 0M12 17.5v3M9 20.5h6" /></svg>;
 export const WaveIcon = ({ size, className }: P) => <svg {...base(size)} className={className}><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3" /></svg>;
 export const EpisodesIcon = ({ size, className }: P) => <svg {...base(size)} className={className}><circle cx="12" cy="11" r="3" /><path d="M7 16a7 7 0 1110 0M12 14v6" /></svg>;

@@ -145,9 +145,9 @@
       "rundown",
       "outro"
     ],
-    "welcome": "This is Spread the News, where we read across the spectrum so you don't have to.",
+    "welcome": "This is Prism News, where we read across the spectrum so you don't have to.",
     "rundown": "Here's what's up today: {stories}.",
-    "outro": "That's the news for today. This has been Spread the News. Catch you tomorrow.",
+    "outro": "That's the news for today. This has been Prism News. Catch you tomorrow.",
     "maxAttempts": 3,
     "maxHeadlines": 12,
     "rundownTop": 3

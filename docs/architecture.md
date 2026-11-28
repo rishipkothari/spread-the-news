@@ -74,6 +74,7 @@ segments/{scriptHash}.json    story bank: every kept story segment with its chec
 cache/text/{urlHash}.json     extracted article text (full/partial only)
 config/sources.json           live source list edited on /debug/feeds (overrides the repo file)
 config/sources-changelog.json edits made on /debug/feeds
+config/show-text.json         welcome / rundown / sign-off edited on /debug/show (overrides config script.welcome/rundown/outro)
 admin/discovery/{source}.json last feed-discovery results per source
 ```
 
@@ -94,6 +95,7 @@ Local preview only: `LOCAL_BLOB_DIR=/folder` makes `getJson`/`putJson`/`listPath
 | `/player`, `/player/[id]` | episode list; player (chapters, −15/+15, speed, resume per device, lock-screen controls via Media Session) |
 | `/audio/[...key]` | streams `audio/*.mp3` and `episodes/*.mp3` from private Blob with HTTP Range, ≤ `audio.rangeChunkBytes` per response (`src/audio/range.ts`) |
 | `/debug/voices` | voice test: pick a voice, voice a real story segment, play it; pronunciation test (`src/audio/pronunciation-test.ts`, `voiceClipAction`; markup versions through `TTSProvider.synthesizeMarkup`), sent to Claude as `feedback:pronunciation` |
+| `/debug/show` | "Intro" in the admin nav: edit the welcome, rundown and sign-off (`src/show/store.ts`), hear each in the episode voice (same audio cache), "Use on this run" puts them into an existing script without rewriting stories (`refreshFixedSegments`, free), then "Re-make audio" |
 | `/debug/runs`, `/debug/runs/[id]` | start runs; run status, source health, ranked stories, re-cluster / re-rank |
 | (all `/debug/runs/[id]/*`) | `RunNav`: "← Run" button and tabs between ranking review, analysis, script, episode |
 | `/debug/runs/[id]/review` | verdicts per story, autosaved; "Copy report for Claude" (`src/review/report.ts`) |
